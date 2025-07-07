@@ -46,7 +46,20 @@ export default function VendorDashboard() {
 
   if (!user) return null;
 
+  // Debug vendor approval status
   const isApproved = vendor?.isApproved;
+  
+  // Add debug logging for vendor approval status
+  useEffect(() => {
+    if (vendor) {
+      console.log('Vendor data loaded:', {
+        businessName: vendor.businessName,
+        isApproved: vendor.isApproved,
+        vendorId: vendor.id,
+        approvalStatus: typeof vendor.isApproved
+      });
+    }
+  }, [vendor]);
   const totalDeals = deals?.length || 0;
   const activeDeals = deals?.filter((deal: any) => deal.isActive && deal.isApproved).length || 0;
   const pendingDeals = deals?.filter((deal: any) => !deal.isApproved).length || 0;
@@ -165,8 +178,8 @@ export default function VendorDashboard() {
           </div>
         </div>
 
-        {/* Approval Status */}
-        {vendor && !isApproved && (
+        {/* Approval Status - Only show if vendor exists and is explicitly NOT approved */}
+        {vendor && isApproved === false && (
           <Card className="mb-8 border-warning bg-warning/5">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
@@ -180,6 +193,23 @@ export default function VendorDashboard() {
                   </div>
                 </div>
                 <AlertCircle className="h-8 w-8 text-warning" />
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Approval Success Message - Show for approved vendors */}
+        {vendor && isApproved === true && (
+          <Card className="mb-8 border-success bg-success/5">
+            <CardContent className="p-6">
+              <div className="flex items-center space-x-3">
+                <CheckCircle className="h-6 w-6 text-success" />
+                <div>
+                  <h3 className="font-semibold text-foreground">Account Approved!</h3>
+                  <p className="text-muted-foreground">
+                    Welcome to Instoredealz! Your vendor account is active and you can now create deals.
+                  </p>
+                </div>
               </div>
             </CardContent>
           </Card>

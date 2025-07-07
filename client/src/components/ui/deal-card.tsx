@@ -34,6 +34,7 @@ interface DealCardProps {
     longitude?: number;
   };
   requiredMembership: string;
+  distance?: number;
 
   terms?: string;
   isActive?: boolean;
@@ -59,6 +60,7 @@ export default function DealCard({
   viewCount,
   vendor,
   requiredMembership,
+  distance,
 
   terms,
   isActive = true,
@@ -275,10 +277,10 @@ export default function DealCard({
                 'No Membership Required'
               }
             </Badge>
-            {vendor && (
+            {vendor && distance && (
               <div className="flex items-center text-xs text-gray-500">
                 <MapPin className="h-3 w-3 mr-1" />
-                <span>2.3 km away</span>
+                <span>{distance < 1 ? `${Math.round(distance * 1000)}m` : `${distance.toFixed(1)}km`} away</span>
               </div>
             )}
           </div>
@@ -291,7 +293,10 @@ export default function DealCard({
           {user && !canAccessDeal() ? (
             // Show upgrade button for premium/ultimate deals - these can stay on the card for immediate action
             <Button 
-              onClick={() => navigate('/customer/upgrade')}
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate('/customer/upgrade');
+              }}
               className={`flex-1 ${
                 getSuggestedTier() === 'ultimate' 
                   ? 'bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700' 

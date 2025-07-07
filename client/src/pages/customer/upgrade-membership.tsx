@@ -1,4 +1,11 @@
 import { useState } from "react";
+
+// Declare Razorpay for TypeScript
+declare global {
+  interface Window {
+    Razorpay: any;
+  }
+}
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -142,8 +149,72 @@ export default function UpgradeMembership() {
       return;
     }
 
+    const selectedPlanData = membershipPlans.find(p => p.id === planId);
+    if (!selectedPlanData || selectedPlanData.price === 0) {
+      // Free plan - direct upgrade
+      setSelectedPlan(planId);
+      upgradeMutation.mutate(planId);
+      return;
+    }
+
+    // For paid plans, redirect to payment gateway
     setSelectedPlan(planId);
-    upgradeMutation.mutate(planId);
+    initiatePayment(selectedPlanData);
+  };
+
+  const initiatePayment = (plan: any) => {
+    // Check if Razorpay is loaded
+    if (typeof window.Razorpay === 'undefined') {
+      toast({
+        title: "Payment Gateway Not Available",
+        description: "Please refresh the page and try again.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const options = {
+      key: import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_XXXXXXXXXXXXXXX', // Test key ID
+      amount: plan.price * 100, // Amount in paise
+      currency: 'INR',
+      name: 'Instoredealz',
+      description: `${plan.name} Membership Upgrade`,
+      image: '/logo.png', // Your company logo
+      handler: function (response: any) {
+        // Payment successful
+        toast({
+          title: "Payment Successful!",
+          description: "Processing your membership upgrade...",
+        });
+        
+        // Call backend to verify payment and upgrade membership
+        upgradeMutation.mutate(plan.id);
+      },
+      prefill: {
+        name: user?.name || '',
+        email: user?.email || '',
+        contact: user?.phone || ''
+      },
+      notes: {
+        membershipPlan: plan.id,
+        userId: user?.id
+      },
+      theme: {
+        color: '#3b82f6'
+      },
+      modal: {
+        ondismiss: function() {
+          toast({
+            title: "Payment Cancelled",
+            description: "Your membership upgrade was cancelled.",
+            variant: "destructive",
+          });
+        }
+      }
+    };
+
+    const razorpay = new window.Razorpay(options);
+    razorpay.open();
   };
 
   const getCurrentPlanIndex = () => {

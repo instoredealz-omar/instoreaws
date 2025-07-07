@@ -185,17 +185,41 @@ export default function CustomerDeals() {
     }
   };
 
-  // Filter and sort deals
+  // Filter and sort deals with alphabet-based search
   const filteredDeals = deals?.filter((deal: any) => {
-    const matchesSearch = searchQuery === "" || 
-      deal.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      deal.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      deal.vendor?.businessName.toLowerCase().includes(searchQuery.toLowerCase());
+    if (searchQuery === "") return true;
     
-    return matchesSearch;
+    const query = searchQuery.toLowerCase().trim();
+    
+    // Alphabet-based filtering - check if title starts with the search query
+    const titleStartsWith = deal.title.toLowerCase().startsWith(query);
+    const businessNameStartsWith = deal.vendor?.businessName.toLowerCase().startsWith(query);
+    
+    // Also include partial matches for better UX
+    const titleIncludes = deal.title.toLowerCase().includes(query);
+    const descriptionIncludes = deal.description.toLowerCase().includes(query);
+    const businessNameIncludes = deal.vendor?.businessName.toLowerCase().includes(query);
+    
+    // Prioritize exact alphabet matches, but also include partial matches
+    return titleStartsWith || businessNameStartsWith || titleIncludes || descriptionIncludes || businessNameIncludes;
   }) || [];
 
+  // Sort filtered deals with alphabet-priority ordering
   const sortedDeals = [...filteredDeals].sort((a: any, b: any) => {
+    // If there's a search query, prioritize alphabet matches first
+    if (searchQuery.trim() !== "") {
+      const query = searchQuery.toLowerCase().trim();
+      const aStartsWithTitle = a.title.toLowerCase().startsWith(query);
+      const bStartsWithTitle = b.title.toLowerCase().startsWith(query);
+      const aStartsWithBusiness = a.vendor?.businessName.toLowerCase().startsWith(query);
+      const bStartsWithBusiness = b.vendor?.businessName.toLowerCase().startsWith(query);
+      
+      // Prioritize deals that start with the search query
+      if ((aStartsWithTitle || aStartsWithBusiness) && !(bStartsWithTitle || bStartsWithBusiness)) return -1;
+      if (!(aStartsWithTitle || aStartsWithBusiness) && (bStartsWithTitle || bStartsWithBusiness)) return 1;
+    }
+    
+    // Then apply regular sorting
     switch (sortBy) {
       case "discount":
         return b.discountPercentage - a.discountPercentage;

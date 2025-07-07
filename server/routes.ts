@@ -819,10 +819,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         allClaims: existingClaims.map(c => ({ dealId: c.dealId, status: c.status }))
       });
       
+      // Only block if deal is fully completed (used status)
       if (existingClaim && existingClaim.status === "used") {
         return res.status(400).json({
           success: false,
-          error: "You have already redeemed this deal"
+          error: "You have already fully redeemed this deal"
         });
       }
 
@@ -851,7 +852,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Calculate actual savings based on deal pricing
+      // Calculate potential savings for display (don't update user stats yet)
       let savingsAmount = 0;
       
       if (deal.originalPrice && deal.discountedPrice) {
@@ -867,36 +868,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         savingsAmount = 50;
       }
 
-      // Update the claim to "used" status with actual savings
-      const updatedClaim = await storage.updateDealClaim(currentClaim.id, {
-        status: "used",
-        savingsAmount: savingsAmount.toString(),
-        usedAt: new Date()
-      });
+      // Keep claim as "pending" - don't mark as "used" until bill amount is handled
+      // This allows customers to verify PIN multiple times if they skip bill amount
+      if (currentClaim.status === "pending") {
+        await storage.updateDealClaim(currentClaim.id, {
+          status: "pending", // Keep as pending until bill amount step
+          savingsAmount: savingsAmount.toString()
+        });
+      }
 
-      // NOW update user's total savings and deals claimed count (only after PIN verification)
-      const user = await storage.getUser(userId);
-      const currentTotalSavings = parseFloat(user?.totalSavings || "0");
-      const newTotalSavings = currentTotalSavings + savingsAmount;
-      const newDealsClaimedCount = (user?.dealsClaimed || 0) + 1;
+      // DON'T update user totals or deal counts yet - wait for bill amount completion
 
-      await storage.updateUser(userId, {
-        totalSavings: newTotalSavings.toString(),
-        dealsClaimed: newDealsClaimedCount,
-      });
-
-      // Update deal redemption count
-      await storage.incrementDealRedemptions(dealId);
-
-      // Log the successful redemption
+      // Log the PIN verification (not full redemption yet)
       await storage.createSystemLog({
         userId,
-        action: "DEAL_REDEEMED_PIN",
+        action: "DEAL_PIN_VERIFIED",
         details: {
           dealId,
           dealTitle: deal.title,
-          savingsAmount,
-          newTotalSavings,
+          claimStatus: "pending",
           timestamp: new Date().toISOString()
         },
         ipAddress: req.ip,
@@ -905,11 +895,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json({
         success: true,
-        message: "Deal successfully redeemed!",
+        message: "PIN verified successfully! Please add your bill amount to complete the redemption.",
         savingsAmount: savingsAmount,
-        newTotalSavings: newTotalSavings,
-        dealsClaimedCount: newDealsClaimedCount,
-        claim: updatedClaim
+        claimId: currentClaim.id,
+        status: "pending",
+        dealTitle: deal.title,
+        discountPercentage: deal.discountPercentage
       });
 
     } catch (error) {
