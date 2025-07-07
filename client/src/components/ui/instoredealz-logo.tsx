@@ -28,15 +28,44 @@ export default function InstoredeelzLogo({
     </div>
   );
 
-  const LogoText = () => (
-    <div className={`relative overflow-hidden ${size === 'sm' ? 'w-20' : size === 'lg' ? 'w-48' : size === 'xl' ? 'w-64' : 'w-32'}`}>
-      <div className="animate-scroll-text whitespace-nowrap">
-        <span className={`font-bold tracking-wide bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent ${size === 'sm' ? 'text-sm' : size === 'lg' ? 'text-2xl' : size === 'xl' ? 'text-3xl' : 'text-lg'}`}>
-          instoredealz&nbsp;&nbsp;•&nbsp;&nbsp;instoredealz&nbsp;&nbsp;•&nbsp;&nbsp;instoredealz&nbsp;&nbsp;•&nbsp;&nbsp;instoredealz&nbsp;&nbsp;•&nbsp;&nbsp;
+  const LogoText = () => {
+    const coloredText = "instoredealz".split("").map((letter, index) => {
+      const colors = [
+        "text-red-500 dark:text-red-400",
+        "text-orange-500 dark:text-orange-400", 
+        "text-yellow-500 dark:text-yellow-400",
+        "text-green-500 dark:text-green-400",
+        "text-blue-500 dark:text-blue-400",
+        "text-indigo-500 dark:text-indigo-400",
+        "text-purple-500 dark:text-purple-400",
+        "text-pink-500 dark:text-pink-400",
+        "text-cyan-500 dark:text-cyan-400",
+        "text-emerald-500 dark:text-emerald-400",
+        "text-violet-500 dark:text-violet-400",
+        "text-rose-500 dark:text-rose-400"
+      ];
+      return (
+        <span key={`${letter}-${index}`} className={`${colors[index % colors.length]} font-bold tracking-wide ${size === 'sm' ? 'text-sm' : size === 'lg' ? 'text-2xl' : size === 'xl' ? 'text-3xl' : 'text-lg'}`}>
+          {letter}
         </span>
+      );
+    });
+
+    return (
+      <div className={`relative overflow-hidden ${size === 'sm' ? 'w-20' : size === 'lg' ? 'w-48' : size === 'xl' ? 'w-64' : 'w-32'}`}>
+        <div className="animate-scroll-text whitespace-nowrap">
+          {coloredText}&nbsp;&nbsp;
+          <span className="text-gray-400 dark:text-gray-500">•</span>&nbsp;&nbsp;
+          {coloredText}&nbsp;&nbsp;
+          <span className="text-gray-400 dark:text-gray-500">•</span>&nbsp;&nbsp;
+          {coloredText}&nbsp;&nbsp;
+          <span className="text-gray-400 dark:text-gray-500">•</span>&nbsp;&nbsp;
+          {coloredText}&nbsp;&nbsp;
+          <span className="text-gray-400 dark:text-gray-500">•</span>&nbsp;&nbsp;
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   if (variant === "icon") {
     return <LogoIcon />;
