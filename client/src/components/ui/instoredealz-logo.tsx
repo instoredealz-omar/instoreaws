@@ -31,18 +31,8 @@ export default function InstoredeelzLogo({
   const LogoText = () => {
     const coloredText = "instoredealz".split("").map((letter, index) => {
       const colors = [
-        "text-red-500 dark:text-red-400",
-        "text-orange-500 dark:text-orange-400", 
-        "text-yellow-500 dark:text-yellow-400",
-        "text-green-500 dark:text-green-400",
-        "text-blue-500 dark:text-blue-400",
-        "text-indigo-500 dark:text-indigo-400",
-        "text-purple-500 dark:text-purple-400",
-        "text-pink-500 dark:text-pink-400",
-        "text-cyan-500 dark:text-cyan-400",
-        "text-emerald-500 dark:text-emerald-400",
-        "text-violet-500 dark:text-violet-400",
-        "text-rose-500 dark:text-rose-400"
+        "text-blue-600 dark:text-blue-400",
+        "text-yellow-500 dark:text-yellow-400"
       ];
       return (
         <span key={`${letter}-${index}`} className={`${colors[index % colors.length]} font-bold tracking-wide ${size === 'sm' ? 'text-sm' : size === 'lg' ? 'text-2xl' : size === 'xl' ? 'text-3xl' : 'text-lg'}`}>
