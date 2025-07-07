@@ -105,7 +105,7 @@ export default function Navbar({ selectedCity, onCityChange }: NavbarProps) {
           {/* Logo */}
           <div className="flex items-center space-x-8">
             <div className="flex-shrink-0">
-              <Link to="/">
+              <Link to="/" onClick={() => window.scrollTo({ top: 0, left: 0, behavior: 'smooth' })}>
                 <InstoredeelzLogo size="md" className="cursor-pointer" />
               </Link>
             </div>
@@ -118,6 +118,7 @@ export default function Navbar({ selectedCity, onCityChange }: NavbarProps) {
                   <Link
                     key={item.href}
                     to={item.href}
+                    onClick={() => window.scrollTo({ top: 0, left: 0, behavior: 'smooth' })}
                     className={`flex items-center space-x-1 text-foreground hover:text-primary transition-colors ${
                       location === item.href ? "text-primary font-medium" : ""
                     }`}
@@ -178,7 +179,7 @@ export default function Navbar({ selectedCity, onCityChange }: NavbarProps) {
                   </div>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
-                    <Link to={getDashboardLink()} className="flex items-center">
+                    <Link to={getDashboardLink()} className="flex items-center" onClick={() => window.scrollTo({ top: 0, left: 0, behavior: 'smooth' })}>
                       <User className="mr-2 h-4 w-4" />
                       Dashboard
                     </Link>
@@ -193,10 +194,10 @@ export default function Navbar({ selectedCity, onCityChange }: NavbarProps) {
             ) : (
               <div className="hidden md:flex items-center space-x-2">
                 <Button variant="outline" asChild>
-                  <Link to="/login">Login</Link>
+                  <Link to="/login" onClick={() => window.scrollTo({ top: 0, left: 0, behavior: 'smooth' })}>Login</Link>
                 </Button>
                 <Button asChild>
-                  <Link to="/signup">Sign Up</Link>
+                  <Link to="/signup" onClick={() => window.scrollTo({ top: 0, left: 0, behavior: 'smooth' })}>Sign Up</Link>
                 </Button>
               </div>
             )}
@@ -224,7 +225,11 @@ export default function Navbar({ selectedCity, onCityChange }: NavbarProps) {
                         <Link
                           key={item.href}
                           href={item.href}
-                          onClick={() => setIsMenuOpen(false)}
+                          onClick={() => {
+                            setIsMenuOpen(false);
+                            // Scroll to top when navigating
+                            window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+                          }}
                           className={`flex items-center space-x-4 p-3 rounded-lg hover:bg-muted/50 transition-colors ${
                             location === item.href ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground"
                           }`}
@@ -243,14 +248,20 @@ export default function Navbar({ selectedCity, onCityChange }: NavbarProps) {
                         variant="outline" 
                         className="w-full" 
                         asChild
-                        onClick={() => setIsMenuOpen(false)}
+                        onClick={() => {
+                          setIsMenuOpen(false);
+                          window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+                        }}
                       >
                         <Link to="/login">Login</Link>
                       </Button>
                       <Button 
                         className="w-full" 
                         asChild
-                        onClick={() => setIsMenuOpen(false)}
+                        onClick={() => {
+                          setIsMenuOpen(false);
+                          window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+                        }}
                       >
                         <Link to="/signup">Sign Up</Link>
                       </Button>

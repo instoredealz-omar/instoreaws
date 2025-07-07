@@ -6,6 +6,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/theme-provider";
 import { useAuth } from "./lib/auth";
+import { ScrollToTop } from "@/components/scroll-to-top";
 
 // Import pages
 import Home from "@/pages/shared/home";
@@ -417,6 +418,7 @@ function App() {
     <ThemeProvider defaultTheme="system" storageKey="instoredealz-ui-theme">
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
+          <ScrollToTop />
           <Router />
           <Toaster />
         </TooltipProvider>
