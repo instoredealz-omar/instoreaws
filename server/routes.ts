@@ -852,21 +852,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Calculate potential savings for display (don't update user stats yet)
+      // Calculate potential savings for display only if deal has fixed pricing
       let savingsAmount = 0;
       
       if (deal.originalPrice && deal.discountedPrice) {
         const originalPrice = parseFloat(deal.originalPrice);
         const discountedPrice = parseFloat(deal.discountedPrice);
         savingsAmount = originalPrice - discountedPrice;
-      } else if (deal.discountPercentage) {
-        // For percentage-based deals, calculate based on typical purchase amount
-        const typicalPurchaseAmount = 1000; // ₹1000 as baseline
-        savingsAmount = (typicalPurchaseAmount * deal.discountPercentage) / 100;
-      } else {
-        // Default minimal savings if no pricing info available
-        savingsAmount = 50;
       }
+      // For percentage-based deals, savings will only be calculated when bill amount is provided
 
       // Keep claim as "pending" - don't mark as "used" until bill amount is handled
       // This allows customers to verify PIN multiple times if they skip bill amount

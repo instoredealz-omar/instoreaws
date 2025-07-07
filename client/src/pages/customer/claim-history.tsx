@@ -313,7 +313,7 @@ export default function ClaimHistory() {
                       {/* Savings and Status */}
                       <div className="text-right flex-shrink-0 ml-4">
                         <div className="mb-2">
-                          {claim.actualSavings && claim.billAmount ? (
+                          {claim.actualSavings && parseFloat(claim.actualSavings) > 0 ? (
                             <div>
                               <p className="text-lg font-bold text-success">
                                 Actual Saved ₹{parseFloat(claim.actualSavings).toLocaleString('en-IN')}
@@ -322,9 +322,13 @@ export default function ClaimHistory() {
                                 Bill: ₹{parseFloat(claim.billAmount).toLocaleString('en-IN')}
                               </p>
                             </div>
-                          ) : (
+                          ) : claim.savingsAmount && parseFloat(claim.savingsAmount) > 0 ? (
                             <p className="text-lg font-bold text-success">
                               Saved ₹{parseFloat(claim.savingsAmount).toLocaleString('en-IN')}
+                            </p>
+                          ) : (
+                            <p className="text-lg font-bold text-orange-600">
+                              Add Bill Amount
                             </p>
                           )}
                         </div>

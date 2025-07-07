@@ -222,7 +222,13 @@ export default function CustomerDashboard() {
                       </div>
                       <div className="text-right">
                         <p className="font-semibold text-success">
-                          Saved ₹{parseFloat(claim.actualSavings || claim.savingsAmount).toLocaleString('en-IN')}
+                          {claim.actualSavings && parseFloat(claim.actualSavings) > 0 ? (
+                            `Saved ₹${parseFloat(claim.actualSavings).toLocaleString('en-IN')}`
+                          ) : claim.savingsAmount && parseFloat(claim.savingsAmount) > 0 ? (
+                            `Saved ₹${parseFloat(claim.savingsAmount).toLocaleString('en-IN')}`
+                          ) : (
+                            'Add bill amount'
+                          )}
                         </p>
                         <Badge 
                           variant={claim.status === "used" ? "default" : "secondary"}
