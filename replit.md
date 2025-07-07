@@ -169,8 +169,9 @@ Preferred communication style: Simple, everyday language.
 
 ### July 7, 2025 - Enhanced Logo Design with Rainbow Scrolling Animation & Mobile Dashboard Optimization
 - **Round Logo with Gradient Border**: Transformed logo into perfectly round design with blue-to-purple gradient border and shadow effect
-- **Blue and Gold Scrolling Text Animation**: Added elegant scrolling ribbon with alternating blue and gold colors for each letter of "instoredealz"
-- **Theme-Aware Blue and Gold Colors**: Implemented blue (text-blue-600/text-blue-400) and gold (text-yellow-500/text-yellow-400) alternating pattern with proper dark theme variants for optimal visibility
+- **Blue and Gold Scrolling Text Animation**: Added elegant scrolling ribbon with "instore" in blue and "dealz" in gold with 3D shadow effects
+- **3D Text Effects**: Implemented multi-layered text shadows for both blue and gold text creating depth and dimension
+- **Theme-Aware Blue and Gold Colors**: Blue text (text-blue-500/text-blue-400) matches logo gradient, gold text (text-yellow-500/text-yellow-400) with enhanced 3D shadows for both light and dark themes
 - **Smooth Animation with Pause on Hover**: 12-second infinite scroll animation that pauses when users hover over the logo for better interaction
 - **Responsive Logo Sizing**: Optimized logo dimensions for different screen sizes (sm: 20px width, md: 32px, lg: 48px, xl: 64px) with proportional text sizing
 - **Professional Typography**: Enhanced with proper letter spacing, font weights, and gradient separators between repeated text instances

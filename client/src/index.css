@@ -46,6 +46,39 @@
   animation-play-state: paused;
 }
 
+/* 3D text effects for logo */
+.text-3d-blue {
+  text-shadow: 
+    1px 1px 0 rgba(59, 130, 246, 0.8),
+    2px 2px 0 rgba(59, 130, 246, 0.6),
+    3px 3px 0 rgba(59, 130, 246, 0.4),
+    4px 4px 6px rgba(0, 0, 0, 0.3);
+}
+
+.text-3d-gold {
+  text-shadow: 
+    1px 1px 0 rgba(245, 158, 11, 0.8),
+    2px 2px 0 rgba(245, 158, 11, 0.6),
+    3px 3px 0 rgba(245, 158, 11, 0.4),
+    4px 4px 6px rgba(0, 0, 0, 0.3);
+}
+
+.dark .text-3d-blue {
+  text-shadow: 
+    1px 1px 0 rgba(96, 165, 250, 0.8),
+    2px 2px 0 rgba(96, 165, 250, 0.6),
+    3px 3px 0 rgba(96, 165, 250, 0.4),
+    4px 4px 6px rgba(0, 0, 0, 0.5);
+}
+
+.dark .text-3d-gold {
+  text-shadow: 
+    1px 1px 0 rgba(251, 191, 36, 0.8),
+    2px 2px 0 rgba(251, 191, 36, 0.6),
+    3px 3px 0 rgba(251, 191, 36, 0.4),
+    4px 4px 6px rgba(0, 0, 0, 0.5);
+}
+
 :root {
   --background: hsl(260, 25%, 97%);
   --foreground: hsl(260, 20%, 15%);
