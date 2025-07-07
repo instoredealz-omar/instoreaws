@@ -299,14 +299,16 @@ const VendorPortal = () => {
 
       {/* Vendor Portal Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-2 max-w-md mx-auto">
-          <TabsTrigger value="register" className="flex items-center space-x-2">
-            <Building className="h-4 w-4" />
-            <span>Register Business</span>
+        <TabsList className="grid w-full grid-cols-1 sm:grid-cols-2 max-w-md mx-auto gap-1 sm:gap-0">
+          <TabsTrigger value="register" className="flex items-center justify-center space-x-1 sm:space-x-2 text-sm">
+            <Building className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="hidden xs:inline">Register Business</span>
+            <span className="xs:hidden">Register</span>
           </TabsTrigger>
-          <TabsTrigger value="create-deal" className="flex items-center space-x-2">
-            <Plus className="h-4 w-4" />
-            <span>Create Deal</span>
+          <TabsTrigger value="create-deal" className="flex items-center justify-center space-x-1 sm:space-x-2 text-sm">
+            <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="hidden xs:inline">Create Deal</span>
+            <span className="xs:hidden">Create</span>
           </TabsTrigger>
         </TabsList>
 
