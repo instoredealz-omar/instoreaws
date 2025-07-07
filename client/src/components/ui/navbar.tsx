@@ -135,10 +135,10 @@ export default function Navbar({ selectedCity, onCityChange }: NavbarProps) {
           <div className="flex items-center space-x-4">
             {/* City Selector */}
             <Select value={selectedCity} onValueChange={onCityChange}>
-              <SelectTrigger className="w-40">
-                <div className="flex items-center space-x-2">
-                  <MapPin className="h-4 w-4" />
-                  <SelectValue placeholder="Select City" />
+              <SelectTrigger className="w-32 sm:w-40">
+                <div className="flex items-center space-x-1 sm:space-x-2">
+                  <MapPin className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <SelectValue placeholder="City" />
                 </div>
               </SelectTrigger>
               <SelectContent>
@@ -224,7 +224,7 @@ export default function Navbar({ selectedCity, onCityChange }: NavbarProps) {
                       return (
                         <Link
                           key={item.href}
-                          href={item.href}
+                          to={item.href}
                           onClick={() => {
                             setIsMenuOpen(false);
                             // Scroll to top when navigating

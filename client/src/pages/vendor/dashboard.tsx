@@ -242,14 +242,14 @@ export default function VendorDashboard() {
 
         {/* Stats Grid */}
         {(vendor as any) && isApproved && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 mb-8">
             {stats.map((stat, index) => {
               const Icon = stat.icon;
               const gradientClass = index === 0 ? 'stat-card-primary' : 
                                    index === 1 ? 'stat-card-success' : 
                                    index === 2 ? 'stat-card-warning' : 'stat-card-danger';
               return (
-                <div key={stat.title} className={`stat-card ${gradientClass} rounded-xl p-4 sm:p-6 shadow-lg`}>
+                <div key={stat.title} className={`stat-card ${gradientClass} rounded-lg sm:rounded-xl p-3 sm:p-4 lg:p-6 shadow-lg`}>
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-white/80 text-xs sm:text-sm font-medium">{stat.title}</p>
@@ -275,17 +275,17 @@ export default function VendorDashboard() {
 
         {/* Analytics Charts */}
         {(vendor as any) && isApproved && (
-          <div className="grid lg:grid-cols-2 gap-8 mb-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-8 mb-8">
             {/* Deal Performance Chart */}
             <div className="glass-card">
-              <div className="p-6 border-b border-gray-200/50">
-                <h3 className="text-lg font-semibold gradient-text flex items-center">
-                  <BarChart3 className="h-5 w-5 mr-2 text-blue-600" />
+              <div className="p-4 sm:p-6 border-b border-gray-200/50">
+                <h3 className="text-base sm:text-lg font-semibold gradient-text flex items-center">
+                  <BarChart3 className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-blue-600" />
                   Deal Performance
                 </h3>
               </div>
-              <div className="p-6">
-                <ChartContainer config={chartConfig} className="min-h-[300px]">
+              <div className="p-4 sm:p-6">
+                <ChartContainer config={chartConfig} className="min-h-[250px] sm:min-h-[300px] w-full overflow-hidden">
                   <BarChart data={dealPerformanceData}>
                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(156, 163, 175, 0.3)" />
                     <XAxis 
@@ -315,14 +315,14 @@ export default function VendorDashboard() {
 
             {/* Monthly Trends */}
             <div className="glass-card">
-              <div className="p-6 border-b border-gray-200/50">
-                <h3 className="text-lg font-semibold gradient-text flex items-center">
-                  <TrendingUp className="h-5 w-5 mr-2 text-green-600" />
+              <div className="p-4 sm:p-6 border-b border-gray-200/50">
+                <h3 className="text-base sm:text-lg font-semibold gradient-text flex items-center">
+                  <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-green-600" />
                   Monthly Performance
                 </h3>
               </div>
-              <div className="p-6">
-                <ChartContainer config={chartConfig} className="min-h-[300px]">
+              <div className="p-4 sm:p-6">
+                <ChartContainer config={chartConfig} className="min-h-[250px] sm:min-h-[300px] w-full overflow-hidden">
                   <LineChart data={monthlyRedemptionData}>
                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(156, 163, 175, 0.3)" />
                     <XAxis dataKey="month" tick={{ fill: '#6B7280', fontSize: 12 }} />
@@ -346,14 +346,14 @@ export default function VendorDashboard() {
 
             {/* Deal Status Distribution */}
             <div className="glass-card">
-              <div className="p-6 border-b border-gray-200/50">
-                <h3 className="text-lg font-semibold gradient-text flex items-center">
-                  <Target className="h-5 w-5 mr-2 text-purple-600" />
+              <div className="p-4 sm:p-6 border-b border-gray-200/50">
+                <h3 className="text-base sm:text-lg font-semibold gradient-text flex items-center">
+                  <Target className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-purple-600" />
                   Deal Status Distribution
                 </h3>
               </div>
-              <div className="p-6">
-                <ChartContainer config={chartConfig} className="min-h-[300px]">
+              <div className="p-4 sm:p-6">
+                <ChartContainer config={chartConfig} className="min-h-[250px] sm:min-h-[300px] w-full overflow-hidden">
                   <PieChart>
                     <Pie
                       data={dealStatusData}
