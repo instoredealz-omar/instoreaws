@@ -4,7 +4,7 @@ import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, MapPin, User, LogOut, Home, ShoppingBag, CreditCard, Store, Settings, Users, BarChart3, HelpCircle, Tag, Wand2, Heart, Clock, Shield, FileText } from "lucide-react";
+import { Menu, MapPin, User, LogOut, Home, ShoppingBag, CreditCard, Store, Settings, Users, BarChart3, HelpCircle, Tag, Wand2, Heart, Clock, Shield, FileText, PlusCircle, UserCheck, TrendingUp, Package, Building, ClipboardList, Search, Archive } from "lucide-react";
 import { majorCities } from "@/lib/cities";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
@@ -53,7 +53,10 @@ export default function Navbar({ selectedCity, onCityChange }: NavbarProps) {
         return [
           { label: "Dashboard", href: "/vendor/dashboard", icon: Home },
           { label: "My Deals", href: "/vendor/deals", icon: Store },
+          { label: "Create Deal", href: "/vendor/deals", icon: PlusCircle },
           { label: "Analytics", href: "/vendor/analytics", icon: BarChart3 },
+          { label: "POS System", href: "/vendor/pos", icon: CreditCard },
+          { label: "Profile", href: "/vendor/profile", icon: User },
           { label: "Help", href: "/help", icon: HelpCircle },
         ];
       case 'customer':
@@ -69,15 +72,19 @@ export default function Navbar({ selectedCity, onCityChange }: NavbarProps) {
         return [
           { label: "Dashboard", href: "/admin/dashboard", icon: Home },
           { label: "Users", href: "/admin/users", icon: Users },
-          { label: "Vendors", href: "/admin/vendors", icon: Store },
+          { label: "Vendors", href: "/admin/vendors", icon: Building },
           { label: "Deals", href: "/admin/deals", icon: Tag },
           { label: "Reports", href: "/admin/reports", icon: FileText },
+          { label: "Analytics", href: "/admin/dashboard", icon: TrendingUp },
+          { label: "Help", href: "/help", icon: HelpCircle },
         ];
       case 'superadmin':
         return [
           { label: "Dashboard", href: "/superadmin/dashboard", icon: Home },
-          { label: "Admins", href: "/superadmin/admins", icon: Shield },
-          { label: "Logs", href: "/superadmin/logs", icon: FileText },
+          { label: "Admins", href: "/admin/users", icon: Shield },
+          { label: "System Logs", href: "/superadmin/logs", icon: Archive },
+          { label: "Analytics", href: "/admin/dashboard", icon: TrendingUp },
+          { label: "Help", href: "/help", icon: HelpCircle },
         ];
       default:
         return [
@@ -87,38 +94,6 @@ export default function Navbar({ selectedCity, onCityChange }: NavbarProps) {
           { label: "Help", href: "/help", icon: HelpCircle },
         ];
     }
-
-    const baseItems = {
-      customer: [
-        { label: "Dashboard", href: "/customer/dashboard", icon: Home },
-        { label: "Deals", href: "/customer/deals", icon: ShoppingBag },
-        { label: "My Claims", href: "/customer/claims", icon: CreditCard },
-        { label: "Help", href: "/help", icon: HelpCircle },
-      ],
-      vendor: [
-        { label: "Dashboard", href: "/vendor/dashboard", icon: Home },
-        { label: "My Deals", href: "/vendor/deals", icon: ShoppingBag },
-        { label: "Analytics", href: "/vendor/dashboard", icon: BarChart3 },
-        { label: "Help", href: "/help", icon: HelpCircle },
-      ],
-      admin: [
-        { label: "Dashboard", href: "/admin/dashboard", icon: Home },
-        { label: "Users", href: "/admin/users", icon: Users },
-        { label: "Vendors", href: "/admin/vendors", icon: Store },
-        { label: "Deals", href: "/admin/deals", icon: ShoppingBag },
-        { label: "Help", href: "/help", icon: HelpCircle },
-      ],
-      superadmin: [
-        { label: "Dashboard", href: "/admin/dashboard", icon: Home },
-        { label: "Users", href: "/admin/users", icon: Users },
-        { label: "Vendors", href: "/admin/vendors", icon: Store },
-        { label: "Deals", href: "/admin/deals", icon: ShoppingBag },
-        { label: "System Logs", href: "/superadmin/logs", icon: Settings },
-        { label: "Help", href: "/help", icon: HelpCircle },
-      ]
-    };
-
-    return user ? (baseItems[user.role as keyof typeof baseItems] || []) : [];
   };
 
   const navigationItems = getNavigationItems();
@@ -233,34 +208,37 @@ export default function Navbar({ selectedCity, onCityChange }: NavbarProps) {
                   <Menu className="h-5 w-5" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-[300px]">
-                <div className="flex flex-col space-y-4">
-                  <div className="flex items-center justify-between pb-4 border-b">
-                    <h2 className="text-lg font-semibold">Menu</h2>
+              <SheetContent side="right" className="w-[300px] p-0">
+                <div className="flex flex-col h-full bg-background">
+                  {/* Header */}
+                  <div className="flex items-center justify-between p-6 border-b">
+                    <h2 className="text-lg font-semibold text-foreground">Menu</h2>
                     <ThemeToggle />
                   </div>
                   
                   {/* Navigation Items */}
-                  {navigationItems.map((item) => {
-                    const Icon = item.icon;
-                    return (
-                      <Link
-                        key={item.href}
-                        href={item.href}
-                        onClick={() => setIsMenuOpen(false)}
-                        className={`flex items-center space-x-3 p-2 rounded-lg hover:bg-muted ${
-                          location === item.href ? "bg-primary/10 text-primary" : ""
-                        }`}
-                      >
-                        <Icon className="h-5 w-5" />
-                        <span>{item.label}</span>
-                      </Link>
-                    );
-                  })}
+                  <div className="flex-1 px-4 py-6 space-y-2">
+                    {navigationItems.map((item) => {
+                      const Icon = item.icon;
+                      return (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          onClick={() => setIsMenuOpen(false)}
+                          className={`flex items-center space-x-4 p-3 rounded-lg hover:bg-muted/50 transition-colors ${
+                            location === item.href ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground"
+                          }`}
+                        >
+                          <Icon className="h-5 w-5 flex-shrink-0" />
+                          <span className="font-medium">{item.label}</span>
+                        </Link>
+                      );
+                    })}
+                  </div>
                   
                   {/* Auth Section for Mobile */}
                   {!isAuthenticated && (
-                    <div className="pt-4 border-t space-y-2">
+                    <div className="p-4 border-t space-y-3">
                       <Button 
                         variant="outline" 
                         className="w-full" 
@@ -279,24 +257,40 @@ export default function Navbar({ selectedCity, onCityChange }: NavbarProps) {
                     </div>
                   )}
                   
+                  {/* User Profile Section */}
                   {isAuthenticated && user && (
-                    <div className="pt-4 border-t">
-                      <div className="p-2 rounded-lg bg-muted">
-                        <p className="font-medium">{user.name}</p>
-                        <p className="text-xs text-muted-foreground">{user.email}</p>
-                        <p className="text-xs text-primary capitalize">{user.membershipPlan} Member</p>
+                    <div className="mt-auto">
+                      <div className="border-t">
+                        <div className="p-4 bg-muted/30">
+                          <div className="flex items-center space-x-3 mb-1">
+                            <Avatar className="h-8 w-8">
+                              <AvatarFallback className="text-xs bg-primary text-primary-foreground">
+                                {user.name?.charAt(0).toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-sm text-foreground truncate">{user.name}</p>
+                              <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+                              <p className="text-xs text-primary capitalize font-medium">
+                                {user.membershipPlan || 'Basic'} {user.role === 'customer' ? 'Member' : user.role}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="p-4">
+                          <Button 
+                            variant="outline" 
+                            className="w-full text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700"
+                            onClick={() => {
+                              handleLogout();
+                              setIsMenuOpen(false);
+                            }}
+                          >
+                            <LogOut className="mr-2 h-4 w-4" />
+                            Logout
+                          </Button>
+                        </div>
                       </div>
-                      <Button 
-                        variant="outline" 
-                        className="w-full mt-2 text-red-600 border-red-200 hover:bg-red-50"
-                        onClick={() => {
-                          handleLogout();
-                          setIsMenuOpen(false);
-                        }}
-                      >
-                        <LogOut className="mr-2 h-4 w-4" />
-                        Logout
-                      </Button>
                     </div>
                   )}
                 </div>
