@@ -821,7 +821,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         providedPin: providedPin,
         storedPinType: typeof storedPin,
         providedPinType: typeof providedPin,
-        pinsMatch: storedPin === providedPin
+        pinsMatch: storedPin === providedPin,
+        storedPinLength: storedPin.length,
+        providedPinLength: providedPin.length,
+        userId: userId,
+        userRole: req.user?.role,
+        userEmail: req.user?.email
       });
       
       if (storedPin !== providedPin) {
