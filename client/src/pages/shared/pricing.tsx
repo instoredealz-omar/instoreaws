@@ -97,9 +97,9 @@ export default function Pricing() {
       {/* Promotional Banner */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-8">
         <div className="flash-peacock rounded-2xl p-6 text-center text-white shadow-lg">
-          <h3 className="text-2xl font-bold mb-2">🎉 Limited Time Offer!</h3>
-          <p className="text-lg mb-2">Enjoy 1 Year Free Premium Plan – Offer valid until 14th August 2026</p>
-          <p className="text-sm opacity-90">New users only. Automatic upgrade after promotional period.</p>
+          <h3 className="text-2xl font-bold mb-2">🎉 Early Bird Offer!</h3>
+          <p className="text-lg mb-2">Enjoy 1 Year Free Premium Plan – Limited Time Offer </p>
+          <p className="text-sm opacity-90">New users only. </p>
         </div>
       </div>
 
