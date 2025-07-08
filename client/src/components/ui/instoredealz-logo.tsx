@@ -31,10 +31,10 @@ export default function InstoredeelzLogo({
   const LogoText = () => {
     const createColoredText = () => (
       <>
-        <span className={`text-blue-500 dark:text-blue-400 font-bold tracking-wide text-3d-blue ${size === 'sm' ? 'text-sm' : size === 'lg' ? 'text-2xl' : size === 'xl' ? 'text-3xl' : 'text-lg'}`}>
+        <span className={`text-blue-500 dark:text-blue-400 font-extrabold tracking-tight font-sans ${size === 'sm' ? 'text-sm' : size === 'lg' ? 'text-2xl' : size === 'xl' ? 'text-3xl' : 'text-lg'}`}>
           instore
         </span>
-        <span className={`text-yellow-500 dark:text-yellow-400 font-bold tracking-wide text-3d-gold ${size === 'sm' ? 'text-sm' : size === 'lg' ? 'text-2xl' : size === 'xl' ? 'text-3xl' : 'text-lg'}`}>
+        <span className={`text-yellow-500 dark:text-yellow-400 font-extrabold tracking-tight font-sans ${size === 'sm' ? 'text-sm' : size === 'lg' ? 'text-2xl' : size === 'xl' ? 'text-3xl' : 'text-lg'}`}>
           dealz
         </span>
       </>
