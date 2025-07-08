@@ -115,6 +115,15 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+### July 8, 2025 - Removed Deal Claim Limitations & Fixed Dashboard Bill Amount Display
+- **Multiple Claims Allowed**: Customers can now claim the same deal multiple times, removing the previous restriction that blocked duplicate claims
+- **Removed Duplication Checks**: Eliminated the check that prevented users from claiming deals they had already fully redeemed ("used" status)
+- **Enhanced Claim Management**: Modified both `/api/deals/:id/claim` and `/api/deals/:id/verify-pin` endpoints to support multiple claims per deal
+- **Fixed Bill Amount Updates**: Updated bill amount update logic to correctly handle multiple claims by finding the most recent pending claim
+- **Dashboard Refresh Fix**: Fixed the issue where discount amounts weren't reflecting in customer dashboard after bill amount updates
+- **Status Consistency**: Ensured all endpoints use "used" status instead of "completed" for consistency across the system
+- **Improved User Experience**: Users can now claim deals multiple times for repeat purchases, improving customer satisfaction
+
 ### July 5, 2025 - Customer Registration Photo Upload Feature & Enhanced Digital Membership Card
 - **Complete Photo Upload System**: Added comprehensive photo upload functionality to customer registration form with multiple input methods
 - **Three Upload Options**: Users can upload photos via file selection, camera capture, or URL input for maximum flexibility

@@ -669,13 +669,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Upgrade membership to claim this deal" });
       }
       
-      // SECURITY FIX: Create claim with "pending" status - no savings calculated yet
-      // Savings and statistics are only updated when PIN is verified at the store
+      // Allow multiple claims - create new claim each time
       const claim = await storage.claimDeal({
         userId,
         dealId,
         savingsAmount: "0", // No savings until PIN verification
-        status: "pending" // Mark as pending until store verification
+        status: "pending", // Mark as pending until store verification
+        claimedAt: new Date()
       });
 
       // Log the claim activity (but not as completed savings)
@@ -806,29 +806,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Check if user has existing claims for this deal
+      // Get the most recent pending claim for this deal and user, or create new one
       const existingClaims = await storage.getUserClaims(userId);
-      const existingClaim = existingClaims.find(claim => claim.dealId === dealId);
+      const pendingClaim = existingClaims.find(claim => claim.dealId === dealId && claim.status === "pending");
       
       Logger.debug("User Claims Check", {
         userId,
         dealId,
         totalClaims: existingClaims.length,
-        hasExistingClaim: !!existingClaim,
-        existingClaimStatus: existingClaim?.status,
+        hasPendingClaim: !!pendingClaim,
         allClaims: existingClaims.map(c => ({ dealId: c.dealId, status: c.status }))
       });
-      
-      // Only block if deal is fully completed (used status)
-      if (existingClaim && existingClaim.status === "used") {
-        return res.status(400).json({
-          success: false,
-          error: "You have already fully redeemed this deal"
-        });
-      }
 
-      // Create claim automatically if none exists (merged workflow)
-      let currentClaim = existingClaim;
+      // Use existing pending claim or create new one (allow multiple claims)
+      let currentClaim = pendingClaim;
       if (!currentClaim) {
         currentClaim = await storage.claimDeal({
           dealId,
@@ -837,7 +828,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           savingsAmount: "0",
           claimedAt: new Date()
         });
-        Logger.debug("Auto-created claim for merged workflow", {
+        Logger.debug("Auto-created new claim for PIN verification", {
           claimId: currentClaim.id,
           dealId,
           userId
@@ -932,14 +923,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Check if user has a claim for this deal
+      // Find the most recent pending claim for this deal
       const existingClaims = await storage.getUserClaims(userId);
-      const dealClaim = existingClaims.find(claim => claim.dealId === dealId);
+      const dealClaim = existingClaims
+        .filter(claim => claim.dealId === dealId && claim.status === "pending")
+        .sort((a, b) => new Date(b.claimedAt).getTime() - new Date(a.claimedAt).getTime())[0];
       
       if (!dealClaim) {
         return res.status(404).json({ 
           success: false, 
-          message: "No claim found for this deal" 
+          message: "No pending claim found for this deal" 
         });
       }
 
@@ -957,7 +950,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storage.updateDealClaim(dealClaim.id, {
         billAmount: billAmount.toString(),
         actualSavings: savingsAmount.toString(),
-        status: "completed"
+        status: "used"
       });
 
       // Log the bill update
