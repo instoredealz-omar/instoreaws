@@ -89,9 +89,9 @@ export default function CustomerDashboard() {
     <div className="min-h-screen bg-background">
       <Navbar />
       
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* Welcome Header */}
-        <div className="mb-8">
+        <div className="mb-6">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-foreground">
@@ -115,7 +115,7 @@ export default function CustomerDashboard() {
 
         {/* Promotional Banner for promotional users */}
         {currentUser.isPromotionalUser && (
-          <div className="mb-8">
+          <div className="mb-6">
             <div className="promotional-banner rounded-2xl p-6 text-white">
               <div className="flex items-center justify-between">
                 <div>
@@ -135,7 +135,7 @@ export default function CustomerDashboard() {
           </div>
         )}
 
-        <div className="grid lg:grid-cols-3 gap-8">
+        <div className="grid lg:grid-cols-3 gap-6">
           {/* Left Column - Membership Card */}
           <div className="lg:col-span-1">
             <MembershipCard
@@ -151,7 +151,7 @@ export default function CustomerDashboard() {
           
           {/* Right Column - Stats Grid */}
           <div className="lg:col-span-2">
-            <div className="grid md:grid-cols-2 gap-6">
+            <div className="grid md:grid-cols-2 gap-4">
               {stats.map((stat, index) => {
                 const Icon = stat.icon;
                 const gradientClasses = [
@@ -181,7 +181,7 @@ export default function CustomerDashboard() {
         </div>
 
         {/* Recent Claims History */}
-        <div className="mt-12">
+        <div className="mt-8">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="text-xl">Recent Claims</CardTitle>
@@ -256,8 +256,8 @@ export default function CustomerDashboard() {
 
         {/* Featured Deals */}
         {topDeals.length > 0 && (
-          <div className="mt-12">
-            <div className="flex items-center justify-between mb-6">
+          <div className="mt-8">
+            <div className="flex items-center justify-between mb-4">
               <h2 className="text-2xl font-bold text-foreground flex items-center">
                 <TrendingUp className="h-6 w-6 mr-2 text-saffron" />
                 Trending Deals
@@ -267,7 +267,7 @@ export default function CustomerDashboard() {
               </Button>
             </div>
             
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
               {topDeals.map((deal: any) => (
                 <DealCard
                   key={deal.id}
@@ -281,11 +281,11 @@ export default function CustomerDashboard() {
         )}
 
         {/* Quick Actions */}
-        <div className="mt-12">
-          <h2 className="text-2xl font-bold text-foreground mb-6">Quick Actions</h2>
-          <div className="grid md:grid-cols-4 gap-6">
+        <div className="mt-8">
+          <h2 className="text-2xl font-bold text-foreground mb-4">Quick Actions</h2>
+          <div className="grid md:grid-cols-4 gap-4">
             <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate("/customer/deals")}>
-              <CardContent className="p-6 text-center">
+              <CardContent className="p-4 text-center">
                 <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mx-auto mb-4">
                   <Ticket className="h-6 w-6 text-primary" />
                 </div>
@@ -295,7 +295,7 @@ export default function CustomerDashboard() {
             </Card>
 
             <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate("/customer/nearby-deals")}>
-              <CardContent className="p-6 text-center">
+              <CardContent className="p-4 text-center">
                 <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-4">
                   <Navigation className="h-6 w-6 text-blue-600" />
                 </div>
@@ -305,7 +305,7 @@ export default function CustomerDashboard() {
             </Card>
 
             <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate("/customer/claims")}>
-              <CardContent className="p-6 text-center">
+              <CardContent className="p-4 text-center">
                 <div className="w-12 h-12 bg-success/10 rounded-lg flex items-center justify-center mx-auto mb-4">
                   <PiggyBank className="h-6 w-6 text-success" />
                 </div>
@@ -315,7 +315,7 @@ export default function CustomerDashboard() {
             </Card>
 
             <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate("/customer/upgrade")}>
-              <CardContent className="p-6 text-center">
+              <CardContent className="p-4 text-center">
                 <div className="w-12 h-12 bg-royal/10 rounded-lg flex items-center justify-center mx-auto mb-4">
                   <Trophy className="h-6 w-6 text-royal" />
                 </div>

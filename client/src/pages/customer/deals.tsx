@@ -249,16 +249,16 @@ export default function CustomerDeals() {
     <div className="min-h-screen bg-background">
       <Navbar selectedCity={selectedCity} onCityChange={setSelectedCity} />
       
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-4">
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold text-foreground mb-3">
             Discover Amazing Deals
           </h1>
           <div className="flex items-center text-muted-foreground">
             <MapPin className="h-4 w-4 mr-1" />
             <span>Showing deals in {selectedCity}</span>
-            {selectedCategory && (
+            {selectedCategory && selectedCategory !== "all" && (
               <>
                 <span className="mx-2">•</span>
                 <Badge variant="secondary" className="capitalize">
@@ -269,12 +269,10 @@ export default function CustomerDeals() {
           </div>
         </div>
 
-
-
         {/* Filters and Search */}
-        <Card className="mb-8">
-          <CardContent className="p-6">
-            <div className="grid md:grid-cols-5 gap-4">
+        <Card className="mb-6">
+          <CardContent className="p-4">
+            <div className="grid md:grid-cols-5 gap-3">
               <div className="md:col-span-2">
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -331,12 +329,12 @@ export default function CustomerDeals() {
 
         {/* Deals Grid */}
         {isLoading ? (
-          <div className="flex items-center justify-center py-12">
+          <div className="flex items-center justify-center py-8">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
             <span className="ml-2 text-muted-foreground">Loading deals...</span>
           </div>
         ) : sortedDeals.length > 0 ? (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
             {sortedDeals.map((deal: any) => {
               const isInWishlist = wishlist?.some((item: any) => item.dealId === deal.id);
               return (
@@ -356,13 +354,13 @@ export default function CustomerDeals() {
           </div>
         ) : (
           <Card>
-            <CardContent className="p-12 text-center">
+            <CardContent className="p-8 text-center">
               <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Search className="h-8 w-8 text-gray-400" />
               </div>
               <h3 className="text-lg font-medium text-foreground mb-2">No deals found</h3>
               <p className="text-muted-foreground mb-4">
-                {searchQuery || selectedCategory 
+                {searchQuery || (selectedCategory && selectedCategory !== "all")
                   ? "Try adjusting your search or filters"
                   : `No deals available in ${selectedCity} right now`
                 }
@@ -370,7 +368,7 @@ export default function CustomerDeals() {
               <Button
                 variant="outline"
                 onClick={() => {
-                  setSelectedCategory("");
+                  setSelectedCategory("all");
                   setSearchQuery("");
                 }}
               >
@@ -384,8 +382,8 @@ export default function CustomerDeals() {
         {claimDealMutation.isPending && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
             <Card>
-              <CardContent className="p-6 flex items-center space-x-4">
-                <Loader2 className="h-6 w-6 animate-spin text-primary" />
+              <CardContent className="p-4 flex items-center space-x-3">
+                <Loader2 className="h-5 w-5 animate-spin text-primary" />
                 <span>Claiming deal...</span>
               </CardContent>
             </Card>
