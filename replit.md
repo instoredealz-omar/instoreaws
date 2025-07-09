@@ -115,6 +115,18 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+### July 9, 2025 - Complete Category Filtering Implementation Across All Deal Components
+- **Universal Category Filtering**: Implemented comprehensive category filtering functionality across all deal-related components and pages
+- **Backend API Integration**: Fixed frontend components to properly pass category parameters to `/api/deals` endpoint with URLSearchParams
+- **Customer Deals Page**: Updated `/customer/deals` to include category filtering in query function with proper API parameter handling
+- **DealList Component**: Enhanced DealList component to support category filtering from URL parameters for unauthenticated users visiting `/deals?category=X`
+- **Secure Deals Page**: Updated secure deals page to properly filter deals by category with custom queryFn implementation
+- **Home Page Enhancement**: Updated home page deals fetching to use proper API parameter handling for city-based filtering
+- **Consistent Query Structure**: All deal components now use consistent queryKey and queryFn patterns for proper category filtering
+- **API Testing Verified**: Confirmed API correctly returns filtered results - fashion (5 deals), restaurants (5 deals), beauty (5 deals)
+- **Cross-Component Compatibility**: Category filtering works seamlessly across authenticated and unauthenticated user flows
+- **URL Parameter Support**: All components properly parse and handle category parameters from URL query strings
+
 ### July 9, 2025 - Contact Sales Functionality Removal
 - **Complete Feature Removal**: Removed Contact Sales button from vendor benefits page as requested
 - **Backend Cleanup**: Removed `/api/sales/inquiry` endpoint and related sales inquiry processing

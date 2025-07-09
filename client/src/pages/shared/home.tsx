@@ -102,6 +102,14 @@ export default function Home() {
 
   const { data: deals } = useQuery<Array<any>>({
     queryKey: ["/api/deals", selectedCity],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (selectedCity) params.append('city', selectedCity);
+      
+      const response = await fetch(`/api/deals?${params.toString()}`);
+      if (!response.ok) throw new Error('Failed to fetch deals');
+      return response.json();
+    },
   });
 
   const { data: cities } = useQuery<Array<any>>({

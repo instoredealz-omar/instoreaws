@@ -31,7 +31,17 @@ export default function SecureDeals() {
 
   // Fetch deals with enhanced security
   const { data: deals, isLoading } = useQuery({
-    queryKey: ["/api/deals", selectedCategory],
+    queryKey: ["/api/deals", selectedCategory === "all" ? "" : selectedCategory],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (selectedCategory && selectedCategory !== "all") {
+        params.append('category', selectedCategory);
+      }
+      
+      const response = await fetch(`/api/deals?${params.toString()}`);
+      if (!response.ok) throw new Error('Failed to fetch deals');
+      return response.json();
+    },
   });
 
   const { data: categories } = useQuery<Array<any>>({
