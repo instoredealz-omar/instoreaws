@@ -1633,6 +1633,84 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Sales inquiry endpoint (no authentication required)
+  app.post('/api/sales/inquiry', async (req, res) => {
+    try {
+      const {
+        businessName,
+        contactName,
+        email,
+        phone,
+        businessType,
+        estimatedRevenue,
+        inquiry,
+        message
+      } = req.body;
+
+      // Validate required fields
+      if (!businessName || !contactName || !email) {
+        return res.status(400).json({ 
+          message: "Business name, contact name, and email are required" 
+        });
+      }
+
+      // Create a sales inquiry as a high-priority help ticket
+      const salesInquiry = {
+        userId: 1, // Admin user ID for sales team to handle
+        subject: `Sales Inquiry - ${businessName}`,
+        message: `
+Business Inquiry Details:
+------------------------
+Business Name: ${businessName}
+Contact Person: ${contactName}
+Email: ${email}
+Phone: ${phone || 'Not provided'}
+Business Type: ${businessType || 'Not specified'}
+Estimated Annual Revenue: ${estimatedRevenue || 'Not specified'}
+Inquiry Type: ${inquiry || 'General inquiry'}
+
+Message:
+${message || 'No additional message provided'}
+
+This is a sales inquiry that requires immediate attention from the sales team.
+Contact Information: ${email}${phone ? ` | ${phone}` : ''}
+        `,
+        priority: "high",
+        status: "open"
+      };
+
+      const ticket = await storage.createHelpTicket(salesInquiry);
+      
+      // Log the sales inquiry
+      await storage.createSystemLog({
+        userId: 1,
+        action: "SALES_INQUIRY_RECEIVED",
+        details: {
+          businessName,
+          contactName,
+          email,
+          businessType: businessType || 'Not specified',
+          inquiryType: inquiry || 'General inquiry',
+          ticketId: ticket.id
+        },
+        ipAddress: req.ip,
+        userAgent: req.headers['user-agent'],
+      });
+
+      res.status(201).json({
+        success: true,
+        message: "Sales inquiry submitted successfully. Our team will contact you within 24 hours.",
+        ticketId: ticket.id
+      });
+    } catch (error) {
+      console.error("Sales inquiry error:", error);
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to submit sales inquiry. Please try again or contact us directly at sales@instoredealz.com" 
+      });
+    }
+  });
+
   // Super admin routes
   app.get('/api/superadmin/logs', requireAuth, requireRole(['superadmin']), async (req: AuthenticatedRequest, res) => {
     try {

@@ -3,6 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Navbar from "@/components/ui/navbar";
 import Footer from "@/components/ui/footer";
+import { ContactSalesDialog } from "@/components/sales/contact-sales-dialog";
 import { Link } from "wouter";
 import { 
   TrendingUp, 
@@ -95,27 +96,29 @@ export default function VendorBenefits() {
       <Navbar />
       
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-green-600 to-green-700 text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div>
-              <h1 className="text-4xl lg:text-5xl font-bold mb-6">
-                Drive More Foot Traffic With Exclusive In-Store Deals
-              </h1>
-              <p className="text-xl text-green-100 mb-8">
-                Join our vendor network and reach high-intent customers. 
-                Increase sales with zero commission fees.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 mb-8">
-                <Button size="lg" variant="secondary" asChild>
-                  <Link to="/vendor/register">
-                    Become a Vendor
-                    <ArrowRight className="ml-2 h-5 w-5" />
-                  </Link>
-                </Button>
-                <Button size="lg" variant="outline" className="text-white border-white hover:bg-card hover:text-green-700">
-                  Contact Sales
-                </Button>
+                  <section className="bg-gradient-to-br from-green-600 to-green-700 text-white">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
+                      <div className="grid lg:grid-cols-2 gap-12 items-center">
+                        <div>
+                          <h1 className="text-4xl lg:text-5xl font-bold mb-6">
+                            Drive More Foot Traffic With Exclusive In-Store Deals
+                          </h1>
+                          <p className="text-xl text-green-100 mb-8">
+                            Join our vendor network and reach high-intent customers. 
+                            Increase sales with zero commission fees.
+                          </p>
+                          <div className="flex flex-col sm:flex-row gap-4 mb-8">
+                            <Button size="lg" variant="secondary" asChild>
+                              <Link to="/vendor/register">
+                                Become a Vendor
+                                <ArrowRight className="ml-2 h-5 w-5" />
+                              </Link>
+                            </Button>
+                            <ContactSalesDialog>
+                              <Button size="lg" variant="secondary">
+                                Contact Sales
+                              </Button>
+                            </ContactSalesDialog>
               </div>
               <div className="flex items-center text-green-200">
                 <TrendingUp className="h-5 w-5 mr-2" />
