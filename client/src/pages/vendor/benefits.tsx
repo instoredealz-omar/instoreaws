@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Navbar from "@/components/ui/navbar";
 import Footer from "@/components/ui/footer";
-import { ContactSalesDialog } from "@/components/sales/contact-sales-dialog";
+
 import { Link } from "wouter";
 import { 
   TrendingUp, 
@@ -114,11 +114,6 @@ export default function VendorBenefits() {
                                 <ArrowRight className="ml-2 h-5 w-5" />
                               </Link>
                             </Button>
-                            <ContactSalesDialog>
-                              <Button size="lg" variant="secondary">
-                                Contact Sales
-                              </Button>
-                            </ContactSalesDialog>
               </div>
               <div className="flex items-center text-green-200">
                 <TrendingUp className="h-5 w-5 mr-2" />
