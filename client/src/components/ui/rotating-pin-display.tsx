@@ -34,8 +34,6 @@ export default function RotatingPinDisplay({ dealId, dealTitle, dealImage, dealD
     queryFn: async () => {
       const response = await apiRequest(`/api/vendors/deals/${dealId}/current-pin`, 'GET');
       const data = await response.json();
-      console.log('Rotating PIN API Response:', data); // Debug log
-      console.log('Current PIN:', data?.currentPin);
       return data;
     },
     refetchInterval: 30000, // Refresh every 30 seconds
@@ -192,11 +190,7 @@ export default function RotatingPinDisplay({ dealId, dealTitle, dealImage, dealD
           <div className="flex items-center gap-3">
             <span className="text-sm font-medium">Current PIN:</span>
             <div className="font-mono text-xl font-bold tracking-wider">
-              {showPin ? (pinData?.currentPin || "Loading...") : "••••"}
-            </div>
-            {/* Debug info - remove in production */}
-            <div className="text-xs text-gray-500 ml-2">
-              {pinData ? `(${showPin ? 'visible' : 'hidden'})` : '(no data)'}
+              {isLoading ? "Loading..." : showPin ? (pinData?.currentPin || "••••") : "••••"}
             </div>
           </div>
           <div className="flex items-center gap-2">

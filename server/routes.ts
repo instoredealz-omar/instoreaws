@@ -1317,19 +1317,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const { generateRotatingPin } = await import('./pin-security');
-      
-      // Test the function directly
-      console.log('Testing generateRotatingPin function...');
-      console.log('DealId:', dealId);
-      
       const rotatingPin = generateRotatingPin(dealId);
-      console.log('Generated rotating PIN:', rotatingPin);
-      
-      Logger.debug("Rotating PIN Generated", {
-        dealId,
-        rotatingPin,
-        currentTime: new Date().toISOString()
-      });
       
       const response = {
         dealId,
@@ -1342,8 +1330,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         usage: "Share this PIN with customers for deal verification."
       };
 
-      console.log('Final response:', JSON.stringify(response, null, 2));
-      Logger.debug("Final rotating PIN response", response);
       res.json(response);
     } catch (error) {
       Logger.error("Current PIN retrieval error:", error);
