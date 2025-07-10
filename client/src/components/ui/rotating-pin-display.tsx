@@ -216,7 +216,7 @@ export default function RotatingPinDisplay({ dealId, dealTitle, dealImage, dealD
 
         <div className="flex items-center justify-between">
           <div className="text-sm text-gray-600 dark:text-gray-400">
-            Rotates every {pinData?.rotationInterval || 10} minutes
+            Rotates every {pinData?.rotationInterval || 30} minutes
           </div>
           <Button
             variant="ghost"
@@ -230,7 +230,7 @@ export default function RotatingPinDisplay({ dealId, dealTitle, dealImage, dealD
 
         <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
           <p className="text-sm text-blue-800 dark:text-blue-200">
-            <strong>How it works:</strong> This PIN automatically changes every 10 minutes for enhanced security. 
+            <strong>How it works:</strong> This PIN automatically changes every 30 minutes for enhanced security. 
             Share the current PIN with customers when they visit your store to claim their deals.
           </p>
         </div>

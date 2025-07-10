@@ -117,7 +117,7 @@ Preferred communication style: Simple, everyday language.
 
 ### July 10, 2025 - Complete Tutorial & Instruction Updates for Advanced PIN System + Comprehensive PIN Security Implementation
 - **Complete PIN Security Overhaul**: Implemented enterprise-grade PIN security system with bcrypt hashing, salt generation, and rate limiting
-- **Rotating PIN System**: Added automatic PIN rotation every 10 minutes using cryptographic hash generation for maximum security
+- **Rotating PIN System**: Added automatic PIN rotation every 30 minutes using cryptographic hash generation for maximum security
 - **Time-Based PIN Generation**: Implemented deterministic PIN generation based on deal ID and time windows with secure hashing
 - **Vendor PIN Dashboard**: Created RotatingPinDisplay component for vendors to view current active PINs with real-time countdown
 - **Deal Image Integration**: Enhanced PIN display to show deal images (16x16 thumbnails) alongside PIN information for better deal identification
