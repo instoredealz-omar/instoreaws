@@ -31,6 +31,8 @@ import {
   InsertDealConciergeRequest,
   AlertNotification,
   InsertAlertNotification,
+  PinAttempt,
+  InsertPinAttempt,
 } from "../shared/schema";
 
 export interface IStorage {
@@ -175,6 +177,11 @@ export interface IStorage {
   markNotificationOpened(id: number): Promise<void>;
   markNotificationClicked(id: number): Promise<void>;
   markNotificationDealClaimed(id: number): Promise<void>;
+  
+  // PIN Security operations
+  recordPinAttempt(dealId: number, userId: number | null, ipAddress: string, userAgent: string | null, success: boolean): Promise<void>;
+  getPinAttempts(dealId: number, userId?: number, ipAddress?: string): Promise<Array<{ attemptedAt: Date; success: boolean }>>;
+  updateDealPin(dealId: number, hashedPin: string, salt: string, expiresAt?: Date): Promise<Deal | undefined>;
 }
 
 export class MemStorage implements IStorage {
@@ -194,6 +201,7 @@ export class MemStorage implements IStorage {
   private customDealAlerts: Map<number, CustomDealAlert> = new Map();
   private dealConciergeRequests: Map<number, DealConciergeRequest> = new Map();
   private alertNotifications: Map<number, AlertNotification> = new Map();
+  private pinAttempts: Map<number, PinAttempt> = new Map();
 
   private currentUserId = 1;
   private currentVendorId = 1;
@@ -208,6 +216,7 @@ export class MemStorage implements IStorage {
   private currentReviewId = 1;
   private currentDealRatingId = 1;
   private currentVendorRatingId = 1;
+  private currentPinAttemptId = 1;
 
   constructor() {
     this.initializeWithSampleData();
@@ -1815,6 +1824,54 @@ export class MemStorage implements IStorage {
   private currentCustomDealAlertId = 1;
   private currentDealConciergeRequestId = 1;
   private currentAlertNotificationId = 1;
+
+  // PIN Security operations
+  async recordPinAttempt(dealId: number, userId: number | null, ipAddress: string, userAgent: string | null, success: boolean): Promise<void> {
+    const attempt: PinAttempt = {
+      id: this.currentPinAttemptId++,
+      dealId,
+      userId,
+      ipAddress,
+      userAgent,
+      success,
+      attemptedAt: new Date(),
+    };
+    
+    this.pinAttempts.set(attempt.id, attempt);
+  }
+
+  async getPinAttempts(dealId: number, userId?: number, ipAddress?: string): Promise<Array<{ attemptedAt: Date; success: boolean }>> {
+    const attempts = Array.from(this.pinAttempts.values())
+      .filter(attempt => {
+        if (attempt.dealId !== dealId) return false;
+        if (userId && attempt.userId !== userId) return false;
+        if (ipAddress && attempt.ipAddress !== ipAddress) return false;
+        return true;
+      })
+      .map(attempt => ({
+        attemptedAt: attempt.attemptedAt,
+        success: attempt.success
+      }))
+      .sort((a, b) => b.attemptedAt.getTime() - a.attemptedAt.getTime());
+
+    return attempts;
+  }
+
+  async updateDealPin(dealId: number, hashedPin: string, salt: string, expiresAt?: Date): Promise<Deal | undefined> {
+    const deal = this.deals.get(dealId);
+    if (!deal) return undefined;
+
+    const updatedDeal: Deal = {
+      ...deal,
+      verificationPin: hashedPin,
+      pinSalt: salt,
+      pinCreatedAt: new Date(),
+      pinExpiresAt: expiresAt || null,
+    };
+
+    this.deals.set(dealId, updatedDeal);
+    return updatedDeal;
+  }
 }
 
 export const storage = new MemStorage();

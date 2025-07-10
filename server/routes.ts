@@ -732,7 +732,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Debug endpoint for PIN (development only)
+  // Security-enhanced PIN information endpoint (development only)
   app.get('/api/deals/:id/debug-pin', async (req: AuthenticatedRequest, res) => {
     if (process.env.NODE_ENV !== 'development') {
       return res.status(404).json({ error: 'Not found' });
@@ -746,42 +746,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: 'Deal not found' });
       }
       
+      // Only show PIN status, not actual PIN for security
       res.json({ 
         dealId: deal.id,
         title: deal.title, 
-        verificationPin: deal.verificationPin 
+        hasPinSet: !!deal.verificationPin,
+        isSecurePin: !!deal.pinSalt,
+        pinCreated: deal.pinCreatedAt,
+        pinExpires: deal.pinExpiresAt,
+        securityLevel: deal.pinSalt ? 'secure' : 'legacy'
       });
     } catch (error) {
       res.status(500).json({ error: 'Internal server error' });
     }
   });
 
-  // POST /api/deals/:id/verify-pin - Verify PIN and redeem deal
+  // POST /api/deals/:id/verify-pin - Secure PIN verification and redemption
   app.post('/api/deals/:id/verify-pin', requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const dealId = parseInt(req.params.id);
       const { pin } = req.body;
       const userId = req.user!.id;
+      const ipAddress = req.ip || 'unknown';
+      const userAgent = req.headers['user-agent'] || '';
 
-      // Enhanced PIN validation with detailed debugging
-      const cleanPin = String(pin || '').trim();
-      
-      Logger.debug("PIN Input Validation", {
-        originalPin: pin,
-        cleanPin: cleanPin,
-        pinLength: cleanPin.length,
-        pinType: typeof pin
-      });
-      
-      if (!cleanPin || cleanPin.length !== 4 || !/^\d{4}$/.test(cleanPin)) {
-        Logger.warn("Invalid PIN format", {
-          pin: cleanPin,
-          length: cleanPin.length,
-          isNumeric: /^\d{4}$/.test(cleanPin)
-        });
+      // Import PIN security utilities
+      const { validatePinFormat, verifyPin, checkRateLimit } = await import('./pin-security');
+
+      // Validate PIN format first
+      const validation = validatePinFormat(pin);
+      if (!validation.isValid) {
+        // Record failed attempt
+        await storage.recordPinAttempt(dealId, userId, ipAddress, userAgent, false);
+        
         return res.status(400).json({
           success: false,
-          error: "Please enter a valid 4-digit PIN"
+          error: validation.message
         });
       }
 
@@ -810,34 +810,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Verify PIN with proper type handling
-      const storedPin = String(deal.verificationPin || '').trim();
-      const providedPin = cleanPin;
+      // Check rate limiting
+      const attempts = await storage.getPinAttempts(dealId, userId, ipAddress);
+      const rateLimitCheck = checkRateLimit(attempts);
       
-      Logger.debug("PIN Verification", {
-        dealId,
-        dealTitle: deal.title,
-        storedPin: storedPin,
-        providedPin: providedPin,
-        storedPinType: typeof storedPin,
-        providedPinType: typeof providedPin,
-        pinsMatch: storedPin === providedPin,
-        storedPinLength: storedPin.length,
-        providedPinLength: providedPin.length,
-        userId: userId,
-        userRole: req.user?.role,
-        userEmail: req.user?.email
-      });
-      
-      if (storedPin !== providedPin) {
-        Logger.warn("PIN Mismatch", {
-          dealId,
-          storedPin: storedPin.substring(0, 2) + '**',
-          providedPin: providedPin.substring(0, 2) + '**'
+      if (!rateLimitCheck.allowed) {
+        return res.status(429).json({
+          success: false,
+          error: rateLimitCheck.message,
+          nextAttemptAt: rateLimitCheck.nextAttemptAt
         });
+      }
+
+      // Verify PIN using secure hashing (fallback to plain text for existing PINs)
+      let pinVerificationResult;
+      
+      if (deal.pinSalt) {
+        // New secure PIN verification
+        pinVerificationResult = await verifyPin(
+          pin, 
+          deal.verificationPin, 
+          deal.pinSalt, 
+          deal.pinExpiresAt || undefined
+        );
+      } else {
+        // Legacy plain text PIN verification (temporary)
+        const cleanPin = String(pin || '').trim();
+        const storedPin = String(deal.verificationPin || '').trim();
+        pinVerificationResult = {
+          isValid: cleanPin === storedPin,
+          message: cleanPin === storedPin ? "PIN verified successfully" : "Invalid PIN"
+        };
+      }
+      
+      // Record PIN attempt
+      await storage.recordPinAttempt(dealId, userId, ipAddress, userAgent, pinVerificationResult.isValid);
+      
+      if (!pinVerificationResult.isValid) {
         return res.status(400).json({
           success: false,
-          error: "Invalid PIN. Please check with the vendor"
+          error: pinVerificationResult.message
         });
       }
 
@@ -1256,6 +1268,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Generate secure PIN for vendor
+  app.post('/api/vendors/generate-pin', requireAuth, requireRole(['vendor']), async (req: AuthenticatedRequest, res) => {
+    try {
+      const { generateSecurePin } = await import('./pin-security');
+      const pin = generateSecurePin();
+      
+      res.json({
+        pin,
+        message: "Secure PIN generated successfully. Store this PIN safely - it cannot be retrieved later.",
+        securityNote: "This PIN will be securely hashed when you create your deal."
+      });
+    } catch (error) {
+      Logger.error("PIN generation error:", error);
+      res.status(500).json({ message: "Failed to generate PIN" });
+    }
+  });
+
   app.post('/api/vendors/deals', requireAuth, requireRole(['vendor']), async (req: AuthenticatedRequest, res) => {
     try {
       const vendor = await storage.getVendorByUserId(req.user!.id);
@@ -1267,10 +1296,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Vendor not approved yet" });
       }
       
+      // Import PIN security utilities
+      const { generateSecurePin, hashPin } = await import('./pin-security');
+      
+      // Generate secure PIN if not provided or if provided PIN is not secure
+      let finalPin = req.body.verificationPin;
+      let pinSalt = null;
+      let pinExpiresAt = null;
+      
+      if (!finalPin) {
+        // Generate a secure PIN automatically
+        finalPin = generateSecurePin();
+      }
+      
+      // Hash the PIN for secure storage
+      const pinResult = await hashPin(finalPin);
+      if (!pinResult.success) {
+        return res.status(400).json({ 
+          message: "Failed to secure PIN", 
+          error: pinResult.message 
+        });
+      }
+      
       // Transform data to match schema expectations
       const transformedData = {
         ...req.body,
         vendorId: vendor.id,
+        verificationPin: pinResult.hashedPin,
+        pinSalt: pinResult.salt,
+        pinExpiresAt: pinResult.expiresAt,
         // Convert ISO string to Date object for timestamp field
         validUntil: req.body.validUntil ? new Date(req.body.validUntil) : undefined,
         // Ensure latitude and longitude are strings if provided
@@ -1281,11 +1335,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const dealData = insertDealSchema.parse(transformedData);
       
       const deal = await storage.createDeal(dealData);
-      res.status(201).json(deal);
+      
+      // Return the deal with the plain text PIN for vendor reference (one-time only)
+      res.status(201).json({
+        ...deal,
+        plainTextPin: finalPin, // Only shown once during creation
+        securityNote: "Store this PIN securely. It will be hashed and cannot be retrieved later."
+      });
     } catch (error) {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Validation error", errors: error.errors });
       }
+      Logger.error("Deal creation error:", error);
       res.status(500).json({ message: "Failed to create deal" });
     }
   });

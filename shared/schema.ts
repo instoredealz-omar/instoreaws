@@ -69,7 +69,10 @@ export const deals = pgTable("deals", {
   address: text("address").notNull(),
   latitude: decimal("latitude", { precision: 10, scale: 8 }),
   longitude: decimal("longitude", { precision: 11, scale: 8 }),
-  verificationPin: text("verification_pin").notNull(), // 4-digit PIN for offline verification
+  verificationPin: text("verification_pin").notNull(), // Hashed PIN for offline verification
+  pinSalt: text("pin_salt"), // Salt for PIN hashing
+  pinCreatedAt: timestamp("pin_created_at").defaultNow(), // PIN creation time
+  pinExpiresAt: timestamp("pin_expires_at"), // PIN expiration (optional)
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -146,6 +149,17 @@ export const posTransactions = pgTable("pos_transactions", {
   receiptNumber: text("receipt_number").unique(),
   notes: text("notes"),
   processedAt: timestamp("processed_at").defaultNow(),
+});
+
+// PIN Verification Attempts for security tracking
+export const pinAttempts = pgTable("pin_attempts", {
+  id: serial("id").primaryKey(),
+  dealId: integer("deal_id").references(() => deals.id).notNull(),
+  userId: integer("user_id").references(() => users.id),
+  ipAddress: text("ip_address").notNull(),
+  userAgent: text("user_agent"),
+  success: boolean("success").notNull(),
+  attemptedAt: timestamp("attempted_at").defaultNow(),
 });
 
 // POS Inventory for tracking deal availability at terminals
@@ -507,6 +521,11 @@ export const insertAlertNotificationSchema = createInsertSchema(alertNotificatio
   createdAt: true,
 });
 
+export const insertPinAttemptSchema = createInsertSchema(pinAttempts).omit({
+  id: true,
+  attemptedAt: true,
+});
+
 // Export types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -540,6 +559,8 @@ export type DealConciergeRequest = typeof dealConciergeRequests.$inferSelect;
 export type InsertDealConciergeRequest = z.infer<typeof insertDealConciergeRequestSchema>;
 export type AlertNotification = typeof alertNotifications.$inferSelect;
 export type InsertAlertNotification = z.infer<typeof insertAlertNotificationSchema>;
+export type PinAttempt = typeof pinAttempts.$inferSelect;
+export type InsertPinAttempt = z.infer<typeof insertPinAttemptSchema>;
 
 // Auth schemas
 export const loginSchema = z.object({
