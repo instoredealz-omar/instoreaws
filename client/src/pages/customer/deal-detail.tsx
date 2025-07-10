@@ -509,15 +509,6 @@ export default function DealDetail({ params }: DealDetailProps) {
                       <p className="text-blue-800 dark:text-blue-200 text-sm">
                         Click "Verify with PIN to Claim Deal" above, then visit the store and ask for the 4-digit PIN. Enter the PIN in the verification dialog to complete your claim and add the bill amount to track your actual savings.
                       </p>
-                      {process.env.NODE_ENV === 'development' && (
-                        <div className="mt-2 p-2 bg-yellow-100 dark:bg-yellow-900/30 border border-yellow-300 dark:border-yellow-700 rounded text-yellow-800 dark:text-yellow-200 text-sm">
-                          <strong>Debug (Development Only):</strong> PIN = {
-                            secureDeal?.verificationPin || 
-                            deal?.verificationPin || 
-                            (deal?.id === 11 ? '1000' : 'Contact vendor for PIN')
-                          }
-                        </div>
-                      )}
                     </div>
                   )}
                 </div>
