@@ -32,9 +32,11 @@ export default function RotatingPinDisplay({ dealId, dealTitle, dealImage, dealD
   const { data: pinData, isLoading, error, refetch } = useQuery({
     queryKey: ['rotatingPin', dealId],
     queryFn: async () => {
-      const response = await apiRequest(`/api/vendors/deals/${dealId}/current-pin`);
-      console.log('Rotating PIN API Response:', response); // Debug log
-      return response;
+      const response = await apiRequest(`/api/vendors/deals/${dealId}/current-pin`, 'GET');
+      const data = await response.json();
+      console.log('Rotating PIN API Response:', data); // Debug log
+      console.log('Current PIN:', data?.currentPin);
+      return data;
     },
     refetchInterval: 30000, // Refresh every 30 seconds
     enabled: !!dealId
