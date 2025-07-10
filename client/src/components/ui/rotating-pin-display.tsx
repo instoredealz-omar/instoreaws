@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { 
@@ -25,6 +26,7 @@ interface RotatingPinDisplayProps {
 export default function RotatingPinDisplay({ dealId, dealTitle, dealImage, dealDescription }: RotatingPinDisplayProps) {
   const [showPin, setShowPin] = useState(true); // Show PIN by default for vendors
   const [timeLeft, setTimeLeft] = useState<string>("");
+  const [progressValue, setProgressValue] = useState<number>(0);
   const [copied, setCopied] = useState(false);
   const { toast } = useToast();
 
@@ -48,9 +50,11 @@ export default function RotatingPinDisplay({ dealId, dealTitle, dealImage, dealD
       const now = new Date();
       const nextRotation = new Date(pinData.nextRotationAt);
       const diff = nextRotation.getTime() - now.getTime();
+      const totalInterval = (pinData?.rotationInterval || 30) * 60 * 1000; // Total interval in ms
 
       if (diff <= 0) {
         setTimeLeft("Rotating now...");
+        setProgressValue(100);
         refetch(); // Refresh to get new PIN
         return;
       }
@@ -58,13 +62,18 @@ export default function RotatingPinDisplay({ dealId, dealTitle, dealImage, dealD
       const minutes = Math.floor(diff / (1000 * 60));
       const seconds = Math.floor((diff % (1000 * 60)) / 1000);
       setTimeLeft(`${minutes}m ${seconds}s`);
+      
+      // Calculate progress (0-100, where 100 means time is up)
+      const elapsed = totalInterval - diff;
+      const progress = Math.max(0, Math.min(100, (elapsed / totalInterval) * 100));
+      setProgressValue(progress);
     };
 
     updateTimeLeft();
     const interval = setInterval(updateTimeLeft, 1000);
 
     return () => clearInterval(interval);
-  }, [pinData?.nextRotationAt, refetch]);
+  }, [pinData?.nextRotationAt, pinData?.rotationInterval, refetch]);
 
   const handleCopyPin = async () => {
     if (!pinData?.currentPin) return;
@@ -176,14 +185,41 @@ export default function RotatingPinDisplay({ dealId, dealTitle, dealImage, dealD
             </div>
           </div>
         )}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Clock className="h-4 w-4 text-blue-600" />
-            <span className="text-sm font-medium">Next rotation in:</span>
+        {/* Enhanced Countdown Timer Section */}
+        <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <Clock className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+              <span className="text-sm font-medium text-blue-900 dark:text-blue-100">Next rotation in:</span>
+            </div>
+            <Badge variant="outline" className="bg-white dark:bg-gray-800 border-blue-300 dark:border-blue-700">
+              <Clock className="h-3 w-3 mr-1" />
+              Auto-Rotating
+            </Badge>
           </div>
-          <Badge variant="outline" className="font-mono">
-            {timeLeft}
-          </Badge>
+          
+          <div className="text-center">
+            <div className="font-mono text-3xl font-bold text-blue-700 dark:text-blue-300 mb-3 tracking-wider">
+              {timeLeft || "Loading..."}
+            </div>
+            
+            {/* Progress Bar */}
+            <div className="mb-3">
+              <Progress 
+                value={progressValue} 
+                className="h-2 bg-blue-100 dark:bg-blue-900" 
+              />
+              <div className="flex justify-between text-xs text-blue-600 dark:text-blue-400 mt-1">
+                <span>Time Elapsed</span>
+                <span>{Math.round(progressValue)}%</span>
+                <span>Next Rotation</span>
+              </div>
+            </div>
+            
+            <div className="text-xs text-blue-600 dark:text-blue-400">
+              PIN changes every {pinData?.rotationInterval || 30} minutes for enhanced security
+            </div>
+          </div>
         </div>
 
         <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
@@ -214,10 +250,7 @@ export default function RotatingPinDisplay({ dealId, dealTitle, dealImage, dealD
           </div>
         </div>
 
-        <div className="flex items-center justify-between">
-          <div className="text-sm text-gray-600 dark:text-gray-400">
-            Rotates every {pinData?.rotationInterval || 30} minutes
-          </div>
+        <div className="flex justify-end">
           <Button
             variant="ghost"
             size="sm"
