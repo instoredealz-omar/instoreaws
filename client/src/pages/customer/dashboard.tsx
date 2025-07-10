@@ -47,7 +47,10 @@ export default function CustomerDashboard() {
   if (!user) return null;
 
   const currentUser = userDetails || user;
-  const recentClaims = claims?.slice(0, 5) || [];
+  // Sort claims by most recent first (claimedAt timestamp) before taking the first 5
+  const recentClaims = claims
+    ?.sort((a: any, b: any) => new Date(b.claimedAt).getTime() - new Date(a.claimedAt).getTime())
+    ?.slice(0, 5) || [];
   const topDeals = featuredDeals?.slice(0, 4) || [];
 
   const stats = [
