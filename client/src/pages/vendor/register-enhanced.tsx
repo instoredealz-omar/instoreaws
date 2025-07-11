@@ -37,6 +37,7 @@ import {
   Lock,
   Tag
 } from "lucide-react";
+import { TermsDialog } from "@/components/ui/terms-dialog";
 
 // Company types
 const companyTypes = [
@@ -647,14 +648,12 @@ export default function VendorRegisterEnhanced() {
                         <div className="space-y-1 leading-none">
                           <FormLabel>
                             I agree to the{" "}
-                            <a 
-                              to="/terms" 
-                              target="_blank" 
-                              className="text-primary hover:underline"
-                            >
-                              Instoredealz terms and conditions
-                            </a>{" "}
-                            *
+                            <TermsDialog>
+                              <Button variant="link" type="button" className="p-0 h-auto underline">
+                                terms and conditions
+                              </Button>
+                            </TermsDialog>
+                            {" "}*
                           </FormLabel>
                           <FormDescription>
                             By checking this box, you agree to our terms of service and privacy policy.
