@@ -2285,6 +2285,227 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Email report endpoints
+  app.post('/api/admin/reports/users/email', requireAuth, requireRole(['admin', 'superadmin']), async (req: AuthenticatedRequest, res) => {
+    try {
+      const { adminEmail, adminName } = req.body;
+      const { from, to } = req.query;
+      
+      let users = await storage.getAllUsers();
+      
+      // Apply date filtering if provided
+      if (from || to) {
+        users = users.filter(user => {
+          if (!user.createdAt) return false;
+          const userDate = new Date(user.createdAt);
+          const fromDate = from ? new Date(from as string) : null;
+          const toDate = to ? new Date(to as string) : null;
+          
+          if (fromDate && userDate < fromDate) return false;
+          if (toDate && userDate > toDate) return false;
+          return true;
+        });
+      }
+      
+      // Send email with report details
+      const emailData = getReportEmail('users', adminName, adminEmail, users);
+      const emailSent = await sendEmail(emailData);
+      
+      if (emailSent) {
+        res.json({ message: "Users report sent successfully to your email" });
+      } else {
+        res.status(500).json({ message: "Failed to send email report" });
+      }
+    } catch (error) {
+      res.status(500).json({ message: "Failed to email users report" });
+    }
+  });
+
+  app.post('/api/admin/reports/vendors/email', requireAuth, requireRole(['admin', 'superadmin']), async (req: AuthenticatedRequest, res) => {
+    try {
+      const { adminEmail, adminName } = req.body;
+      const { from, to } = req.query;
+      
+      let vendors = await storage.getAllVendors();
+      
+      // Apply date filtering if provided
+      if (from || to) {
+        vendors = vendors.filter(vendor => {
+          if (!vendor.createdAt) return false;
+          const vendorDate = new Date(vendor.createdAt);
+          const fromDate = from ? new Date(from as string) : null;
+          const toDate = to ? new Date(to as string) : null;
+          
+          if (fromDate && vendorDate < fromDate) return false;
+          if (toDate && vendorDate > toDate) return false;
+          return true;
+        });
+      }
+      
+      // Send email with report details
+      const emailData = getReportEmail('vendors', adminName, adminEmail, vendors);
+      const emailSent = await sendEmail(emailData);
+      
+      if (emailSent) {
+        res.json({ message: "Vendors report sent successfully to your email" });
+      } else {
+        res.status(500).json({ message: "Failed to send email report" });
+      }
+    } catch (error) {
+      res.status(500).json({ message: "Failed to email vendors report" });
+    }
+  });
+
+  app.post('/api/admin/reports/deals/email', requireAuth, requireRole(['admin', 'superadmin']), async (req: AuthenticatedRequest, res) => {
+    try {
+      const { adminEmail, adminName } = req.body;
+      const { from, to } = req.query;
+      
+      let deals = await storage.getAllDeals();
+      
+      // Apply date filtering if provided
+      if (from || to) {
+        deals = deals.filter(deal => {
+          if (!deal.createdAt) return false;
+          const dealDate = new Date(deal.createdAt);
+          const fromDate = from ? new Date(from as string) : null;
+          const toDate = to ? new Date(to as string) : null;
+          
+          if (fromDate && dealDate < fromDate) return false;
+          if (toDate && dealDate > toDate) return false;
+          return true;
+        });
+      }
+      
+      // Send email with report details
+      const emailData = getReportEmail('deals', adminName, adminEmail, deals);
+      const emailSent = await sendEmail(emailData);
+      
+      if (emailSent) {
+        res.json({ message: "Deals report sent successfully to your email" });
+      } else {
+        res.status(500).json({ message: "Failed to send email report" });
+      }
+    } catch (error) {
+      res.status(500).json({ message: "Failed to email deals report" });
+    }
+  });
+
+  app.post('/api/admin/reports/analytics/email', requireAuth, requireRole(['admin', 'superadmin']), async (req: AuthenticatedRequest, res) => {
+    try {
+      const { adminEmail, adminName } = req.body;
+      
+      const analytics = await storage.getAnalytics();
+      
+      // Send email with report details
+      const emailData = getReportEmail('analytics', adminName, adminEmail, [analytics]);
+      const emailSent = await sendEmail(emailData);
+      
+      if (emailSent) {
+        res.json({ message: "Analytics report sent successfully to your email" });
+      } else {
+        res.status(500).json({ message: "Failed to send email report" });
+      }
+    } catch (error) {
+      res.status(500).json({ message: "Failed to email analytics report" });
+    }
+  });
+
+  app.post('/api/admin/reports/claims/email', requireAuth, requireRole(['admin', 'superadmin']), async (req: AuthenticatedRequest, res) => {
+    try {
+      const { adminEmail, adminName } = req.body;
+      const { from, to } = req.query;
+      
+      let claims = await storage.getAllClaims();
+      
+      // Apply date filtering if provided
+      if (from || to) {
+        claims = claims.filter(claim => {
+          if (!claim.usedAt) return false;
+          const claimDate = new Date(claim.usedAt);
+          const fromDate = from ? new Date(from as string) : null;
+          const toDate = to ? new Date(to as string) : null;
+          
+          if (fromDate && claimDate < fromDate) return false;
+          if (toDate && claimDate > toDate) return false;
+          return true;
+        });
+      }
+      
+      // Send email with report details
+      const emailData = getReportEmail('claims', adminName, adminEmail, claims);
+      const emailSent = await sendEmail(emailData);
+      
+      if (emailSent) {
+        res.json({ message: "Claims report sent successfully to your email" });
+      } else {
+        res.status(500).json({ message: "Failed to send email report" });
+      }
+    } catch (error) {
+      res.status(500).json({ message: "Failed to email claims report" });
+    }
+  });
+
+  app.post('/api/admin/reports/revenue/email', requireAuth, requireRole(['admin', 'superadmin']), async (req: AuthenticatedRequest, res) => {
+    try {
+      const { adminEmail, adminName } = req.body;
+      const { from, to } = req.query;
+      
+      const [deals, vendors, claims] = await Promise.all([
+        storage.getAllDeals(),
+        storage.getAllVendors(),
+        storage.getAllClaims()
+      ]);
+      
+      // Apply date filtering if provided
+      let filteredClaims = claims;
+      if (from || to) {
+        filteredClaims = claims.filter(claim => {
+          if (!claim.usedAt) return false;
+          const claimDate = new Date(claim.usedAt);
+          const fromDate = from ? new Date(from as string) : null;
+          const toDate = to ? new Date(to as string) : null;
+          
+          if (fromDate && claimDate < fromDate) return false;
+          if (toDate && claimDate > toDate) return false;
+          return true;
+        });
+      }
+      
+      // Calculate revenue metrics
+      const revenueData = vendors.map((vendor: any) => {
+        const vendorClaims = filteredClaims.filter((claim: any) => 
+          claim.deal?.vendor?.id === vendor.id && claim.status === 'used'
+        );
+        
+        const totalSavings = vendorClaims.reduce((sum: number, claim: any) => 
+          sum + (claim.savingsAmount || 0), 0
+        );
+        
+        return {
+          vendorId: vendor.id,
+          businessName: vendor.businessName || 'N/A',
+          city: vendor.city || 'N/A',
+          totalTransactions: vendorClaims.length,
+          totalSavings,
+          estimatedRevenue: Math.round(totalSavings * 0.05)
+        };
+      });
+      
+      // Send email with report details
+      const emailData = getReportEmail('revenue', adminName, adminEmail, revenueData);
+      const emailSent = await sendEmail(emailData);
+      
+      if (emailSent) {
+        res.json({ message: "Revenue report sent successfully to your email" });
+      } else {
+        res.status(500).json({ message: "Failed to send email report" });
+      }
+    } catch (error) {
+      res.status(500).json({ message: "Failed to email revenue report" });
+    }
+  });
+
   app.post('/api/admin/deals/reset', requireAuth, requireRole(['admin', 'superadmin']), async (req: AuthenticatedRequest, res) => {
     try {
       const success = await storage.resetAllDeals();

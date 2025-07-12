@@ -130,6 +130,97 @@ export function getWelcomeCustomerEmail(name: string, email: string) {
   };
 }
 
+export function getReportEmail(reportType: string, adminName: string, adminEmail: string, reportData: any) {
+  const reportTitle = reportType.charAt(0).toUpperCase() + reportType.slice(1) + ' Report';
+  const generatedDate = new Date().toLocaleDateString();
+  
+  return {
+    to: adminEmail,
+    from: 'noreply@instoredealz.com',
+    subject: `${reportTitle} - ${generatedDate}`,
+    html: `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>${reportTitle}</title>
+      </head>
+      <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+          <h1 style="color: white; margin: 0; font-size: 28px;">${reportTitle}</h1>
+          <p style="color: white; margin: 10px 0 0 0; font-size: 16px;">Generated on ${generatedDate}</p>
+        </div>
+        
+        <div style="background: white; padding: 30px; border-radius: 0 0 10px 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+          <h2 style="color: #333; margin-top: 0;">Hi ${adminName}! 📊</h2>
+          
+          <p>Your requested ${reportType} report has been generated and is ready for review.</p>
+          
+          <div style="background: #f8f9ff; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <h3 style="color: #667eea; margin-top: 0;">Report Summary</h3>
+            <p><strong>Report Type:</strong> ${reportTitle}</p>
+            <p><strong>Generated:</strong> ${generatedDate}</p>
+            <p><strong>Total Records:</strong> ${reportData.length || 0}</p>
+            <p><strong>Requested By:</strong> ${adminName} (${adminEmail})</p>
+          </div>
+          
+          <div style="background: #fff5f5; border-left: 4px solid #f5576c; padding: 20px; margin: 20px 0;">
+            <h3 style="color: #f5576c; margin-top: 0;">📋 Report Details</h3>
+            <p>This report contains the latest data from your Instoredealz platform. You can download the complete CSV file from your admin dashboard.</p>
+            <ul style="margin: 10px 0; padding-left: 20px;">
+              <li>All data is current as of generation time</li>
+              <li>Report includes comprehensive filtering options</li>
+              <li>Data is formatted for easy analysis</li>
+              <li>CSV format compatible with Excel and other tools</li>
+            </ul>
+          </div>
+          
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="https://instoredealz.com/admin/reports" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
+              Access Admin Dashboard
+            </a>
+          </div>
+          
+          <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
+          
+          <p style="color: #666; font-size: 14px; margin: 0;">
+            Need help with your reports? Contact our support team at <a href="mailto:support@instoredealz.com" style="color: #667eea;">support@instoredealz.com</a>
+          </p>
+          
+          <p style="color: #666; font-size: 14px; margin: 10px 0 0 0;">
+            Best regards,<br>
+            The Instoredealz Analytics Team
+          </p>
+        </div>
+      </body>
+      </html>
+    `,
+    text: `
+      ${reportTitle} - ${generatedDate}
+      
+      Hi ${adminName}!
+      
+      Your requested ${reportType} report has been generated and is ready for review.
+      
+      Report Summary:
+      - Report Type: ${reportTitle}
+      - Generated: ${generatedDate}
+      - Total Records: ${reportData.length || 0}
+      - Requested By: ${adminName} (${adminEmail})
+      
+      This report contains the latest data from your Instoredealz platform. You can download the complete CSV file from your admin dashboard.
+      
+      Access your dashboard: https://instoredealz.com/admin/reports
+      
+      Need help with your reports? Contact our support team at support@instoredealz.com
+      
+      Best regards,
+      The Instoredealz Analytics Team
+    `
+  };
+}
+
 export function getVendorRegistrationEmail(businessName: string, contactName: string, email: string) {
   return {
     to: email,

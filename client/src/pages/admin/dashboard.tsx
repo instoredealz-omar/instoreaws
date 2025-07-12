@@ -76,11 +76,26 @@ export default function AdminDashboard() {
     try {
       setDownloadingReport(reportType);
       
-      const token = localStorage.getItem('token');
+      // Check if user is authenticated with proper role
+      if (!user || !['admin', 'superadmin'].includes(user.role)) {
+        toast({
+          title: "Authentication Error",
+          description: "Admin privileges required to download reports",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Get token from localStorage with fallback to different keys
+      let token = localStorage.getItem('auth_token');
+      if (!token) {
+        token = localStorage.getItem('token') || localStorage.getItem('authToken');
+      }
+      
       if (!token) {
         toast({
           title: "Authentication Error",
-          description: "Please log in to download reports",
+          description: "Session expired. Please log in again",
           variant: "destructive",
         });
         return;
@@ -379,13 +394,13 @@ export default function AdminDashboard() {
             disabled={refreshing}
             variant="outline"
             size="sm"
-            className="bg-white/80 hover:bg-white border-blue-200 text-blue-700 hover:text-blue-800"
+            className="bg-white/80 dark:bg-gray-800/80 hover:bg-white dark:hover:bg-gray-800 border-blue-200 dark:border-blue-700 text-blue-700 dark:text-blue-300 hover:text-blue-800 dark:hover:text-blue-200"
           >
             <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
             {refreshing ? 'Refreshing...' : 'Refresh'}
           </Button>
 
-          <Badge variant="outline" className="flex items-center bg-green-50 text-green-700 border-green-200">
+          <Badge variant="outline" className="flex items-center bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 border-green-200 dark:border-green-800">
             <Zap className="h-3 w-3 mr-1" />
             Live Data
           </Badge>

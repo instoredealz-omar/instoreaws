@@ -27,13 +27,15 @@ import {
   Clock,
   DollarSign,
   Eye,
-  Loader2
+  Loader2,
+  Mail
 } from "lucide-react";
 
 export default function AdminReports() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [downloadingReport, setDownloadingReport] = useState<string | null>(null);
+  const [emailingReport, setEmailingReport] = useState<string | null>(null);
   const [viewingReport, setViewingReport] = useState<string | null>(null);
   const [reportData, setReportData] = useState<any[]>([]);
   const [reportColumns, setReportColumns] = useState<string[]>([]);
@@ -337,6 +339,70 @@ export default function AdminReports() {
     }
   };
 
+  // Function to handle report email sending
+  const emailReport = async (reportType: string) => {
+    try {
+      setEmailingReport(reportType);
+      
+      // Check if user is authenticated
+      if (!user || !['admin', 'superadmin'].includes(user.role)) {
+        toast({
+          title: "Authentication Error",
+          description: "Admin privileges required to email reports",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Get token from localStorage - use correct key
+      let token = localStorage.getItem('auth_token');
+      if (!token) {
+        // Try alternative token storage keys
+        token = localStorage.getItem('token') || localStorage.getItem('authToken');
+      }
+      
+      if (!token) {
+        toast({
+          title: "Authentication Error",
+          description: "Session expired. Please log in again",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const dateFilter = buildDateFilter();
+      const response = await fetch(`/api/admin/reports/${reportType}/email${dateFilter}`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          adminEmail: user.email,
+          adminName: user.name,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to email ${reportType} report`);
+      }
+
+      toast({
+        title: "Email Sent Successfully",
+        description: `${reportType.charAt(0).toUpperCase() + reportType.slice(1)} report has been sent to ${user.email}`,
+      });
+    } catch (error) {
+      // Error handled by toast notification
+      toast({
+        title: "Email Failed",
+        description: `Failed to email ${reportType} report. Please try again.`,
+        variant: "destructive",
+      });
+    } finally {
+      setEmailingReport(null);
+    }
+  };
+
   if (!user) return null;
 
   const analyticsData = analytics as any;
@@ -538,8 +604,8 @@ export default function AdminReports() {
 
             {/* Filter Summary */}
             {filterPreset !== 'all' && (
-              <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                <p className="text-sm text-blue-800">
+              <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                <p className="text-sm text-blue-800 dark:text-blue-300">
                   <strong>Active Filter:</strong> {
                     filterPreset === 'custom' ? 
                       `Custom range: ${dateRange.from || 'Start'} to ${dateRange.to}` :
@@ -577,15 +643,15 @@ export default function AdminReports() {
                   
                   {/* Fields Preview */}
                   <div className="mb-4">
-                    <p className="text-xs font-medium text-gray-700 mb-2">Included Fields:</p>
+                    <p className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">Included Fields:</p>
                     <div className="flex flex-wrap gap-1">
                       {report.fields.slice(0, 4).map((field) => (
-                        <Badge key={field} variant="outline" className="text-xs">
+                        <Badge key={field} variant="outline" className="text-xs dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600">
                           {field}
                         </Badge>
                       ))}
                       {report.fields.length > 4 && (
-                        <Badge variant="outline" className="text-xs">
+                        <Badge variant="outline" className="text-xs dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600">
                           +{report.fields.length - 4} more
                         </Badge>
                       )}
@@ -682,6 +748,26 @@ export default function AdminReports() {
                         <>
                           <Download className="h-4 w-4 mr-2" />
                           Download
+                        </>
+                      )}
+                    </Button>
+
+                    {/* Email Button */}
+                    <Button 
+                      variant="outline"
+                      className="flex-1"
+                      onClick={() => emailReport(report.id)}
+                      disabled={emailingReport === report.id}
+                    >
+                      {emailingReport === report.id ? (
+                        <>
+                          <Mail className="h-4 w-4 mr-2 animate-pulse" />
+                          Sending...
+                        </>
+                      ) : (
+                        <>
+                          <Mail className="h-4 w-4 mr-2" />
+                          Email
                         </>
                       )}
                     </Button>
