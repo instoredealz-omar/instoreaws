@@ -99,7 +99,7 @@ export default function AdminDeals() {
   const getStatusBadge = (deal: any) => {
     if (!deal.isApproved) {
       return (
-        <Badge className="bg-warning/10 text-warning">
+        <Badge className="bg-red-500 text-white">
           <Clock className="h-3 w-3 mr-1" />
           Pending
         </Badge>

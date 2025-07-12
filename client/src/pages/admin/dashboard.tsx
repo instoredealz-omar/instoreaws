@@ -784,7 +784,7 @@ export default function AdminDashboard() {
                         <p className="font-medium text-foreground">{vendor.businessName}</p>
                         <p className="text-sm text-gray-500">{vendor.city}, {vendor.state}</p>
                       </div>
-                      <Badge variant="secondary">Pending</Badge>
+                      <Badge className="bg-red-500 text-white">Pending</Badge>
                     </div>
                   ))}
                   {pendingVendorsData.length > 3 && (
@@ -821,7 +821,7 @@ export default function AdminDashboard() {
                           By {deal.vendor?.businessName} - {deal.discountPercentage}% off
                         </p>
                       </div>
-                      <Badge variant="secondary">Pending</Badge>
+                      <Badge className="bg-red-500 text-white">Pending</Badge>
                     </div>
                   ))}
                   {pendingDealsData.length > 3 && (
