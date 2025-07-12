@@ -662,7 +662,7 @@ export class MemStorage implements IStorage {
           maxRedemptions: 50 + (i * 25), // 50, 75, 100, 125, 150
           currentRedemptions: Math.floor(Math.random() * 20), // Random current redemptions
           isActive: true,
-          isApproved: true, // All deals approved for demo
+          isApproved: i < 3, // First 3 deals per category approved, rest need approval
           approvedBy: 1,
           viewCount: Math.floor(Math.random() * 500) + 50, // Random view count
           requiredMembership: membershipReq,
