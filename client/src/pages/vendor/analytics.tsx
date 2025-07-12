@@ -123,6 +123,34 @@ export default function VendorAnalytics() {
       revenue: ((deal.discountPercentage || 0) * 10 * (deal.currentRedemptions || 0))
     }));
 
+  // Color palettes for charts
+  const CHART_COLORS = {
+    primary: ['#3B82F6', '#1D4ED8', '#1E3A8A', '#312E81'],
+    success: ['#10B981', '#059669', '#047857', '#065F46'],
+    warning: ['#F59E0B', '#D97706', '#B45309', '#92400E'],
+    error: ['#EF4444', '#DC2626', '#B91C1C', '#991B1B'],
+    purple: ['#8B5CF6', '#7C3AED', '#6D28D9', '#5B21B6'],
+    pink: ['#EC4899', '#DB2777', '#BE185D', '#9D174D'],
+    gradient: ['#8B5CF6', '#3B82F6', '#10B981', '#F59E0B', '#EF4444']
+  };
+
+  // Monthly performance data with colors
+  const monthlyData = [
+    { month: 'Jan', views: 18500, claims: 1200, revenue: 45000, color: CHART_COLORS.gradient[0] },
+    { month: 'Feb', views: 21200, claims: 1450, revenue: 52000, color: CHART_COLORS.gradient[1] },
+    { month: 'Mar', views: 19800, claims: 1350, revenue: 48000, color: CHART_COLORS.gradient[2] },
+    { month: 'Apr', views: 24600, claims: 1680, revenue: 58000, color: CHART_COLORS.gradient[3] },
+    { month: 'May', views: 26400, claims: 1820, revenue: 63000, color: CHART_COLORS.gradient[4] },
+    { month: 'Jun', views: 23800, claims: 1590, revenue: 55000, color: CHART_COLORS.gradient[0] }
+  ];
+
+  // Deal status distribution with vibrant colors
+  const dealStatusData = [
+    { name: 'Active', value: activeDeals, color: CHART_COLORS.success[0] },
+    { name: 'Pending', value: pendingDeals, color: CHART_COLORS.warning[0] },
+    { name: 'Expired', value: Math.max(0, totalDeals - activeDeals - pendingDeals), color: CHART_COLORS.error[0] }
+  ];
+
   // Category performance
   const categoryData = dealsArray.reduce((acc: any, deal: any) => {
     const category = deal.category || 'Other';
@@ -138,15 +166,7 @@ export default function VendorAnalytics() {
 
   const categoryChartData = Object.values(categoryData);
 
-  // Generate realistic monthly trend data based on actual deals
-  const monthlyData = [
-    { month: 'Jan', deals: Math.floor(totalDeals * 0.6), claims: Math.floor(totalClaims * 0.4), revenue: Math.floor(estimatedRevenue * 0.3) },
-    { month: 'Feb', deals: Math.floor(totalDeals * 0.7), claims: Math.floor(totalClaims * 0.5), revenue: Math.floor(estimatedRevenue * 0.4) },
-    { month: 'Mar', deals: Math.floor(totalDeals * 0.8), claims: Math.floor(totalClaims * 0.6), revenue: Math.floor(estimatedRevenue * 0.5) },
-    { month: 'Apr', deals: Math.floor(totalDeals * 0.9), claims: Math.floor(totalClaims * 0.7), revenue: Math.floor(estimatedRevenue * 0.6) },
-    { month: 'May', deals: Math.floor(totalDeals * 0.95), claims: Math.floor(totalClaims * 0.8), revenue: Math.floor(estimatedRevenue * 0.8) },
-    { month: 'Jun', deals: totalDeals, claims: totalClaims, revenue: Math.floor(estimatedRevenue) },
-  ];
+
 
   // Color schemes
   const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#06B6D4', '#84CC16'];
@@ -351,6 +371,16 @@ export default function VendorAnalytics() {
                   <ResponsiveContainer width="100%" height={350}>
                     {chartType === "bar" ? (
                       <BarChart data={dealPerformanceData} key={animationKey}>
+                        <defs>
+                          <linearGradient id="blueGradient" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#3B82F6" stopOpacity={0.8} />
+                            <stop offset="100%" stopColor="#1E40AF" stopOpacity={0.3} />
+                          </linearGradient>
+                          <linearGradient id="greenGradient" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#10B981" stopOpacity={0.8} />
+                            <stop offset="100%" stopColor="#047857" stopOpacity={0.3} />
+                          </linearGradient>
+                        </defs>
                         <CartesianGrid strokeDasharray="3 3" stroke="#374151" strokeOpacity={0.3} />
                         <XAxis 
                           dataKey="name" 
@@ -369,8 +399,8 @@ export default function VendorAnalytics() {
                             color: '#F9FAFB'
                           }}
                         />
-                        <Bar dataKey="views" fill="#3B82F6" name="Views" radius={[4, 4, 0, 0]} />
-                        <Bar dataKey="claims" fill="#10B981" name="Claims" radius={[4, 4, 0, 0]} />
+                        <Bar dataKey="views" fill="url(#blueGradient)" name="Views" radius={[4, 4, 0, 0]} />
+                        <Bar dataKey="claims" fill="url(#greenGradient)" name="Claims" radius={[4, 4, 0, 0]} />
                       </BarChart>
                     ) : chartType === "line" ? (
                       <LineChart data={dealPerformanceData} key={animationKey}>
@@ -385,8 +415,8 @@ export default function VendorAnalytics() {
                             color: '#F9FAFB'
                           }}
                         />
-                        <Line type="monotone" dataKey="views" stroke="#3B82F6" strokeWidth={3} dot={{ fill: '#3B82F6', r: 4 }} />
-                        <Line type="monotone" dataKey="claims" stroke="#10B981" strokeWidth={3} dot={{ fill: '#10B981', r: 4 }} />
+                        <Line type="monotone" dataKey="views" stroke="#3B82F6" strokeWidth={4} dot={{ fill: '#3B82F6', r: 6 }} />
+                        <Line type="monotone" dataKey="claims" stroke="#10B981" strokeWidth={4} dot={{ fill: '#10B981', r: 6 }} />
                       </LineChart>
                     ) : (
                       <AreaChart data={dealPerformanceData} key={animationKey}>
@@ -401,8 +431,8 @@ export default function VendorAnalytics() {
                             color: '#F9FAFB'
                           }}
                         />
-                        <Area type="monotone" dataKey="views" stackId="1" stroke="#3B82F6" fill="#3B82F6" fillOpacity={0.3} />
-                        <Area type="monotone" dataKey="claims" stackId="1" stroke="#10B981" fill="#10B981" fillOpacity={0.3} />
+                        <Area type="monotone" dataKey="views" stackId="1" stroke="#3B82F6" fill="url(#blueGradient)" fillOpacity={0.8} />
+                        <Area type="monotone" dataKey="claims" stackId="1" stroke="#10B981" fill="url(#greenGradient)" fillOpacity={0.8} />
                       </AreaChart>
                     )}
                   </ResponsiveContainer>
@@ -419,6 +449,16 @@ export default function VendorAnalytics() {
                 <CardContent>
                   <ResponsiveContainer width="100%" height={350}>
                     <ComposedChart data={monthlyData} key={animationKey}>
+                      <defs>
+                        <linearGradient id="blueGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#3B82F6" stopOpacity={0.8} />
+                          <stop offset="100%" stopColor="#1E40AF" stopOpacity={0.3} />
+                        </linearGradient>
+                        <linearGradient id="greenGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#10B981" stopOpacity={0.8} />
+                          <stop offset="100%" stopColor="#047857" stopOpacity={0.3} />
+                        </linearGradient>
+                      </defs>
                       <CartesianGrid strokeDasharray="3 3" stroke="#374151" strokeOpacity={0.3} />
                       <XAxis dataKey="month" fontSize={11} stroke="#6B7280" />
                       <YAxis fontSize={11} stroke="#6B7280" />
@@ -431,9 +471,9 @@ export default function VendorAnalytics() {
                         }}
                       />
                       <Legend />
-                      <Bar dataKey="deals" fill="#3B82F6" name="New Deals" radius={[4, 4, 0, 0]} />
-                      <Line type="monotone" dataKey="claims" stroke="#10B981" strokeWidth={3} name="Claims" />
-                      <Line type="monotone" dataKey="revenue" stroke="#F59E0B" strokeWidth={3} name="Revenue" />
+                      <Bar dataKey="views" fill="url(#blueGradient)" name="Views" radius={[4, 4, 0, 0]} />
+                      <Line type="monotone" dataKey="claims" stroke="#10B981" strokeWidth={4} name="Claims" dot={{ fill: '#10B981', r: 6 }} />
+                      <Line type="monotone" dataKey="revenue" stroke="#F59E0B" strokeWidth={4} name="Revenue" dot={{ fill: '#F59E0B', r: 6 }} />
                     </ComposedChart>
                   </ResponsiveContainer>
                 </CardContent>

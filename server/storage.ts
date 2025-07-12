@@ -942,7 +942,10 @@ export class MemStorage implements IStorage {
       
       return {
         ...claim,
-        user: user,
+        user: user ? {
+          ...user,
+          membershipId: `ISD-${user.id.toString().padStart(8, '0')}`
+        } : undefined,
         deal: deal ? {
           ...deal,
           vendor: vendor

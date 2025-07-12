@@ -421,6 +421,7 @@ const AdminDashboard = () => {
                           <TableRow>
                             <TableHead>Claim ID</TableHead>
                             <TableHead>Customer</TableHead>
+                            <TableHead>Membership ID</TableHead>
                             <TableHead>Deal</TableHead>
                             <TableHead>Amount</TableHead>
                             <TableHead>Date</TableHead>
@@ -433,6 +434,9 @@ const AdminDashboard = () => {
                             <TableRow key={claim.id || index}>
                               <TableCell>{claim.id || `C${index + 1}`}</TableCell>
                               <TableCell>{claim.customerName || claim.user || 'Customer'}</TableCell>
+                              <TableCell className="font-mono text-sm">
+                                {claim.membershipId || `ISD-${(claim.userId || index + 1).toString().padStart(8, '0')}`}
+                              </TableCell>
                               <TableCell className="max-w-xs truncate">
                                 {claim.dealTitle || claim.deal || 'Deal Title'}
                               </TableCell>

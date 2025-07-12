@@ -2197,9 +2197,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Convert claims data to CSV format
-      const csvHeaders = 'ID,User Email,Deal Title,Vendor,Savings Amount,Status,Claim Date,Verification Date\n';
+      const csvHeaders = 'ID,User Email,Membership ID,Deal Title,Vendor,Savings Amount,Status,Claim Date,Verification Date\n';
       const csvData = claims.map((claim: any) => 
-        `${claim.id},"${claim.user?.email || 'N/A'}","${claim.deal?.title || 'N/A'}","${claim.deal?.vendor?.businessName || 'N/A'}","₹${claim.savingsAmount || 0}","${claim.status}","${claim.claimedAt ? new Date(claim.claimedAt).toLocaleDateString() : 'N/A'}","${claim.usedAt ? new Date(claim.usedAt).toLocaleDateString() : 'N/A'}"`
+        `${claim.id},"${claim.user?.email || 'N/A'}","${claim.user?.membershipId || 'N/A'}","${claim.deal?.title || 'N/A'}","${claim.deal?.vendor?.businessName || 'N/A'}","₹${claim.savingsAmount || 0}","${claim.status}","${claim.claimedAt ? new Date(claim.claimedAt).toLocaleDateString() : 'N/A'}","${claim.usedAt ? new Date(claim.usedAt).toLocaleDateString() : 'N/A'}"`
       ).join('\n');
 
       const dateRange = (from || to) ? ` (${from || 'start'} to ${to || 'end'})` : '';
