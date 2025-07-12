@@ -4,7 +4,7 @@ import axios, { AxiosError, AxiosResponse } from "axios";
 import { storage } from "./storage";
 import { loginSchema, signupSchema, insertVendorSchema, insertDealSchema, insertHelpTicketSchema, insertWishlistSchema, updateUserProfileSchema, updateVendorProfileSchema, insertCustomDealAlertSchema, insertDealConciergeRequestSchema, insertAlertNotificationSchema } from "@shared/schema";
 import { z } from "zod";
-import { sendEmail, getWelcomeCustomerEmail, getVendorRegistrationEmail } from "./email";
+import { sendEmail, getWelcomeCustomerEmail, getVendorRegistrationEmail, getReportEmail } from "./email";
 import jwt from "jsonwebtoken";
 
 // Configure axios defaults
@@ -2312,7 +2312,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const emailSent = await sendEmail(emailData);
       
       if (emailSent) {
-        res.json({ message: "Users report sent successfully to your email" });
+        const message = process.env.SENDGRID_API_KEY ? 
+          "Users report sent successfully to your email" : 
+          "Email service disabled. Users report data prepared successfully";
+        res.json({ message });
       } else {
         res.status(500).json({ message: "Failed to send email report" });
       }
@@ -2347,7 +2350,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const emailSent = await sendEmail(emailData);
       
       if (emailSent) {
-        res.json({ message: "Vendors report sent successfully to your email" });
+        const message = process.env.SENDGRID_API_KEY ? 
+          "Vendors report sent successfully to your email" : 
+          "Email service disabled. Vendors report data prepared successfully";
+        res.json({ message });
       } else {
         res.status(500).json({ message: "Failed to send email report" });
       }
@@ -2382,7 +2388,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const emailSent = await sendEmail(emailData);
       
       if (emailSent) {
-        res.json({ message: "Deals report sent successfully to your email" });
+        const message = process.env.SENDGRID_API_KEY ? 
+          "Deals report sent successfully to your email" : 
+          "Email service disabled. Deals report data prepared successfully";
+        res.json({ message });
       } else {
         res.status(500).json({ message: "Failed to send email report" });
       }
@@ -2402,7 +2411,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const emailSent = await sendEmail(emailData);
       
       if (emailSent) {
-        res.json({ message: "Analytics report sent successfully to your email" });
+        const message = process.env.SENDGRID_API_KEY ? 
+          "Analytics report sent successfully to your email" : 
+          "Email service disabled. Analytics report data prepared successfully";
+        res.json({ message });
       } else {
         res.status(500).json({ message: "Failed to send email report" });
       }
@@ -2437,7 +2449,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const emailSent = await sendEmail(emailData);
       
       if (emailSent) {
-        res.json({ message: "Claims report sent successfully to your email" });
+        const message = process.env.SENDGRID_API_KEY ? 
+          "Claims report sent successfully to your email" : 
+          "Email service disabled. Claims report data prepared successfully";
+        res.json({ message });
       } else {
         res.status(500).json({ message: "Failed to send email report" });
       }
@@ -2497,7 +2512,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const emailSent = await sendEmail(emailData);
       
       if (emailSent) {
-        res.json({ message: "Revenue report sent successfully to your email" });
+        const message = process.env.SENDGRID_API_KEY ? 
+          "Revenue report sent successfully to your email" : 
+          "Email service disabled. Revenue report data prepared successfully";
+        res.json({ message });
       } else {
         res.status(500).json({ message: "Failed to send email report" });
       }

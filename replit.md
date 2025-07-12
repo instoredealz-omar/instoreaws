@@ -115,6 +115,15 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+### July 12, 2025 - Complete Dark Theme Fix & Email Functionality Enhancement for Admin Reports
+- **Dark Theme Reports Fix**: Fixed all dark theme visibility issues in admin reports page with proper background colors (bg-blue-900/10, bg-green-900/10, etc.)
+- **Text Visibility Enhancement**: Updated text colors, badge colors, and icon colors for proper dark theme support (text-blue-400, text-green-400, etc.)
+- **Report Card Styling**: Fixed report card backgrounds, borders, and content visibility in dark mode
+- **Email Functionality Update**: Enhanced email report routes to work gracefully without SendGrid API key
+- **Email Service Messages**: Updated email routes to show appropriate messages when email service is disabled vs enabled
+- **Import Fix**: Added missing getReportEmail import to server routes for proper email functionality
+- **Graceful Degradation**: Email functionality now works without API key, showing "Email service disabled" messages instead of 500 errors
+
 ### July 12, 2025 - Enhanced Admin Dashboard with Interactive Colorful Analytics & Vendor Analytics Date Filtering
 - **Complete Admin Dashboard Enhancement**: Transformed admin dashboard with vibrant, interactive analytics featuring colorful charts, multiple visualization types, and enhanced user experience
 - **Interactive Chart Controls**: Added comprehensive chart type selection (Bar, Line, Area, Combined) with real-time switching and smooth animations
