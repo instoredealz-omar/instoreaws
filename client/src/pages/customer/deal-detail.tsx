@@ -138,7 +138,10 @@ export default function DealDetail({ params }: DealDetailProps) {
   // Increment view count when component mounts
   useEffect(() => {
     if (currentDeal && id) {
-      apiRequest(`/api/deals/${id}/view`, "POST", {}).catch(() => {
+      apiRequest(`/api/deals/${id}/view`, "POST", {}).then(() => {
+        // Refresh deal data after view increment
+        queryClient.invalidateQueries({ queryKey: [`/api/deals/${id}`] });
+      }).catch(() => {
         // Silently fail view tracking
       });
     }
