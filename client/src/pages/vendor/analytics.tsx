@@ -36,6 +36,7 @@ import {
 } from "lucide-react";
 import { Link } from "wouter";
 import { useAuth } from "@/lib/auth";
+import { useToast } from "@/hooks/use-toast";
 import { 
   BarChart, 
   Bar, 
@@ -58,6 +59,7 @@ import {
 
 export default function VendorAnalytics() {
   const { user } = useAuth();
+  const { toast } = useToast();
   
   // State for interactivity
   const [timeRange, setTimeRange] = useState("30d");
@@ -67,6 +69,7 @@ export default function VendorAnalytics() {
   const [animationKey, setAnimationKey] = useState(0);
   const [activeTab, setActiveTab] = useState("overview");
   const [selectedDeal, setSelectedDeal] = useState<any>(null);
+  const [exporting, setExporting] = useState(false);
 
   // Fetch deals data
   const { data: deals = [], isLoading, refetch } = useQuery({
@@ -91,6 +94,60 @@ export default function VendorAnalytics() {
     await refetch();
     setAnimationKey(prev => prev + 1);
     setTimeout(() => setRefreshing(false), 1000);
+  };
+
+  // Export data to CSV
+  const handleExportData = async () => {
+    setExporting(true);
+    
+    const filteredDeals = dealsArray.filter((deal: any) => selectedCategory === "all" || deal.category === selectedCategory);
+    
+    if (filteredDeals.length === 0) {
+      toast({
+        title: "No Data to Export",
+        description: "There are no deals matching your current filters.",
+        variant: "destructive"
+      });
+      setExporting(false);
+      return;
+    }
+
+    // Add a small delay to show loading state
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    const csvHeader = "Deal Title,Category,Views,Claims,Conversion Rate,Discount %,Est. Revenue\n";
+    const csvData = filteredDeals
+      .map((deal: any) => {
+        const views = deal.viewCount || 0;
+        const claims = deal.currentRedemptions || 0;
+        const conversionRate = views > 0 ? ((claims / views) * 100).toFixed(1) : "0.0";
+        const discount = deal.discountPercentage || 0;
+        const revenue = ((discount * 10 * claims) || 0);
+        
+        return `"${deal.title}","${deal.category || 'N/A'}",${views},${claims},${conversionRate}%,${discount}%,₹${revenue}`;
+      })
+      .join("\n");
+
+    const csvContent = csvHeader + csvData;
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    
+    if (link.download !== undefined) {
+      const url = URL.createObjectURL(blob);
+      link.setAttribute("href", url);
+      link.setAttribute("download", `deals-analytics-${timeRange}-${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = "hidden";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      toast({
+        title: "Export Successful",
+        description: `Analytics data exported successfully for ${filteredDeals.length} deals.`,
+      });
+    }
+    
+    setExporting(false);
   };
 
   // Calculate analytics data
@@ -213,7 +270,10 @@ export default function VendorAnalytics() {
             </div>
             <Badge variant="secondary" className="flex items-center">
               <Calendar className="h-4 w-4 mr-1" />
-              Last 30 days
+              {timeRange === "7d" ? "Last 7 days" : 
+               timeRange === "30d" ? "Last 30 days" : 
+               timeRange === "90d" ? "Last 90 days" : 
+               timeRange === "1y" ? "Last year" : "Last 30 days"}
             </Badge>
           </div>
         </div>
@@ -338,9 +398,9 @@ export default function VendorAnalytics() {
             {refreshing ? 'Refreshing...' : 'Refresh'}
           </Button>
 
-          <Button variant="outline" size="sm">
-            <Download className="h-4 w-4 mr-2" />
-            Export Data
+          <Button variant="outline" size="sm" onClick={handleExportData} disabled={exporting}>
+            <Download className={`h-4 w-4 mr-2 ${exporting ? 'animate-spin' : ''}`} />
+            {exporting ? 'Exporting...' : 'Export Data'}
           </Button>
         </div>
 
