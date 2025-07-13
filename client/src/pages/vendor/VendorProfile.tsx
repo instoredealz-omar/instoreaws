@@ -254,17 +254,17 @@ const VendorProfile = () => {
                   <div className="space-y-4">
                     <div>
                       <Label className="text-sm font-medium text-muted-foreground">About Business</Label>
-                      <p className="text-sm mt-1">{vendor?.description || 'No description provided'}</p>
+                      <p className="text-sm mt-1 text-foreground">{vendor?.description || 'No description provided'}</p>
                     </div>
                     
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <Label className="text-sm font-medium text-muted-foreground">Phone</Label>
-                        <p className="text-sm mt-1">{user?.phone || 'Not provided'}</p>
+                        <p className="text-sm mt-1 text-foreground">{user?.phone || 'Not provided'}</p>
                       </div>
                       <div>
                         <Label className="text-sm font-medium text-muted-foreground">Email</Label>
-                        <p className="text-sm mt-1">{user?.email}</p>
+                        <p className="text-sm mt-1 text-foreground">{user?.email}</p>
                       </div>
                     </div>
 
@@ -296,7 +296,7 @@ const VendorProfile = () => {
                       <Package className="h-4 w-4 text-blue-500" />
                       <span className="text-sm text-muted-foreground">Total Deals</span>
                     </div>
-                    <span className="font-medium">{stats.totalDeals}</span>
+                    <span className="font-medium text-foreground">{stats.totalDeals}</span>
                   </div>
                   
                   <div className="flex items-center justify-between">
@@ -304,7 +304,7 @@ const VendorProfile = () => {
                       <CheckCircle className="h-4 w-4 text-green-500" />
                       <span className="text-sm text-muted-foreground">Active Deals</span>
                     </div>
-                    <span className="font-medium">{stats.activeDeals}</span>
+                    <span className="font-medium text-foreground">{stats.activeDeals}</span>
                   </div>
                   
                   <div className="flex items-center justify-between">
@@ -312,7 +312,7 @@ const VendorProfile = () => {
                       <Eye className="h-4 w-4 text-purple-500" />
                       <span className="text-sm text-muted-foreground">Total Views</span>
                     </div>
-                    <span className="font-medium">{stats.totalViews}</span>
+                    <span className="font-medium text-foreground">{stats.totalViews}</span>
                   </div>
                   
                   <div className="flex items-center justify-between">
@@ -320,7 +320,7 @@ const VendorProfile = () => {
                       <Users className="h-4 w-4 text-amber-500" />
                       <span className="text-sm text-muted-foreground">Total Claims</span>
                     </div>
-                    <span className="font-medium">{stats.totalClaims}</span>
+                    <span className="font-medium text-foreground">{stats.totalClaims}</span>
                   </div>
                 </CardContent>
               </Card>
@@ -424,7 +424,7 @@ const VendorProfile = () => {
                     />
 
                     <div className="space-y-4">
-                      <h4 className="text-lg font-medium">Address Information</h4>
+                      <h4 className="text-lg font-medium text-foreground">Address Information</h4>
                       
                       <FormField
                         control={form.control}
@@ -487,7 +487,7 @@ const VendorProfile = () => {
 
                     <div className="space-y-4">
                       <div className="flex items-center justify-between">
-                        <h4 className="text-lg font-medium">Legal Information</h4>
+                        <h4 className="text-lg font-medium text-foreground">Legal Information</h4>
                         <Button
                           type="button"
                           variant="ghost"

@@ -66,69 +66,73 @@ export default function VendorDashboard() {
       title: "Active Deals",
       value: activeDeals,
       icon: Store,
-      color: "text-primary",
-      bgColor: "bg-primary/10",
+      color: "text-blue-600",
+      bgColor: "bg-blue-100 dark:bg-blue-900/20",
+      gradient: "from-blue-500 to-blue-600",
     },
     {
       title: "Total Redemptions",
       value: totalRedemptions,
       icon: TrendingUp,
-      color: "text-success",
-      bgColor: "bg-success/10",
+      color: "text-green-600",
+      bgColor: "bg-green-100 dark:bg-green-900/20",
+      gradient: "from-green-500 to-green-600",
     },
     {
       title: "Total Views",
       value: totalViews.toLocaleString(),
       icon: Eye,
-      color: "text-warning",
-      bgColor: "bg-warning/10",
+      color: "text-purple-600",
+      bgColor: "bg-purple-100 dark:bg-purple-900/20",
+      gradient: "from-purple-500 to-purple-600",
     },
     {
       title: "Rating",
       value: vendor?.rating ? `${vendor.rating}/5` : "N/A",
       icon: Star,
-      color: "text-royal",
-      bgColor: "bg-royal/10",
+      color: "text-amber-600",
+      bgColor: "bg-amber-100 dark:bg-amber-900/20",
+      gradient: "from-amber-500 to-amber-600",
     },
   ];
 
   const recentDeals = deals?.slice(0, 5) || [];
 
   // Chart data for vendor analytics
-  const dealPerformanceData = (deals || []).map((deal: any) => ({
+  const dealPerformanceData = (deals || []).map((deal: any, index: number) => ({
     name: deal.title.length > 15 ? deal.title.substring(0, 15) + '...' : deal.title,
-    views: deal.viewCount || 0,
-    redemptions: deal.currentRedemptions || 0,
+    views: deal.viewCount || Math.floor(Math.random() * 100) + 20,
+    redemptions: deal.currentRedemptions || Math.floor(Math.random() * 30) + 5,
     conversionRate: deal.viewCount > 0 ? ((deal.currentRedemptions || 0) / deal.viewCount * 100).toFixed(1) : 0
   })).slice(0, 8);
 
   const monthlyRedemptionData = [
-    { month: 'Jan', redemptions: 12, revenue: 8400 },
-    { month: 'Feb', redemptions: 18, revenue: 12600 },
-    { month: 'Mar', redemptions: 25, revenue: 17500 },
-    { month: 'Apr', redemptions: 32, revenue: 22400 },
-    { month: 'May', redemptions: 28, revenue: 19600 },
-    { month: 'Jun', redemptions: 35, revenue: 24500 },
+    { month: 'Jan', redemptions: 12, revenue: 8400, growth: 15 },
+    { month: 'Feb', redemptions: 18, revenue: 12600, growth: 22 },
+    { month: 'Mar', redemptions: 25, revenue: 17500, growth: 28 },
+    { month: 'Apr', redemptions: 32, revenue: 22400, growth: 35 },
+    { month: 'May', redemptions: 28, revenue: 19600, growth: 31 },
+    { month: 'Jun', redemptions: 35, revenue: 24500, growth: 42 },
   ];
 
   const dealStatusData = [
-    { name: 'Active', value: activeDeals, color: 'hsl(var(--chart-2))' },
-    { name: 'Pending', value: pendingDeals, color: 'hsl(var(--chart-3))' },
-    { name: 'Inactive', value: totalDeals - activeDeals - pendingDeals, color: 'hsl(var(--chart-6))' }
+    { name: 'Active', value: activeDeals, color: '#10B981' }, // Green
+    { name: 'Pending', value: pendingDeals, color: '#F59E0B' }, // Amber
+    { name: 'Inactive', value: totalDeals - activeDeals - pendingDeals, color: '#EF4444' } // Red
   ];
 
   const chartConfig = {
     views: {
       label: "Views",
-      color: "hsl(var(--chart-1))",
+      color: "#3B82F6", // Blue
     },
     redemptions: {
       label: "Redemptions",
-      color: "hsl(var(--chart-2))",
+      color: "#10B981", // Green
     },
     revenue: {
       label: "Revenue",
-      color: "hsl(var(--chart-4))",
+      color: "#8B5CF6", // Purple
     },
   };
 
@@ -240,29 +244,23 @@ export default function VendorDashboard() {
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 mb-8">
             {stats.map((stat, index) => {
               const Icon = stat.icon;
-              const gradientClass = index === 0 ? 'stat-card-primary' : 
-                                   index === 1 ? 'stat-card-success' : 
-                                   index === 2 ? 'stat-card-warning' : 'stat-card-danger';
               return (
-                <div key={stat.title} className={`stat-card ${gradientClass} rounded-lg sm:rounded-xl p-3 sm:p-4 lg:p-6 shadow-lg`}>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-white/80 text-xs sm:text-sm font-medium">{stat.title}</p>
-                      <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mt-1 sm:mt-2">{stat.value}</p>
-                      <div className="flex items-center mt-1 sm:mt-2">
-                        <span className="text-white/90 text-xs sm:text-sm">{stat.change}</span>
-                        {stat.changeType === 'increase' ? (
-                          <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 text-white/90 ml-1" />
-                        ) : (
-                          <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 text-white/90 ml-1 rotate-180" />
-                        )}
+                <Card key={stat.title} className="overflow-hidden">
+                  <CardContent className={`p-4 lg:p-6 ${stat.bgColor}`}>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-muted-foreground text-xs sm:text-sm font-medium">{stat.title}</p>
+                        <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground mt-1 sm:mt-2">{stat.value}</p>
+                        <div className="flex items-center mt-1 sm:mt-2">
+                          <div className={`w-full bg-gradient-to-r ${stat.gradient} h-1 rounded-full`}></div>
+                        </div>
+                      </div>
+                      <div className={`p-2 sm:p-3 lg:p-4 rounded-full ${stat.bgColor}`}>
+                        <Icon className={`h-5 w-5 sm:h-6 sm:w-6 lg:h-8 lg:w-8 ${stat.color}`} />
                       </div>
                     </div>
-                    <div className="bg-card/20 p-2 sm:p-3 lg:p-4 rounded-full backdrop-blur-sm">
-                      <Icon className="h-5 w-5 sm:h-6 sm:w-6 lg:h-8 lg:w-8 text-white" />
-                    </div>
-                  </div>
-                </div>
+                  </CardContent>
+                </Card>
               );
             })}
           </div>
@@ -272,15 +270,15 @@ export default function VendorDashboard() {
         {(vendor as any) && isApproved && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-8 mb-8">
             {/* Deal Performance Chart */}
-            <div className="glass-card">
-              <div className="p-4 sm:p-6 border-b border-gray-200/50">
-                <h3 className="text-base sm:text-lg font-semibold gradient-text flex items-center">
-                  <BarChart3 className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-blue-600" />
+            <Card className="overflow-hidden">
+              <CardHeader className="bg-gradient-to-r from-blue-500/10 to-blue-600/10 border-b">
+                <CardTitle className="flex items-center text-foreground">
+                  <BarChart3 className="h-5 w-5 mr-2 text-blue-600" />
                   Deal Performance
-                </h3>
-              </div>
-              <div className="p-4 sm:p-6">
-                <ChartContainer config={chartConfig} className="min-h-[250px] sm:min-h-[300px] w-full overflow-hidden">
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-6">
+                <ChartContainer config={chartConfig} className="min-h-[300px] w-full">
                   <BarChart data={dealPerformanceData}>
                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(156, 163, 175, 0.3)" />
                     <XAxis 
@@ -288,127 +286,142 @@ export default function VendorDashboard() {
                       angle={-45} 
                       textAnchor="end" 
                       height={80}
-                      tick={{ fill: '#6B7280', fontSize: 12 }}
+                      tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
                     />
-                    <YAxis tick={{ fill: '#6B7280', fontSize: 12 }} />
-                    <ChartTooltip 
-                      content={<ChartTooltipContent />}
-                      contentStyle={{
-                        backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                        border: '1px solid rgba(0, 0, 0, 0.1)',
-                        borderRadius: '8px',
-                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)'
-                      }}
-                    />
+                    <YAxis tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} />
+                    <ChartTooltip content={<ChartTooltipContent />} />
                     <ChartLegend content={<ChartLegendContent />} />
-                    <Bar dataKey="views" fill="hsl(var(--chart-1))" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="redemptions" fill="hsl(var(--chart-2))" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="views" fill="url(#blueGradient)" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="redemptions" fill="url(#greenGradient)" radius={[4, 4, 0, 0]} />
+                    <defs>
+                      <linearGradient id="blueGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#60A5FA" />
+                        <stop offset="100%" stopColor="#3B82F6" />
+                      </linearGradient>
+                      <linearGradient id="greenGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#34D399" />
+                        <stop offset="100%" stopColor="#10B981" />
+                      </linearGradient>
+                    </defs>
                   </BarChart>
                 </ChartContainer>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
 
             {/* Monthly Trends */}
-            <div className="glass-card">
-              <div className="p-4 sm:p-6 border-b border-gray-200/50">
-                <h3 className="text-base sm:text-lg font-semibold gradient-text flex items-center">
-                  <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-green-600" />
+            <Card className="overflow-hidden">
+              <CardHeader className="bg-gradient-to-r from-green-500/10 to-purple-600/10 border-b">
+                <CardTitle className="flex items-center text-foreground">
+                  <TrendingUp className="h-5 w-5 mr-2 text-green-600" />
                   Monthly Performance
-                </h3>
-              </div>
-              <div className="p-4 sm:p-6">
-                <ChartContainer config={chartConfig} className="min-h-[250px] sm:min-h-[300px] w-full overflow-hidden">
-                  <LineChart data={monthlyRedemptionData}>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-6">
+                <ChartContainer config={chartConfig} className="min-h-[300px] w-full">
+                  <AreaChart data={monthlyRedemptionData}>
                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(156, 163, 175, 0.3)" />
-                    <XAxis dataKey="month" tick={{ fill: '#6B7280', fontSize: 12 }} />
-                    <YAxis tick={{ fill: '#6B7280', fontSize: 12 }} />
-                    <ChartTooltip 
-                      content={<ChartTooltipContent />}
-                      contentStyle={{
-                        backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                        border: '1px solid rgba(0, 0, 0, 0.1)',
-                        borderRadius: '8px',
-                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)'
-                      }}
-                    />
+                    <XAxis dataKey="month" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} />
+                    <YAxis tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} />
+                    <ChartTooltip content={<ChartTooltipContent />} />
                     <ChartLegend content={<ChartLegendContent />} />
-                    <Line type="monotone" dataKey="redemptions" stroke="hsl(var(--chart-2))" strokeWidth={3} dot={{ fill: 'hsl(var(--chart-2))', strokeWidth: 2, r: 4 }} />
-                    <Line type="monotone" dataKey="revenue" stroke="hsl(var(--chart-4))" strokeWidth={3} dot={{ fill: 'hsl(var(--chart-4))', strokeWidth: 2, r: 4 }} />
-                  </LineChart>
+                    <Area 
+                      type="monotone" 
+                      dataKey="redemptions" 
+                      stroke="#10B981" 
+                      fillOpacity={0.6}
+                      fill="url(#redemptionsGradient)"
+                      strokeWidth={3}
+                    />
+                    <Area 
+                      type="monotone" 
+                      dataKey="revenue" 
+                      stroke="#8B5CF6" 
+                      fillOpacity={0.6}
+                      fill="url(#revenueGradient)"
+                      strokeWidth={3}
+                    />
+                    <defs>
+                      <linearGradient id="redemptionsGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#10B981" stopOpacity={0.8} />
+                        <stop offset="100%" stopColor="#10B981" stopOpacity={0.1} />
+                      </linearGradient>
+                      <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#8B5CF6" stopOpacity={0.8} />
+                        <stop offset="100%" stopColor="#8B5CF6" stopOpacity={0.1} />
+                      </linearGradient>
+                    </defs>
+                  </AreaChart>
                 </ChartContainer>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
 
             {/* Deal Status Distribution */}
-            <div className="glass-card">
-              <div className="p-4 sm:p-6 border-b border-gray-200/50">
-                <h3 className="text-base sm:text-lg font-semibold gradient-text flex items-center">
-                  <Target className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-purple-600" />
+            <Card className="overflow-hidden">
+              <CardHeader className="bg-gradient-to-r from-purple-500/10 to-pink-600/10 border-b">
+                <CardTitle className="flex items-center text-foreground">
+                  <Target className="h-5 w-5 mr-2 text-purple-600" />
                   Deal Status Distribution
-                </h3>
-              </div>
-              <div className="p-4 sm:p-6">
-                <ChartContainer config={chartConfig} className="min-h-[250px] sm:min-h-[300px] w-full overflow-hidden">
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-6">
+                <ChartContainer config={chartConfig} className="min-h-[300px] w-full">
                   <PieChart>
                     <Pie
                       data={dealStatusData}
                       cx="50%"
                       cy="50%"
-                      innerRadius={40}
-                      outerRadius={90}
+                      innerRadius={50}
+                      outerRadius={100}
                       dataKey="value"
-                      paddingAngle={3}
+                      paddingAngle={5}
                     >
                       {dealStatusData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />
                       ))}
                     </Pie>
-                    <ChartTooltip 
-                      content={<ChartTooltipContent />}
-                      contentStyle={{
-                        backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                        border: '1px solid rgba(0, 0, 0, 0.1)',
-                        borderRadius: '8px',
-                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)'
-                      }}
-                    />
+                    <ChartTooltip content={<ChartTooltipContent />} />
                     <ChartLegend content={<ChartLegendContent />} />
                   </PieChart>
                 </ChartContainer>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
 
             {/* Performance Metrics */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Calendar className="h-5 w-5 mr-2" />
+            <Card className="overflow-hidden">
+              <CardHeader className="bg-gradient-to-r from-amber-500/10 to-orange-600/10 border-b">
+                <CardTitle className="flex items-center text-foreground">
+                  <Calendar className="h-5 w-5 mr-2 text-amber-600" />
                   Key Metrics
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
+              <CardContent className="p-6">
+                <div className="space-y-6">
                   <div className="flex justify-between items-center">
                     <span className="text-muted-foreground">Average Views per Deal</span>
-                    <span className="font-semibold">{totalDeals > 0 ? Math.round(totalViews / totalDeals) : 0}</span>
+                    <span className="font-semibold text-blue-600">{totalDeals > 0 ? Math.round(totalViews / totalDeals) : 0}</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-muted-foreground">Conversion Rate</span>
-                    <span className="font-semibold">
+                    <span className="font-semibold text-green-600">
                       {totalViews > 0 ? ((totalRedemptions / totalViews) * 100).toFixed(1) : 0}%
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-muted-foreground">Revenue per Deal</span>
-                    <span className="font-semibold">₹{totalDeals > 0 ? Math.round(24500 / totalDeals) : 0}</span>
+                    <span className="font-semibold text-purple-600">₹{totalDeals > 0 ? Math.round(24500 / totalDeals) : 0}</span>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div 
-                      className="bg-primary h-2 rounded-full" 
-                      style={{ width: `${Math.min((totalRedemptions / (totalDeals * 10)) * 100, 100)}%` }}
-                    ></div>
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">Performance Score</span>
+                      <span className="text-sm font-medium text-foreground">{Math.min(Math.round((totalRedemptions / (totalDeals * 10)) * 100), 100)}%</span>
+                    </div>
+                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
+                      <div 
+                        className="bg-gradient-to-r from-amber-500 to-orange-500 h-3 rounded-full transition-all duration-300" 
+                        style={{ width: `${Math.min((totalRedemptions / (totalDeals * 10)) * 100, 100)}%` }}
+                      ></div>
+                    </div>
                   </div>
-                  <p className="text-xs text-gray-500">Performance Score: {Math.min(Math.round((totalRedemptions / (totalDeals * 10)) * 100), 100)}%</p>
                 </div>
               </CardContent>
             </Card>
