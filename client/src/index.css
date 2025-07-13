@@ -14,6 +14,33 @@
   display: none;
 }
 
+/* Modal backdrop interaction blocking */
+body[data-modal-open] {
+  overflow: hidden;
+  position: fixed;
+  width: 100%;
+  height: 100%;
+}
+
+/* Enhanced modal overlay */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(4px);
+  pointer-events: auto;
+}
+
+.modal-content {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  z-index: 60;
+  transform: translate(-50%, -50%);
+  pointer-events: auto;
+}
+
 /* Auto-scroll animation for category carousel */
 @keyframes scroll {
   0% {
