@@ -112,11 +112,17 @@ export default function VendorRegisterEnhanced() {
   const registerMutation = useMutation({
     mutationFn: async (data: VendorRegistrationForm) => {
       const payload = {
-        ...data,
+        businessName: data.businessName,
         gstNumber: data.hasGst === "yes" ? data.gstNumber : null,
-        // Map new fields to existing backend fields for compatibility
-        ownerName: data.contactPersonName,
-        email: data.emailAddress,
+        panNumber: data.panNumber,
+        panCardFile: data.panCardFile,
+        logoUrl: data.logoUrl,
+        companyWebsite: data.companyWebsite,
+        description: `${data.companyType} business located in ${data.city}, ${data.state}. Contact: ${data.contactPersonName} at ${data.emailAddress} (Mobile: ${data.mobileNumber}, Phone: ${data.contactNumber})`,
+        address: data.address,
+        city: data.city,
+        state: data.state,
+        pincode: data.pincode,
       };
       return apiRequest('/api/vendors/register', 'POST', payload);
     },
