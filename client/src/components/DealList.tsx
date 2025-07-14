@@ -5,13 +5,16 @@ import { apiRequest } from '@/lib/queryClient';
 import { generateDealClaimQR } from '../lib/qr-code';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/lib/auth';
+import Navbar from '@/components/ui/navbar';
+import Footer from '@/components/ui/footer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2, Gift, Star, MapPin, Calendar, QrCode, Calculator, Receipt, Shield, Lock } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Loader2, Gift, Star, MapPin, Calendar, QrCode, Calculator, Receipt, Shield, Lock, Filter, Grid, List, Store, Eye, Heart, Crown, Percent, Users, ArrowLeft } from 'lucide-react';
 import { PinVerificationDialog } from '@/components/ui/pin-verification-dialog';
 
 interface Deal {
@@ -26,12 +29,17 @@ interface Deal {
   vendor: {
     id: number;
     name: string;
+    businessName: string;
     city: string;
     state: string;
+    address: string;
   };
   isActive: boolean;
   maxRedemptions?: number;
   currentRedemptions?: number;
+  viewCount?: number;
+  imageUrl?: string;
+  requiredMembership?: string;
 }
 
 interface ClaimResponse {
@@ -51,6 +59,9 @@ const DealList = () => {
   const [showPinDialog, setShowPinDialog] = useState(false);
   const [pinDialogDeal, setPinDialogDeal] = useState<Deal | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [selectedCity, setSelectedCity] = useState<string>('');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [sortBy, setSortBy] = useState<string>('newest');
   const [location, setLocation] = useLocation();
   const { toast } = useToast();
   const { isAuthenticated } = useAuth();
@@ -65,19 +76,32 @@ const DealList = () => {
     }
   }, [location]);
 
-  // Fetch deals using TanStack Query with category filtering
+  // Fetch deals using TanStack Query with category and city filtering
   const { data: deals = [], isLoading, error } = useQuery<Deal[]>({
-    queryKey: ['/api/deals', selectedCategory === 'all' ? '' : selectedCategory],
+    queryKey: ['/api/deals', selectedCategory === 'all' ? '' : selectedCategory, selectedCity],
     queryFn: async () => {
       const params = new URLSearchParams();
       if (selectedCategory && selectedCategory !== 'all') {
         params.append('category', selectedCategory);
+      }
+      if (selectedCity) {
+        params.append('city', selectedCity);
       }
       
       const response = await fetch(`/api/deals?${params.toString()}`);
       if (!response.ok) throw new Error('Failed to fetch deals');
       return response.json();
     },
+  });
+
+  // Fetch categories
+  const { data: categories = [] } = useQuery<Array<{id: string, name: string}>>({
+    queryKey: ['/api/categories'],
+  });
+
+  // Fetch cities
+  const { data: cities = [] } = useQuery<Array<{name: string, state: string}>>({
+    queryKey: ['/api/cities'],
   });
 
   // Fetch user claims to check which deals have been claimed (only for authenticated users)
@@ -170,26 +194,121 @@ const DealList = () => {
     );
   }
 
+  // Sort deals based on selected criteria
+  const sortedDeals = [...deals].sort((a, b) => {
+    switch (sortBy) {
+      case 'discount':
+        return b.discountPercentage - a.discountPercentage;
+      case 'price':
+        return parseFloat(a.discountedPrice) - parseFloat(b.discountedPrice);
+      case 'ending':
+        return new Date(a.validUntil).getTime() - new Date(b.validUntil).getTime();
+      case 'newest':
+      default:
+        return b.id - a.id;
+    }
+  });
+
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <div className="text-center space-y-2">
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-          🔥 Hot Deals
-        </h1>
-        <p className="text-lg text-muted-foreground">
-          Discover amazing discounts and save money on your favorite products!
-        </p>
-      </div>
+    <div className="min-h-screen bg-background">
+      <Navbar selectedCity={selectedCity} onCityChange={setSelectedCity} />
       
-      {deals.length === 0 ? (
-        <div className="text-center py-12">
-          <div className="text-8xl mb-4">🛍️</div>
-          <h3 className="text-xl font-semibold mb-2">No deals available</h3>
-          <p className="text-muted-foreground">Check back later for amazing offers!</p>
+      <div className="container mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h1 className="text-3xl font-bold text-foreground">All Deals</h1>
+              <p className="text-muted-foreground mt-2">
+                Discover amazing discounts from local businesses
+              </p>
+            </div>
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant={viewMode === 'grid' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setViewMode('grid')}
+                >
+                  <Grid className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant={viewMode === 'list' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setViewMode('list')}
+                >
+                  <List className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {/* Filters */}
+          <div className="flex flex-wrap gap-4 mb-6">
+            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="All Categories" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Categories</SelectItem>
+                {categories.map((category) => (
+                  <SelectItem key={category.id} value={category.id}>
+                    {category.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select value={selectedCity} onValueChange={setSelectedCity}>
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="All Cities" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">All Cities</SelectItem>
+                {cities.map((city) => (
+                  <SelectItem key={city.name} value={city.name}>
+                    {city.name}, {city.state}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select value={sortBy} onValueChange={setSortBy}>
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="Sort by" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="newest">Newest First</SelectItem>
+                <SelectItem value="discount">Highest Discount</SelectItem>
+                <SelectItem value="price">Lowest Price</SelectItem>
+                <SelectItem value="ending">Ending Soon</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Results count */}
+          <div className="flex items-center justify-between mb-6">
+            <p className="text-sm text-muted-foreground">
+              {sortedDeals.length} deal{sortedDeals.length !== 1 ? 's' : ''} found
+            </p>
+          </div>
         </div>
-      ) : (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {deals.map((deal, index) => {
+
+        {/* Deals Grid */}
+        {sortedDeals.length === 0 ? (
+          <div className="text-center py-12">
+            <Store className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+            <h3 className="text-xl font-semibold mb-2">No deals found</h3>
+            <p className="text-muted-foreground">
+              Try adjusting your filters or check back later for new deals.
+            </p>
+          </div>
+        ) : (
+          <div className={`grid gap-6 ${viewMode === 'grid' 
+            ? 'md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' 
+            : 'grid-cols-1 max-w-4xl mx-auto'
+          }`}>
+          {sortedDeals.map((deal, index) => {
             const isExpired = new Date(deal.validUntil) < new Date();
             const isLimitReached = deal.maxRedemptions && deal.currentRedemptions && 
               deal.currentRedemptions >= deal.maxRedemptions;
@@ -200,20 +319,56 @@ const DealList = () => {
             const hasClaimedDeal = !!userClaim;
             
             // Show Add Bill Amount button for verified/completed claims (status 'used')
-            // This button allows customers to add their actual bill amount for savings calculation
             const showBillAmountButton = hasClaimedDeal && userClaim?.status === 'used';
-            
-            // Debug logging for troubleshooting
-            if (hasClaimedDeal) {
-              // Debug: Deal claim status and button visibility logic
-            }
             
             return (
               <Card 
                 key={`deal-${deal.id}-${index}`} 
-                className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-2 hover:border-primary/20 cursor-pointer"
+                className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-2 hover:border-primary/20 cursor-pointer overflow-hidden"
                 onClick={() => handleDealClick(deal.id)}
               >
+                {/* Deal Image */}
+                <div className="relative h-48 overflow-hidden">
+                  {deal.imageUrl ? (
+                    <img
+                      src={deal.imageUrl}
+                      alt={deal.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 flex items-center justify-center">
+                      <Store className="w-16 h-16 text-gray-400" />
+                    </div>
+                  )}
+                  
+                  {/* Discount Badge */}
+                  <div className="absolute top-3 left-3">
+                    <Badge className="bg-red-500 text-white text-lg font-bold px-3 py-1">
+                      {deal.discountPercentage}% OFF
+                    </Badge>
+                  </div>
+                  
+                  {/* Membership Badge */}
+                  {deal.requiredMembership && deal.requiredMembership !== 'basic' && (
+                    <div className="absolute top-3 right-3">
+                      <Badge className={`${
+                        deal.requiredMembership === 'ultimate' 
+                          ? 'bg-amber-500 text-white' 
+                          : 'bg-purple-500 text-white'
+                      } flex items-center gap-1`}>
+                        <Crown className="w-3 h-3" />
+                        {deal.requiredMembership}
+                      </Badge>
+                    </div>
+                  )}
+                  
+                  {/* View Count */}
+                  <div className="absolute bottom-3 right-3 bg-black/50 text-white px-2 py-1 rounded-full text-xs flex items-center gap-1">
+                    <Eye className="w-3 h-3" />
+                    {deal.viewCount || 0}
+                  </div>
+                </div>
+
                 <CardHeader className="pb-3">
                   <div className="flex justify-between items-start mb-2">
                     <Badge variant="secondary" className="bg-gradient-to-r from-blue-500 to-purple-500 text-white">
@@ -221,10 +376,10 @@ const DealList = () => {
                     </Badge>
                     <div className="flex items-center space-x-1 text-orange-500">
                       <Star className="h-4 w-4 fill-current" />
-                      <span className="text-sm font-medium">{deal.discountPercentage}% OFF</span>
+                      <span className="text-sm font-medium">Popular</span>
                     </div>
                   </div>
-                  <CardTitle className="text-lg group-hover:text-primary transition-colors">
+                  <CardTitle className="text-lg group-hover:text-primary transition-colors line-clamp-2">
                     {deal.title}
                   </CardTitle>
                   <CardDescription className="line-clamp-2">
@@ -340,8 +495,11 @@ const DealList = () => {
               </Card>
             );
           })}
-        </div>
-      )}
+          </div>
+        )}
+      </div>
+      
+      <Footer />
 
       {/* QR Code Dialog */}
       <Dialog open={!!selectedDeal && !!qrCode} onOpenChange={closeDialog}>
