@@ -353,7 +353,7 @@ const VendorDealCreation = () => {
                               >
                                 <FormControl>
                                   <SelectTrigger>
-                                    <SelectValue />
+                                    <SelectValue placeholder="Select membership level" />
                                   </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
