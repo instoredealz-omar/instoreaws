@@ -4,7 +4,7 @@ import axios, { AxiosError, AxiosResponse } from "axios";
 import { storage } from "./storage";
 import { loginSchema, signupSchema, insertVendorSchema, insertDealSchema, insertHelpTicketSchema, insertWishlistSchema, updateUserProfileSchema, updateVendorProfileSchema, insertCustomDealAlertSchema, insertDealConciergeRequestSchema, insertAlertNotificationSchema } from "@shared/schema";
 import { z } from "zod";
-import { sendEmail, getWelcomeCustomerEmail, getVendorRegistrationEmail, getReportEmail } from "./email";
+import { sendEmail, getWelcomeCustomerEmail, getVendorRegistrationEmail, getReportEmail, getDealApprovalEmail, getDealRejectionEmail } from "./email";
 import jwt from "jsonwebtoken";
 
 // Configure axios defaults
@@ -1660,6 +1660,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Deal not found" });
       }
       
+      // Get vendor information for email
+      const vendor = await storage.getVendor(deal.vendorId);
+      if (vendor) {
+        const user = await storage.getUser(vendor.userId);
+        if (user) {
+          // Send approval email
+          const emailData = getDealApprovalEmail(deal.title, vendor.businessName, user.name, user.email);
+          await sendEmail(emailData);
+        }
+      }
+      
       // Log approval
       await storage.createSystemLog({
         userId: req.user!.id,
@@ -1672,6 +1683,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(deal);
     } catch (error) {
       res.status(500).json({ message: "Failed to approve deal" });
+    }
+  });
+
+  app.post('/api/admin/deals/:id/reject', requireAuth, requireRole(['admin', 'superadmin']), async (req: AuthenticatedRequest, res) => {
+    try {
+      const dealId = parseInt(req.params.id);
+      const { reason } = req.body;
+      
+      if (!reason || reason.trim() === '') {
+        return res.status(400).json({ message: "Rejection reason is required" });
+      }
+      
+      const deal = await storage.rejectDeal(dealId, req.user!.id, reason);
+      
+      if (!deal) {
+        return res.status(404).json({ message: "Deal not found" });
+      }
+      
+      // Get vendor information for email
+      const vendor = await storage.getVendor(deal.vendorId);
+      if (vendor) {
+        const user = await storage.getUser(vendor.userId);
+        if (user) {
+          // Send rejection email
+          const emailData = getDealRejectionEmail(deal.title, vendor.businessName, user.name, user.email, reason);
+          await sendEmail(emailData);
+        }
+      }
+      
+      // Log rejection
+      await storage.createSystemLog({
+        userId: req.user!.id,
+        action: "DEAL_REJECTED",
+        details: { dealId, title: deal.title, reason },
+        ipAddress: req.ip,
+        userAgent: req.headers['user-agent'],
+      });
+      
+      res.json(deal);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to reject deal" });
     }
   });
 

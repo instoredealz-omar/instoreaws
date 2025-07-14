@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { 
@@ -33,6 +34,8 @@ export default function AdminDeals() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [selectedDeal, setSelectedDeal] = useState<any>(null);
+  const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
+  const [rejectionReason, setRejectionReason] = useState("");
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -63,6 +66,45 @@ export default function AdminDeals() {
       });
     },
   });
+
+  const rejectDealMutation = useMutation({
+    mutationFn: async ({ dealId, reason }: { dealId: number; reason: string }) => {
+      return apiRequest(`/api/admin/deals/${dealId}/reject`, 'POST', { reason });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Deal rejected successfully!",
+        description: "The vendor has been notified about the rejection.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/deals/pending"] });
+      setRejectDialogOpen(false);
+      setRejectionReason("");
+      setSelectedDeal(null);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to reject deal",
+        description: error.message || "Please try again later.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleRejectDeal = () => {
+    if (!selectedDeal || !rejectionReason.trim()) {
+      toast({
+        title: "Rejection reason required",
+        description: "Please provide a reason for rejecting this deal.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    rejectDealMutation.mutate({
+      dealId: selectedDeal.id,
+      reason: rejectionReason.trim(),
+    });
+  };
 
   const updateDealMutation = useMutation({
     mutationFn: async ({ dealId, updates }: { dealId: number; updates: any }) => {
@@ -436,9 +478,9 @@ export default function AdminDeals() {
                                               <SelectValue />
                                             </SelectTrigger>
                                             <SelectContent>
-                                              <SelectItem value="basic">Basic (Free for all users)</SelectItem>
-                                              <SelectItem value="premium">Premium (₹500/month subscribers)</SelectItem>
-                                              <SelectItem value="ultimate">Ultimate (₹1000/month subscribers)</SelectItem>
+                                              <SelectItem value="basic">Basic</SelectItem>
+                                              <SelectItem value="premium">Premium</SelectItem>
+                                              <SelectItem value="ultimate">Ultimate</SelectItem>
                                             </SelectContent>
                                           </Select>
                                         </div>
@@ -508,13 +550,26 @@ export default function AdminDeals() {
                             </Dialog>
                             
                             {!deal.isApproved && (
-                              <Button
-                                size="sm"
-                                onClick={() => approveDealMutation.mutate(deal.id)}
-                                disabled={approveDealMutation.isPending}
-                              >
-                                {approveDealMutation.isPending ? "Approving..." : "Approve"}
-                              </Button>
+                              <div className="flex gap-2">
+                                <Button
+                                  size="sm"
+                                  onClick={() => approveDealMutation.mutate(deal.id)}
+                                  disabled={approveDealMutation.isPending}
+                                >
+                                  {approveDealMutation.isPending ? "Approving..." : "Approve"}
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="destructive"
+                                  onClick={() => {
+                                    setSelectedDeal(deal);
+                                    setRejectDialogOpen(true);
+                                  }}
+                                  disabled={rejectDealMutation.isPending}
+                                >
+                                  Reject
+                                </Button>
+                              </div>
                             )}
                           </div>
                         </TableCell>
@@ -574,6 +629,47 @@ export default function AdminDeals() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Reject Deal Dialog */}
+      <Dialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Reject Deal</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <p className="text-sm text-muted-foreground mb-4">
+                Please provide a reason for rejecting this deal. The vendor will be notified about the rejection.
+              </p>
+              <Textarea
+                placeholder="Enter rejection reason..."
+                value={rejectionReason}
+                onChange={(e) => setRejectionReason(e.target.value)}
+                rows={4}
+              />
+            </div>
+            <div className="flex gap-2 justify-end">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setRejectDialogOpen(false);
+                  setRejectionReason("");
+                  setSelectedDeal(null);
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={handleRejectDeal}
+                disabled={rejectDealMutation.isPending || !rejectionReason.trim()}
+              >
+                {rejectDealMutation.isPending ? "Rejecting..." : "Reject Deal"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <Footer />
     </div>

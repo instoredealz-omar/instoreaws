@@ -68,6 +68,9 @@ export const deals = pgTable("deals", {
   isActive: boolean("is_active").default(true),
   isApproved: boolean("is_approved").default(false),
   approvedBy: integer("approved_by").references(() => users.id),
+  isRejected: boolean("is_rejected").default(false),
+  rejectedBy: integer("rejected_by").references(() => users.id),
+  rejectionReason: text("rejection_reason"),
   viewCount: integer("view_count").default(0),
   requiredMembership: text("required_membership").default("basic"), // basic, premium, ultimate
   address: text("address").notNull(),

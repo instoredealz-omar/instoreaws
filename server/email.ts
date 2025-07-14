@@ -320,3 +320,197 @@ export function getVendorRegistrationEmail(businessName: string, contactName: st
     `
   };
 }
+
+export function getDealApprovalEmail(dealTitle: string, businessName: string, vendorName: string, email: string) {
+  return {
+    to: email,
+    from: 'noreply@instoredealz.com',
+    subject: 'Deal Approved - Your deal is now live!',
+    html: `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Deal Approved</title>
+      </head>
+      <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+          <h1 style="color: white; margin: 0; font-size: 28px;">🎉 Deal Approved!</h1>
+          <p style="color: white; margin: 10px 0 0 0; font-size: 16px;">Your deal is now live and available to customers</p>
+        </div>
+        
+        <div style="background: white; padding: 30px; border-radius: 0 0 10px 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+          <h2 style="color: #333; margin-top: 0;">Hello ${vendorName}!</h2>
+          
+          <p>Great news! Your deal "<strong>${dealTitle}</strong>" has been approved and is now live on Instoredealz.</p>
+          
+          <div style="background: #f0fdf4; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #10b981;">
+            <h3 style="color: #10b981; margin-top: 0;">✅ Deal Details</h3>
+            <p><strong>Deal Title:</strong> ${dealTitle}</p>
+            <p><strong>Business:</strong> ${businessName}</p>
+            <p><strong>Status:</strong> <span style="color: #10b981; font-weight: bold;">LIVE</span></p>
+            <p><strong>Visibility:</strong> Available to all customers</p>
+          </div>
+          
+          <div style="background: #f8f9ff; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <h3 style="color: #667eea; margin-top: 0;">🚀 What's Next?</h3>
+            <p>Your deal is now discoverable by customers. Here's what you can expect:</p>
+            <ul style="margin: 10px 0; padding-left: 20px;">
+              <li>Customers can now view and claim your deal</li>
+              <li>Track performance in your vendor dashboard</li>
+              <li>Monitor PIN verifications and redemptions</li>
+              <li>View analytics and customer feedback</li>
+            </ul>
+          </div>
+          
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="https://instoredealz.com/vendor/dashboard" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
+              View Deal Dashboard
+            </a>
+          </div>
+          
+          <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
+          
+          <p style="color: #666; font-size: 14px; margin: 0;">
+            Need help managing your deal? Contact our support team at <a href="mailto:support@instoredealz.com" style="color: #667eea;">support@instoredealz.com</a>
+          </p>
+          
+          <p style="color: #666; font-size: 14px; margin: 10px 0 0 0;">
+            Congratulations on your approved deal!<br>
+            The Instoredealz Team
+          </p>
+        </div>
+      </body>
+      </html>
+    `,
+    text: `
+      Deal Approved!
+      
+      Hello ${vendorName}!
+      
+      Great news! Your deal "${dealTitle}" has been approved and is now live on Instoredealz.
+      
+      Deal Details:
+      - Deal Title: ${dealTitle}
+      - Business: ${businessName}
+      - Status: LIVE
+      - Visibility: Available to all customers
+      
+      What's Next?
+      Your deal is now discoverable by customers. Here's what you can expect:
+      - Customers can now view and claim your deal
+      - Track performance in your vendor dashboard
+      - Monitor PIN verifications and redemptions
+      - View analytics and customer feedback
+      
+      View your deal dashboard: https://instoredealz.com/vendor/dashboard
+      
+      Need help managing your deal? Contact our support team at support@instoredealz.com
+      
+      Congratulations on your approved deal!
+      The Instoredealz Team
+    `
+  };
+}
+
+export function getDealRejectionEmail(dealTitle: string, businessName: string, vendorName: string, email: string, reason: string) {
+  return {
+    to: email,
+    from: 'noreply@instoredealz.com',
+    subject: 'Deal Rejected - Action Required',
+    html: `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Deal Rejected</title>
+      </head>
+      <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+          <h1 style="color: white; margin: 0; font-size: 28px;">Deal Rejected</h1>
+          <p style="color: white; margin: 10px 0 0 0; font-size: 16px;">Your deal requires modifications before approval</p>
+        </div>
+        
+        <div style="background: white; padding: 30px; border-radius: 0 0 10px 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+          <h2 style="color: #333; margin-top: 0;">Hello ${vendorName}!</h2>
+          
+          <p>We've reviewed your deal "<strong>${dealTitle}</strong>" and unfortunately it doesn't meet our current approval criteria. But don't worry - you can resubmit after making the necessary changes!</p>
+          
+          <div style="background: #fef2f2; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #ef4444;">
+            <h3 style="color: #ef4444; margin-top: 0;">❌ Deal Details</h3>
+            <p><strong>Deal Title:</strong> ${dealTitle}</p>
+            <p><strong>Business:</strong> ${businessName}</p>
+            <p><strong>Status:</strong> <span style="color: #ef4444; font-weight: bold;">REJECTED</span></p>
+            <p><strong>Action Required:</strong> Modification needed</p>
+          </div>
+          
+          <div style="background: #fff7ed; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #f59e0b;">
+            <h3 style="color: #f59e0b; margin-top: 0;">⚠️ Reason for Rejection</h3>
+            <p><strong>${reason}</strong></p>
+          </div>
+          
+          <div style="background: #f0f8ff; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <h3 style="color: #667eea; margin-top: 0;">🔧 What You Can Do</h3>
+            <p>To get your deal approved:</p>
+            <ul style="margin: 10px 0; padding-left: 20px;">
+              <li>Address the specific issue mentioned in the rejection reason</li>
+              <li>Review our deal guidelines</li>
+              <li>Make the necessary modifications to your deal</li>
+              <li>Resubmit your deal for review</li>
+            </ul>
+          </div>
+          
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="https://instoredealz.com/vendor/deals" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
+              Edit & Resubmit Deal
+            </a>
+          </div>
+          
+          <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
+          
+          <p style="color: #666; font-size: 14px; margin: 0;">
+            Questions about your deal rejection? Contact our support team at <a href="mailto:support@instoredealz.com" style="color: #667eea;">support@instoredealz.com</a>
+          </p>
+          
+          <p style="color: #666; font-size: 14px; margin: 10px 0 0 0;">
+            We're here to help you succeed!<br>
+            The Instoredealz Team
+          </p>
+        </div>
+      </body>
+      </html>
+    `,
+    text: `
+      Deal Rejected
+      
+      Hello ${vendorName}!
+      
+      We've reviewed your deal "${dealTitle}" and unfortunately it doesn't meet our current approval criteria. But don't worry - you can resubmit after making the necessary changes!
+      
+      Deal Details:
+      - Deal Title: ${dealTitle}
+      - Business: ${businessName}
+      - Status: REJECTED
+      - Action Required: Modification needed
+      
+      Reason for Rejection:
+      ${reason}
+      
+      What You Can Do:
+      To get your deal approved:
+      - Address the specific issue mentioned in the rejection reason
+      - Review our deal guidelines
+      - Make the necessary modifications to your deal
+      - Resubmit your deal for review
+      
+      Edit & resubmit your deal: https://instoredealz.com/vendor/deals
+      
+      Questions about your deal rejection? Contact our support team at support@instoredealz.com
+      
+      We're here to help you succeed!
+      The Instoredealz Team
+    `
+  };
+}

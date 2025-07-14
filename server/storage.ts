@@ -67,6 +67,7 @@ export interface IStorage {
   getDealsByVendor(vendorId: number): Promise<Deal[]>;
   getPendingDeals(): Promise<Deal[]>;
   approveDeal(id: number, approvedBy: number): Promise<Deal | undefined>;
+  rejectDeal(id: number, rejectedBy: number, reason: string): Promise<Deal | undefined>;
   incrementDealViews(id: number): Promise<void>;
 
   // Deal claim operations
@@ -893,6 +894,10 @@ export class MemStorage implements IStorage {
 
   async approveDeal(id: number, approvedBy: number): Promise<Deal | undefined> {
     return this.updateDeal(id, { isApproved: true, approvedBy });
+  }
+
+  async rejectDeal(id: number, rejectedBy: number, reason: string): Promise<Deal | undefined> {
+    return this.updateDeal(id, { isRejected: true, rejectedBy, rejectionReason: reason });
   }
 
   async incrementDealViews(id: number): Promise<void> {
