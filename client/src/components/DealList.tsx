@@ -4,13 +4,14 @@ import { useLocation } from 'wouter';
 import { apiRequest } from '@/lib/queryClient';
 import { generateDealClaimQR } from '../lib/qr-code';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2, Gift, Star, MapPin, Calendar, QrCode, Calculator, Receipt, Shield } from 'lucide-react';
+import { Loader2, Gift, Star, MapPin, Calendar, QrCode, Calculator, Receipt, Shield, Lock } from 'lucide-react';
 import { PinVerificationDialog } from '@/components/ui/pin-verification-dialog';
 
 interface Deal {
@@ -52,6 +53,7 @@ const DealList = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [location, setLocation] = useLocation();
   const { toast } = useToast();
+  const { isAuthenticated } = useAuth();
   const queryClient = useQueryClient();
 
   // Parse category from URL parameters
@@ -78,9 +80,10 @@ const DealList = () => {
     },
   });
 
-  // Fetch user claims to check which deals have been claimed
+  // Fetch user claims to check which deals have been claimed (only for authenticated users)
   const { data: userClaims = [], isLoading: isLoadingClaims } = useQuery<Array<{id: number, dealId: number, status: string}>>({
     queryKey: ['/api/users/claims'],
+    enabled: isAuthenticated, // Only fetch when user is authenticated
     staleTime: 0, // Always fetch fresh data for claims
     retry: 3,
     refetchOnMount: true,
@@ -131,7 +134,7 @@ const DealList = () => {
     setLocation(`/deals/${dealId}`);
   };
 
-  if (isLoading || isLoadingClaims) {
+  if (isLoading || (isAuthenticated && isLoadingClaims)) {
     return (
       <div className="flex justify-center items-center p-12">
         <div className="text-center space-y-4">
@@ -244,27 +247,41 @@ const DealList = () => {
                   {/* Action Buttons - Moved above validity section */}
                   <div className="flex flex-col gap-2">
                     {!hasClaimedDeal ? (
-                      <Button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setPinDialogDeal(deal);
-                          setShowPinDialog(true);
-                        }}
-                        disabled={!canClaim}
-                        className="w-full bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white font-semibold py-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300"
-                        size="lg"
-                      >
-                        {!canClaim ? (
-                          isExpired ? "⏰ Expired" : 
-                          isLimitReached ? "🚫 Limit Reached" : 
-                          "❌ Unavailable"
-                        ) : (
-                          <>
-                            <Shield className="h-4 w-4 mr-2" />
-                            Verify with PIN to Claim Deal
-                          </>
-                        )}
-                      </Button>
+                      !isAuthenticated ? (
+                        <Button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setLocation('/login');
+                          }}
+                          className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white font-semibold py-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300"
+                          size="lg"
+                        >
+                          <Lock className="h-4 w-4 mr-2" />
+                          Login to Claim Deal
+                        </Button>
+                      ) : (
+                        <Button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setPinDialogDeal(deal);
+                            setShowPinDialog(true);
+                          }}
+                          disabled={!canClaim}
+                          className="w-full bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white font-semibold py-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300"
+                          size="lg"
+                        >
+                          {!canClaim ? (
+                            isExpired ? "⏰ Expired" : 
+                            isLimitReached ? "🚫 Limit Reached" : 
+                            "❌ Unavailable"
+                          ) : (
+                            <>
+                              <Shield className="h-4 w-4 mr-2" />
+                              Verify with PIN to Claim Deal
+                            </>
+                          )}
+                        </Button>
+                      )
                     ) : (
                       <div className="space-y-2">
                         <div className="text-center text-sm text-green-600 dark:text-green-400 font-medium bg-green-50 dark:bg-green-900/30 rounded-lg py-2">

@@ -297,87 +297,8 @@ export default function DealDetail({ params }: DealDetailProps) {
     setLocation('/');
   };
 
-  // Show login prompt for unauthenticated users
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen bg-background">
-        <div className="container mx-auto px-4 py-8">
-          {/* Back button */}
-          <div className="mb-6">
-            <Button 
-              variant="ghost" 
-              className="mb-4"
-              onClick={handleGoBack}
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Go Back
-            </Button>
-          </div>
-
-          {/* Login Required Message */}
-          <div className="max-w-2xl mx-auto">
-            <Card className="border-teal-200 dark:border-teal-800 bg-gradient-to-br from-teal-50 to-cyan-50 dark:from-teal-900/30 dark:to-cyan-900/30 shadow-xl">
-              <CardContent className="p-12 text-center">
-                <div className="mb-6">
-                  <div className="relative">
-                    <div className="absolute inset-0 bg-gradient-to-r from-yellow-400 to-amber-500 rounded-full blur-sm opacity-20"></div>
-                    <Lock className="h-16 w-16 text-gradient bg-gradient-to-r from-yellow-500 to-amber-600 bg-clip-text text-transparent mx-auto mb-4 relative z-10" style={{color: '#d97706'}} />
-                  </div>
-                  <h2 className="text-2xl font-bold bg-gradient-to-r from-teal-700 to-cyan-800 dark:from-teal-300 dark:to-cyan-300 bg-clip-text text-transparent mb-2">
-                    Login Required to View Deal
-                  </h2>
-                  <p className="text-teal-700 dark:text-teal-300 text-lg">
-                    Please log in or sign up to access deal details and exclusive offers
-                  </p>
-                </div>
-                
-                <div className="space-y-4">
-                  <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                    <Button asChild size="lg" className="bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700 text-white shadow-lg">
-                      <Link to="/login">
-                        <Shield className="w-4 h-4 mr-2" />
-                        Login
-                      </Link>
-                    </Button>
-                    <Button asChild variant="outline" size="lg" className="border-2 border-amber-400 dark:border-amber-600 text-amber-600 dark:text-amber-400 hover:bg-gradient-to-r hover:from-yellow-50 hover:to-amber-50 dark:hover:from-amber-900/30 dark:hover:to-yellow-900/30 shadow-md">
-                      <Link to="/signup">
-                        <Users className="w-4 h-4 mr-2" />
-                        Sign Up
-                      </Link>
-                    </Button>
-                  </div>
-                  
-                  <div className="mt-6 pt-6 border-t border-teal-200 dark:border-teal-800">
-                    <p className="text-amber-700 dark:text-amber-300 font-semibold text-sm bg-gradient-to-r from-yellow-600 to-amber-700 dark:from-yellow-400 dark:to-amber-400 bg-clip-text text-transparent">
-                      <strong>Why create an account?</strong>
-                    </p>
-                    <ul className="text-teal-700 dark:text-teal-300 text-sm mt-2 space-y-2">
-                      <li className="flex items-center">
-                        <span className="w-2 h-2 bg-gradient-to-r from-yellow-400 to-amber-500 rounded-full mr-2"></span>
-                        Access exclusive deals and discounts
-                      </li>
-                      <li className="flex items-center">
-                        <span className="w-2 h-2 bg-gradient-to-r from-yellow-400 to-amber-500 rounded-full mr-2"></span>
-                        Save deals to your wishlist
-                      </li>
-                      <li className="flex items-center">
-                        <span className="w-2 h-2 bg-gradient-to-r from-yellow-400 to-amber-500 rounded-full mr-2"></span>
-                        Track your savings and claimed deals
-                      </li>
-                      <li className="flex items-center">
-                        <span className="w-2 h-2 bg-gradient-to-r from-yellow-400 to-amber-500 rounded-full mr-2"></span>
-                        Get personalized deal recommendations
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // No authentication check needed for viewing deal details
+  // Authentication is only required for actions like claiming or adding to wishlist
 
   return (
     <div className="min-h-screen bg-background">
@@ -469,7 +390,16 @@ export default function DealDetail({ params }: DealDetailProps) {
                 {/* Action Buttons - Moved above validity section */}
                 <div className="space-y-4">
                   {/* Unified PIN Verification to Claim Deal Button */}
-                  {canAccessDeal() ? (
+                  {!isAuthenticated ? (
+                    <Button
+                      onClick={() => setLocation('/login')}
+                      className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white"
+                      size="lg"
+                    >
+                      <Lock className="w-4 h-4 mr-2" />
+                      Login to Claim Deal
+                    </Button>
+                  ) : canAccessDeal() ? (
                     <Button
                       onClick={() => setShowPinDialog(true)}
                       disabled={isExpired || !!isFullyRedeemed || !deal?.isActive}

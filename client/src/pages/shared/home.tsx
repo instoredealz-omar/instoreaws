@@ -148,20 +148,21 @@ export default function Home() {
       // Navigate to specific deal page
       navigate(`/deals/${dealId}`);
     } else {
-      // Navigate to all deals page
+      // Navigate to all deals page - allow both authenticated and unauthenticated users to view deals
       if (isAuthenticated) {
         navigate("/customer/deals");
       } else {
-        navigate("/login");
+        navigate("/deals");
       }
     }
   };
 
   const handleViewAllDeals = () => {
+    // Allow both authenticated and unauthenticated users to view deals
     if (isAuthenticated) {
       navigate("/customer/deals");
     } else {
-      navigate("/login");
+      navigate("/deals");
     }
   };
 
