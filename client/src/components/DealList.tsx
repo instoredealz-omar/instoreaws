@@ -59,7 +59,7 @@ const DealList = () => {
   const [showPinDialog, setShowPinDialog] = useState(false);
   const [pinDialogDeal, setPinDialogDeal] = useState<Deal | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [selectedCity, setSelectedCity] = useState<string>('');
+  const [selectedCity, setSelectedCity] = useState<string>('all');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [sortBy, setSortBy] = useState<string>('newest');
   const [location, setLocation] = useLocation();
@@ -78,13 +78,13 @@ const DealList = () => {
 
   // Fetch deals using TanStack Query with category and city filtering
   const { data: deals = [], isLoading, error } = useQuery<Deal[]>({
-    queryKey: ['/api/deals', selectedCategory === 'all' ? '' : selectedCategory, selectedCity],
+    queryKey: ['/api/deals', selectedCategory === 'all' ? '' : selectedCategory, selectedCity === 'all' ? '' : selectedCity],
     queryFn: async () => {
       const params = new URLSearchParams();
       if (selectedCategory && selectedCategory !== 'all') {
         params.append('category', selectedCategory);
       }
-      if (selectedCity) {
+      if (selectedCity && selectedCity !== 'all') {
         params.append('city', selectedCity);
       }
       
@@ -264,7 +264,7 @@ const DealList = () => {
                 <SelectValue placeholder="All Cities" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Cities</SelectItem>
+                <SelectItem value="all">All Cities</SelectItem>
                 {cities.map((city) => (
                   <SelectItem key={city.name} value={city.name}>
                     {city.name}, {city.state}
