@@ -215,38 +215,36 @@ const DealList = () => {
       
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h1 className="text-3xl font-bold text-foreground">All Deals</h1>
-              <p className="text-muted-foreground mt-2">
+        <div className="mb-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4">
+            <div className="mb-4 sm:mb-0">
+              <h1 className="text-2xl sm:text-3xl font-bold text-foreground">All Deals</h1>
+              <p className="text-muted-foreground mt-1 text-sm">
                 Discover amazing discounts from local businesses
               </p>
             </div>
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2">
-                <Button
-                  variant={viewMode === 'grid' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setViewMode('grid')}
-                >
-                  <Grid className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant={viewMode === 'list' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setViewMode('list')}
-                >
-                  <List className="h-4 w-4" />
-                </Button>
-              </div>
+            <div className="flex items-center space-x-2">
+              <Button
+                variant={viewMode === 'grid' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setViewMode('grid')}
+              >
+                <Grid className="h-4 w-4" />
+              </Button>
+              <Button
+                variant={viewMode === 'list' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setViewMode('list')}
+              >
+                <List className="h-4 w-4" />
+              </Button>
             </div>
           </div>
 
           {/* Filters */}
-          <div className="flex flex-wrap gap-4 mb-6">
+          <div className="flex flex-col sm:flex-row gap-3 mb-4">
             <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-              <SelectTrigger className="w-48">
+              <SelectTrigger className="w-full sm:w-48">
                 <SelectValue placeholder="All Categories" />
               </SelectTrigger>
               <SelectContent>
@@ -260,7 +258,7 @@ const DealList = () => {
             </Select>
 
             <Select value={selectedCity} onValueChange={setSelectedCity}>
-              <SelectTrigger className="w-48">
+              <SelectTrigger className="w-full sm:w-48">
                 <SelectValue placeholder="All Cities" />
               </SelectTrigger>
               <SelectContent>
@@ -274,7 +272,7 @@ const DealList = () => {
             </Select>
 
             <Select value={sortBy} onValueChange={setSortBy}>
-              <SelectTrigger className="w-48">
+              <SelectTrigger className="w-full sm:w-48">
                 <SelectValue placeholder="Sort by" />
               </SelectTrigger>
               <SelectContent>
@@ -287,7 +285,7 @@ const DealList = () => {
           </div>
 
           {/* Results count */}
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center justify-between mb-4">
             <p className="text-sm text-muted-foreground">
               {sortedDeals.length} deal{sortedDeals.length !== 1 ? 's' : ''} found
             </p>
@@ -304,8 +302,8 @@ const DealList = () => {
             </p>
           </div>
         ) : (
-          <div className={`grid gap-6 ${viewMode === 'grid' 
-            ? 'md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' 
+          <div className={`grid gap-4 ${viewMode === 'grid' 
+            ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' 
             : 'grid-cols-1 max-w-4xl mx-auto'
           }`}>
           {sortedDeals.map((deal, index) => {
@@ -322,28 +320,30 @@ const DealList = () => {
             const showBillAmountButton = hasClaimedDeal && userClaim?.status === 'used';
             
             return (
-              <Card 
+              <div 
                 key={`deal-${deal.id}-${index}`} 
-                className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-2 hover:border-primary/20 cursor-pointer overflow-hidden"
+                className="bg-card rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow cursor-pointer border"
                 onClick={() => handleDealClick(deal.id)}
               >
-                {/* Deal Image */}
-                <div className="relative h-48 overflow-hidden">
+                <div className="relative">
                   {deal.imageUrl ? (
-                    <img
-                      src={deal.imageUrl}
+                    <img 
+                      src={deal.imageUrl} 
                       alt={deal.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      className="w-full h-48 object-cover"
+                      onError={(e) => {
+                        e.currentTarget.src = "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=400";
+                      }}
                     />
                   ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 flex items-center justify-center">
+                    <div className="w-full h-48 bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center">
                       <Store className="w-16 h-16 text-gray-400" />
                     </div>
                   )}
                   
                   {/* Discount Badge */}
                   <div className="absolute top-3 left-3">
-                    <Badge className="bg-red-500 text-white text-lg font-bold px-3 py-1">
+                    <Badge className="bg-red-500 text-white font-bold px-2 py-1 rounded-full">
                       {deal.discountPercentage}% OFF
                     </Badge>
                   </div>
@@ -355,7 +355,7 @@ const DealList = () => {
                         deal.requiredMembership === 'ultimate' 
                           ? 'bg-amber-500 text-white' 
                           : 'bg-purple-500 text-white'
-                      } flex items-center gap-1`}>
+                      } flex items-center gap-1 rounded-full px-2 py-1`}>
                         <Crown className="w-3 h-3" />
                         {deal.requiredMembership}
                       </Badge>
@@ -369,36 +369,36 @@ const DealList = () => {
                   </div>
                 </div>
 
-                <CardHeader className="pb-3">
-                  <div className="flex justify-between items-start mb-2">
-                    <Badge variant="secondary" className="bg-gradient-to-r from-blue-500 to-purple-500 text-white">
+                <div className="p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <Badge variant="secondary" className="bg-gradient-to-r from-blue-500 to-purple-500 text-white text-xs px-2 py-1">
                       {deal.category}
                     </Badge>
                     <div className="flex items-center space-x-1 text-orange-500">
                       <Star className="h-4 w-4 fill-current" />
-                      <span className="text-sm font-medium">Popular</span>
+                      <span className="text-xs font-medium">Popular</span>
                     </div>
                   </div>
-                  <CardTitle className="text-lg group-hover:text-primary transition-colors line-clamp-2">
+                  
+                  <h3 className="font-bold text-foreground mb-2 line-clamp-1 text-sm">
                     {deal.title}
-                  </CardTitle>
-                  <CardDescription className="line-clamp-2">
+                  </h3>
+                  
+                  <p className="text-xs text-muted-foreground line-clamp-2 mb-3">
                     {deal.description}
-                  </CardDescription>
-                </CardHeader>
-
-                <CardContent className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-1">
+                  </p>
+                  
+                  <div className="flex items-center justify-between mb-3">
+                    <div>
                       <div className="flex items-center space-x-2">
-                        <span className="text-2xl font-bold text-green-600">
+                        <span className="text-lg font-bold text-green-600">
                           ₹{deal.discountedPrice}
                         </span>
-                        <span className="text-sm text-muted-foreground line-through">
+                        <span className="text-xs text-muted-foreground line-through">
                           ₹{deal.originalPrice}
                         </span>
                       </div>
-                      <div className="text-sm text-green-600 font-medium">
+                      <div className="text-xs text-green-600 font-medium">
                         Save ₹{(parseFloat(deal.originalPrice) - parseFloat(deal.discountedPrice)).toFixed(2)}
                       </div>
                     </div>
@@ -413,10 +413,10 @@ const DealList = () => {
                             e.stopPropagation();
                             setLocation('/login');
                           }}
-                          className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white font-semibold py-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300"
-                          size="lg"
+                          className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white font-semibold py-2 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 text-sm"
+                          size="sm"
                         >
-                          <Lock className="h-4 w-4 mr-2" />
+                          <Lock className="h-3 w-3 mr-1" />
                           Login to Claim Deal
                         </Button>
                       ) : (
@@ -427,8 +427,8 @@ const DealList = () => {
                             setShowPinDialog(true);
                           }}
                           disabled={!canClaim}
-                          className="w-full bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white font-semibold py-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300"
-                          size="lg"
+                          className="w-full bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white font-semibold py-2 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 text-sm"
+                          size="sm"
                         >
                           {!canClaim ? (
                             isExpired ? "⏰ Expired" : 
@@ -436,8 +436,8 @@ const DealList = () => {
                             "❌ Unavailable"
                           ) : (
                             <>
-                              <Shield className="h-4 w-4 mr-2" />
-                              Verify with PIN to Claim Deal
+                              <Shield className="h-3 w-3 mr-1" />
+                              Verify with PIN
                             </>
                           )}
                         </Button>
@@ -491,8 +491,8 @@ const DealList = () => {
                       </div>
                     )}
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             );
           })}
           </div>
