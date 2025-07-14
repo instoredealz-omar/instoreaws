@@ -63,6 +63,7 @@ import SubscriptionButton from "@/components/Subscription";
 import VendorPortal from "@/components/VendorPortal";
 import MagicAdminDashboard from "@/components/AdminDashboard";
 import BannerList from "@/components/BannerList";
+import { ModalDemo } from "@/components/modals/ModalDemo";
 
 // Role-based route protection component with TypeScript
 interface RoleProtectedRouteProps {
@@ -115,6 +116,7 @@ function Router() {
   const [matchDeals] = useRoute("/deals");
   const [matchDealDetail, dealParams] = useRoute("/deals/:id");
   const [matchBanners] = useRoute("/banners");
+  const [matchModalDemo] = useRoute("/modal-demo");
 
   // Customer routes
   const [matchCustomer] = useRoute("/customer");
@@ -176,6 +178,7 @@ function Router() {
   if (matchTest) return <TestFlows />;
   if (matchDeals) return <DealList />;
   if (matchBanners) return <BannerList />;
+  if (matchModalDemo) return <ModalDemo />;
 
   // Customer routes with role protection
   if (matchCustomer) {

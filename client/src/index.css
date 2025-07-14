@@ -22,6 +22,12 @@ body[data-modal-open] {
   height: 100%;
 }
 
+/* Non-blocking modal state - allows background interaction */
+body[data-non-blocking-modal-open] {
+  /* No overflow or position restrictions */
+  /* Background remains interactive */
+}
+
 /* Enhanced modal overlay */
 .modal-overlay {
   position: fixed;
@@ -30,6 +36,16 @@ body[data-modal-open] {
   background: rgba(0, 0, 0, 0.8);
   backdrop-filter: blur(4px);
   pointer-events: auto;
+}
+
+/* Non-blocking modal overlay - allows background interaction */
+.modal-overlay-non-blocking {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(2px);
+  pointer-events: none;
 }
 
 .modal-content {

@@ -5,24 +5,15 @@ import * as DialogPrimitive from "@radix-ui/react-dialog"
 import { X } from "lucide-react"
 
 import { cn } from "@/lib/utils"
-import { useModalLock } from "@/hooks/use-modal-lock"
 import { useNonBlockingModal } from "@/hooks/use-non-blocking-modal"
 
-// Enhanced Dialog with automatic modal locking
-interface DialogProps extends React.ComponentPropsWithoutRef<typeof DialogPrimitive.Root> {
-  allowBackgroundInteraction?: boolean;
-}
-
-const Dialog = React.forwardRef<
+// Non-blocking Dialog that allows background interaction
+const NonBlockingDialog = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Root>,
-  DialogProps
->(({ open, onOpenChange, allowBackgroundInteraction = false, ...props }, ref) => {
-  // Choose between blocking and non-blocking behavior
-  if (allowBackgroundInteraction) {
-    useNonBlockingModal(open || false);
-  } else {
-    useModalLock(open || false);
-  }
+  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Root>
+>(({ open, onOpenChange, ...props }, ref) => {
+  // Use non-blocking modal hook instead of modal lock
+  useNonBlockingModal(open || false);
   
   return (
     <DialogPrimitive.Root
@@ -32,46 +23,36 @@ const Dialog = React.forwardRef<
     />
   );
 });
-Dialog.displayName = "Dialog";
+NonBlockingDialog.displayName = "NonBlockingDialog";
 
-const DialogTrigger = DialogPrimitive.Trigger
+const NonBlockingDialogTrigger = DialogPrimitive.Trigger
 
-const DialogPortal = DialogPrimitive.Portal
+const NonBlockingDialogPortal = DialogPrimitive.Portal
 
-const DialogClose = DialogPrimitive.Close
+const NonBlockingDialogClose = DialogPrimitive.Close
 
-interface DialogOverlayProps extends React.ComponentPropsWithoutRef<typeof DialogPrimitive.Overlay> {
-  allowBackgroundInteraction?: boolean;
-}
-
-const DialogOverlay = React.forwardRef<
+// Non-blocking overlay that allows clicks to pass through
+const NonBlockingDialogOverlay = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Overlay>,
-  DialogOverlayProps
->(({ className, allowBackgroundInteraction = false, ...props }, ref) => (
+  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Overlay>
+>(({ className, ...props }, ref) => (
   <DialogPrimitive.Overlay
     ref={ref}
     className={cn(
-      "fixed inset-0 z-50 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
-      allowBackgroundInteraction 
-        ? "bg-black/20 pointer-events-none" 
-        : "bg-black/80 pointer-events-auto",
+      "fixed inset-0 z-50 bg-black/20 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 pointer-events-none",
       className
     )}
     {...props}
   />
 ))
-DialogOverlay.displayName = DialogPrimitive.Overlay.displayName
+NonBlockingDialogOverlay.displayName = DialogPrimitive.Overlay.displayName
 
-interface DialogContentProps extends React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> {
-  allowBackgroundInteraction?: boolean;
-}
-
-const DialogContent = React.forwardRef<
+const NonBlockingDialogContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
-  DialogContentProps
->(({ className, children, allowBackgroundInteraction = false, ...props }, ref) => (
-  <DialogPortal>
-    <DialogOverlay allowBackgroundInteraction={allowBackgroundInteraction} />
+  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
+>(({ className, children, ...props }, ref) => (
+  <NonBlockingDialogPortal>
+    <NonBlockingDialogOverlay />
     <DialogPrimitive.Content
       ref={ref}
       className={cn(
@@ -86,11 +67,11 @@ const DialogContent = React.forwardRef<
         <span className="sr-only">Close</span>
       </DialogPrimitive.Close>
     </DialogPrimitive.Content>
-  </DialogPortal>
+  </NonBlockingDialogPortal>
 ))
-DialogContent.displayName = DialogPrimitive.Content.displayName
+NonBlockingDialogContent.displayName = DialogPrimitive.Content.displayName
 
-const DialogHeader = ({
+const NonBlockingDialogHeader = ({
   className,
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) => (
@@ -102,9 +83,9 @@ const DialogHeader = ({
     {...props}
   />
 )
-DialogHeader.displayName = "DialogHeader"
+NonBlockingDialogHeader.displayName = "NonBlockingDialogHeader"
 
-const DialogFooter = ({
+const NonBlockingDialogFooter = ({
   className,
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) => (
@@ -116,9 +97,9 @@ const DialogFooter = ({
     {...props}
   />
 )
-DialogFooter.displayName = "DialogFooter"
+NonBlockingDialogFooter.displayName = "NonBlockingDialogFooter"
 
-const DialogTitle = React.forwardRef<
+const NonBlockingDialogTitle = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Title>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Title>
 >(({ className, ...props }, ref) => (
@@ -131,9 +112,9 @@ const DialogTitle = React.forwardRef<
     {...props}
   />
 ))
-DialogTitle.displayName = DialogPrimitive.Title.displayName
+NonBlockingDialogTitle.displayName = DialogPrimitive.Title.displayName
 
-const DialogDescription = React.forwardRef<
+const NonBlockingDialogDescription = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Description>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Description>
 >(({ className, ...props }, ref) => (
@@ -143,17 +124,17 @@ const DialogDescription = React.forwardRef<
     {...props}
   />
 ))
-DialogDescription.displayName = DialogPrimitive.Description.displayName
+NonBlockingDialogDescription.displayName = DialogPrimitive.Description.displayName
 
 export {
-  Dialog,
-  DialogPortal,
-  DialogOverlay,
-  DialogClose,
-  DialogTrigger,
-  DialogContent,
-  DialogHeader,
-  DialogFooter,
-  DialogTitle,
-  DialogDescription,
+  NonBlockingDialog,
+  NonBlockingDialogPortal,
+  NonBlockingDialogOverlay,
+  NonBlockingDialogClose,
+  NonBlockingDialogTrigger,
+  NonBlockingDialogContent,
+  NonBlockingDialogHeader,
+  NonBlockingDialogFooter,
+  NonBlockingDialogTitle,
+  NonBlockingDialogDescription,
 }

@@ -4,14 +4,23 @@ import * as AlertDialogPrimitive from "@radix-ui/react-alert-dialog"
 import { cn } from "@/lib/utils"
 import { buttonVariants } from "@/components/ui/button"
 import { useModalLock } from "@/hooks/use-modal-lock"
+import { useNonBlockingModal } from "@/hooks/use-non-blocking-modal"
 
 // Enhanced AlertDialog with automatic modal locking
+interface AlertDialogProps extends React.ComponentPropsWithoutRef<typeof AlertDialogPrimitive.Root> {
+  allowBackgroundInteraction?: boolean;
+}
+
 const AlertDialog = React.forwardRef<
   React.ElementRef<typeof AlertDialogPrimitive.Root>,
-  React.ComponentPropsWithoutRef<typeof AlertDialogPrimitive.Root>
->(({ open, onOpenChange, ...props }, ref) => {
-  // Lock body scroll when alert dialog is open
-  useModalLock(open || false);
+  AlertDialogProps
+>(({ open, onOpenChange, allowBackgroundInteraction = false, ...props }, ref) => {
+  // Choose between blocking and non-blocking behavior
+  if (allowBackgroundInteraction) {
+    useNonBlockingModal(open || false);
+  } else {
+    useModalLock(open || false);
+  }
   
   return (
     <AlertDialogPrimitive.Root
@@ -27,13 +36,20 @@ const AlertDialogTrigger = AlertDialogPrimitive.Trigger
 
 const AlertDialogPortal = AlertDialogPrimitive.Portal
 
+interface AlertDialogOverlayProps extends React.ComponentPropsWithoutRef<typeof AlertDialogPrimitive.Overlay> {
+  allowBackgroundInteraction?: boolean;
+}
+
 const AlertDialogOverlay = React.forwardRef<
   React.ElementRef<typeof AlertDialogPrimitive.Overlay>,
-  React.ComponentPropsWithoutRef<typeof AlertDialogPrimitive.Overlay>
->(({ className, ...props }, ref) => (
+  AlertDialogOverlayProps
+>(({ className, allowBackgroundInteraction = false, ...props }, ref) => (
   <AlertDialogPrimitive.Overlay
     className={cn(
-      "fixed inset-0 z-50 bg-black/80 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 pointer-events-auto",
+      "fixed inset-0 z-50 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+      allowBackgroundInteraction 
+        ? "bg-black/20 pointer-events-none" 
+        : "bg-black/80 pointer-events-auto",
       className
     )}
     {...props}
@@ -42,12 +58,16 @@ const AlertDialogOverlay = React.forwardRef<
 ))
 AlertDialogOverlay.displayName = AlertDialogPrimitive.Overlay.displayName
 
+interface AlertDialogContentProps extends React.ComponentPropsWithoutRef<typeof AlertDialogPrimitive.Content> {
+  allowBackgroundInteraction?: boolean;
+}
+
 const AlertDialogContent = React.forwardRef<
   React.ElementRef<typeof AlertDialogPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof AlertDialogPrimitive.Content>
->(({ className, ...props }, ref) => (
+  AlertDialogContentProps
+>(({ className, allowBackgroundInteraction = false, ...props }, ref) => (
   <AlertDialogPortal>
-    <AlertDialogOverlay />
+    <AlertDialogOverlay allowBackgroundInteraction={allowBackgroundInteraction} />
     <AlertDialogPrimitive.Content
       ref={ref}
       className={cn(
