@@ -226,14 +226,32 @@ export class DatabaseStorage implements IStorage {
     return result[0];
   }
 
-  async getClaimsByDeal(dealId: number): Promise<DealClaim[]> {
+  async getDealClaims(dealId: number): Promise<DealClaim[]> {
     return await db.select().from(schema.dealClaims)
       .where(eq(schema.dealClaims.dealId, dealId))
       .orderBy(desc(schema.dealClaims.claimedAt));
   }
 
-  async getAllClaims(): Promise<DealClaim[]> {
+  async getAllDealClaims(): Promise<DealClaim[]> {
     return await db.select().from(schema.dealClaims).orderBy(desc(schema.dealClaims.claimedAt));
+  }
+
+  async updateClaimStatus(id: number, status: string, usedAt?: Date): Promise<DealClaim | undefined> {
+    const updates: Partial<DealClaim> = { status };
+    if (usedAt) {
+      updates.usedAt = usedAt;
+    }
+    const result = await db.update(schema.dealClaims)
+      .set(updates)
+      .where(eq(schema.dealClaims.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async incrementDealRedemptions(dealId: number): Promise<void> {
+    await db.update(schema.deals)
+      .set({ currentRedemptions: sql`${schema.deals.currentRedemptions} + 1` })
+      .where(eq(schema.deals.id, dealId));
   }
 
   // Help ticket operations
