@@ -354,6 +354,13 @@ function Router() {
   }
 
   // Admin routes with role protection
+  if (matchAdminDashboard) {
+    return (
+      <RoleProtectedRoute allowedRoles={['admin', 'superadmin']}>
+        <AdminDashboard />
+      </RoleProtectedRoute>
+    );
+  }
   if (matchAdmin) {
     return (
       <RoleProtectedRoute allowedRoles={['admin', 'superadmin']}>
@@ -365,13 +372,6 @@ function Router() {
     return (
       <RoleProtectedRoute allowedRoles={['admin', 'superadmin']}>
         <MagicAdminDashboard />
-      </RoleProtectedRoute>
-    );
-  }
-  if (matchAdminDashboard) {
-    return (
-      <RoleProtectedRoute allowedRoles={['admin', 'superadmin']}>
-        <AdminDashboard />
       </RoleProtectedRoute>
     );
   }
@@ -442,14 +442,12 @@ function Router() {
 }
 
 function App() {
-  const { user, updateToken } = useAuth();
+  const { user, updateToken, checkAuth } = useAuth();
 
   useEffect(() => {
-    const token = localStorage.getItem("authToken");
-    if (token && !user) {
-      updateToken(token);
-    }
-  }, [user, updateToken]);
+    // Check authentication on app load
+    checkAuth();
+  }, [checkAuth]);
 
   return (
     <ThemeProvider defaultTheme="system" storageKey="instoredealz-ui-theme">
