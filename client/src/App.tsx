@@ -80,10 +80,21 @@ const RoleProtectedRoute: React.FC<RoleProtectedRouteProps> = ({
   const { user, isAuthenticated, isLoading } = useAuth();
   const [, navigate] = useLocation();
 
+  // Debug logging
+  console.log('RoleProtectedRoute Debug:', {
+    isAuthenticated,
+    isLoading,
+    user: user ? { id: user.id, role: user.role, name: user.name } : null,
+    allowedRoles,
+    fallbackPath
+  });
+
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
+      console.log('Redirecting to fallback path:', fallbackPath);
       navigate(fallbackPath);
     } else if (!isLoading && user && !allowedRoles.includes(user.role)) {
+      console.log('User role not allowed, redirecting to access denied');
       navigate("/access-denied");
     }
   }, [isAuthenticated, isLoading, user, allowedRoles, fallbackPath, navigate]);
@@ -97,9 +108,11 @@ const RoleProtectedRoute: React.FC<RoleProtectedRouteProps> = ({
   }
 
   if (!isAuthenticated || (user && !allowedRoles.includes(user.role))) {
+    console.log('Blocking access - not authenticated or wrong role');
     return null;
   }
 
+  console.log('Access granted, rendering children');
   return <>{children}</>;
 };
 

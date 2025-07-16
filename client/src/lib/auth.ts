@@ -139,6 +139,32 @@ export const useAuth = create<AuthState>()(
 
       updateToken: (token: string) => {
         set({ token, isAuthenticated: true });
+        
+        // Fetch user data when token is set
+        fetch('/api/auth/me', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        }).then(response => {
+          if (response.ok) {
+            return response.json();
+          } else {
+            localStorage.removeItem('auth_token');
+            set({ isAuthenticated: false, user: null, token: null });
+          }
+        }).then(userData => {
+          if (userData) {
+            set({
+              user: userData,
+              token,
+              isAuthenticated: true,
+            });
+          }
+        }).catch(error => {
+          console.error('Error fetching user data:', error);
+          localStorage.removeItem('auth_token');
+          set({ isAuthenticated: false, user: null, token: null });
+        });
       },
     }),
     {
