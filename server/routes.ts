@@ -2,6 +2,7 @@ import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import axios, { AxiosError, AxiosResponse } from "axios";
 import { DatabaseStorage } from "./db-storage";
+import { upload, processImage, processBase64Image, processImageFromUrl, deleteImage, getImageConfig } from "./image-processor";
 
 // Use database storage instead of in-memory storage
 const storage = new DatabaseStorage();
@@ -4347,6 +4348,133 @@ export async function registerRoutes(app: Express): Promise<Server> {
         message: 'Failed to mark notification as clicked' 
       });
     }
+  });
+
+  // Image processing endpoints
+  
+  // Upload image file
+  app.post('/api/upload-image', requireAuth, upload.single('image'), async (req: AuthenticatedRequest, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({
+          success: false,
+          message: 'No image file provided'
+        });
+      }
+
+      const result = await processImage(req.file.buffer, req.file.originalname);
+      
+      res.json({
+        success: true,
+        data: result,
+        message: 'Image processed successfully'
+      });
+    } catch (error) {
+      Logger.error('Error processing uploaded image', error);
+      res.status(500).json({
+        success: false,
+        message: error instanceof Error ? error.message : 'Failed to process image'
+      });
+    }
+  });
+
+  // Process base64 image
+  app.post('/api/process-base64-image', requireAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { base64Data } = req.body;
+      
+      if (!base64Data) {
+        return res.status(400).json({
+          success: false,
+          message: 'No base64 image data provided'
+        });
+      }
+
+      const result = await processBase64Image(base64Data);
+      
+      res.json({
+        success: true,
+        data: result,
+        message: 'Base64 image processed successfully'
+      });
+    } catch (error) {
+      Logger.error('Error processing base64 image', error);
+      res.status(500).json({
+        success: false,
+        message: error instanceof Error ? error.message : 'Failed to process base64 image'
+      });
+    }
+  });
+
+  // Process image from URL
+  app.post('/api/process-image-url', requireAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { imageUrl } = req.body;
+      
+      if (!imageUrl) {
+        return res.status(400).json({
+          success: false,
+          message: 'No image URL provided'
+        });
+      }
+
+      const result = await processImageFromUrl(imageUrl);
+      
+      res.json({
+        success: true,
+        data: result,
+        message: 'Image from URL processed successfully'
+      });
+    } catch (error) {
+      Logger.error('Error processing image from URL', error);
+      res.status(500).json({
+        success: false,
+        message: error instanceof Error ? error.message : 'Failed to process image from URL'
+      });
+    }
+  });
+
+  // Delete processed image
+  app.delete('/api/delete-image/:filename', requireAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { filename } = req.params;
+      
+      if (!filename) {
+        return res.status(400).json({
+          success: false,
+          message: 'No filename provided'
+        });
+      }
+
+      const deleted = await deleteImage(filename);
+      
+      if (deleted) {
+        res.json({
+          success: true,
+          message: 'Image deleted successfully'
+        });
+      } else {
+        res.status(404).json({
+          success: false,
+          message: 'Image not found'
+        });
+      }
+    } catch (error) {
+      Logger.error('Error deleting image', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to delete image'
+      });
+    }
+  });
+
+  // Get image processing configuration
+  app.get('/api/image-config', (req, res) => {
+    res.json({
+      success: true,
+      data: getImageConfig(),
+      message: 'Image configuration retrieved successfully'
+    });
   });
 
   // Add the error handling middleware at the end

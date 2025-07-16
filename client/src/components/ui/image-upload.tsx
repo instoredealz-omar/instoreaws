@@ -3,7 +3,9 @@ import { Button } from './button';
 import { Card, CardContent } from './card';
 import { Input } from './input';
 import { Label } from './label';
-import { Upload, Camera, X, Image as ImageIcon } from 'lucide-react';
+import { Upload, Camera, X, Image as ImageIcon, Loader2 } from 'lucide-react';
+import { apiRequest } from '@/lib/queryClient';
+import { useToast } from '@/hooks/use-toast';
 
 interface ImageUploadProps {
   value?: string;
@@ -30,43 +32,145 @@ export default function ImageUpload({
 }: ImageUploadProps) {
   const [dragActive, setDragActive] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [processing, setProcessing] = useState(false);
+  const [processedImageInfo, setProcessedImageInfo] = useState<{
+    filename: string;
+    size: number;
+    dimensions: { width: number; height: number };
+  } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
+  const { toast } = useToast();
 
-  const compressImage = (file: File): Promise<string> => {
-    return new Promise((resolve) => {
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      const img = new Image();
+  const processImageFile = async (file: File): Promise<void> => {
+    setProcessing(true);
+    setError(null);
+    
+    try {
+      // Create FormData for file upload
+      const formData = new FormData();
+      formData.append('image', file);
       
-      img.onload = () => {
-        // Calculate new dimensions (max 1200px width/height)
-        const maxSize = 1200;
-        let { width, height } = img;
-        
-        if (width > height) {
-          if (width > maxSize) {
-            height = (height * maxSize) / width;
-            width = maxSize;
-          }
-        } else {
-          if (height > maxSize) {
-            width = (width * maxSize) / height;
-            height = maxSize;
-          }
-        }
-        
-        canvas.width = width;
-        canvas.height = height;
-        
-        // Draw and compress
-        ctx?.drawImage(img, 0, 0, width, height);
-        const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.8);
-        resolve(compressedDataUrl);
-      };
+      // Send to backend for processing
+      const response = await fetch('/api/upload-image', {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
       
-      img.src = URL.createObjectURL(file);
-    });
+      if (!response.ok) {
+        throw new Error('Failed to process image');
+      }
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        // Update image URL and info
+        onChange(result.data.url);
+        setProcessedImageInfo({
+          filename: result.data.filename,
+          size: result.data.size,
+          dimensions: result.data.dimensions,
+        });
+        
+        toast({
+          title: "Image processed successfully",
+          description: `Image resized to ${result.data.dimensions.width}x${result.data.dimensions.height} and optimized for web.`,
+        });
+      } else {
+        throw new Error(result.message || 'Failed to process image');
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to process image';
+      setError(errorMessage);
+      toast({
+        title: "Image processing failed",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const processBase64Image = async (base64Data: string): Promise<void> => {
+    setProcessing(true);
+    setError(null);
+    
+    try {
+      const response = await apiRequest('/api/process-base64-image', {
+        method: 'POST',
+        body: JSON.stringify({ base64Data }),
+      });
+      
+      if (response.success) {
+        // Update image URL and info
+        onChange(response.data.url);
+        setProcessedImageInfo({
+          filename: response.data.filename,
+          size: response.data.size,
+          dimensions: response.data.dimensions,
+        });
+        
+        toast({
+          title: "Image processed successfully",
+          description: `Image resized to ${response.data.dimensions.width}x${response.data.dimensions.height} and optimized for web.`,
+        });
+      } else {
+        throw new Error(response.message || 'Failed to process image');
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to process image';
+      setError(errorMessage);
+      toast({
+        title: "Image processing failed",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const processImageFromUrl = async (imageUrl: string): Promise<void> => {
+    setProcessing(true);
+    setError(null);
+    
+    try {
+      const response = await apiRequest('/api/process-image-url', {
+        method: 'POST',
+        body: JSON.stringify({ imageUrl }),
+      });
+      
+      if (response.success) {
+        // Update image URL and info
+        onChange(response.data.url);
+        setProcessedImageInfo({
+          filename: response.data.filename,
+          size: response.data.size,
+          dimensions: response.data.dimensions,
+        });
+        
+        toast({
+          title: "Image processed successfully",
+          description: `Image resized to ${response.data.dimensions.width}x${response.data.dimensions.height} and optimized for web.`,
+        });
+      } else {
+        throw new Error(response.message || 'Failed to process image');
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to process image';
+      setError(errorMessage);
+      toast({
+        title: "Image processing failed",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    } finally {
+      setProcessing(false);
+    }
   };
 
   const handleFile = async (file: File) => {
@@ -78,23 +182,20 @@ export default function ImageUpload({
       return;
     }
 
-    try {
-      // Compress image before processing
-      const compressedDataUrl = await compressImage(file);
-      
-      // Check compressed size (rough estimate)
-      const compressedSize = (compressedDataUrl.length * 3) / 4; // Base64 to bytes
-      if (compressedSize > maxSizeInMB * 1024 * 1024) {
-        setError(`Image too large even after compression. Please use a smaller image.`);
-        return;
-      }
+    // Validate file size
+    if (file.size > maxSizeInMB * 1024 * 1024) {
+      setError(`Image too large. Maximum size is ${maxSizeInMB}MB`);
+      return;
+    }
 
+    try {
       // Call the onFileSelect callback if provided
       if (onFileSelect) {
         onFileSelect(file);
       }
 
-      onChange(compressedDataUrl);
+      // Process image through backend
+      await processImageFile(file);
     } catch (error) {
       setError('Failed to process image');
     }
@@ -152,14 +253,35 @@ export default function ImageUpload({
     return /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
   };
 
-  const handleUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleUrlChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const url = e.target.value;
     setError(null);
-    onChange(e.target.value);
+    
+    // If URL is empty, just clear the image
+    if (!url) {
+      onChange('');
+      setProcessedImageInfo(null);
+      return;
+    }
+    
+    // If URL looks like a valid image URL, process it
+    if (url.match(/\.(jpg|jpeg|png|gif|webp)$/i)) {
+      try {
+        await processImageFromUrl(url);
+      } catch (error) {
+        // If processing fails, still allow the raw URL
+        onChange(url);
+      }
+    } else {
+      // For other URLs, just set them directly
+      onChange(url);
+    }
   };
 
   const clearImage = () => {
     onChange('');
     setError(null);
+    setProcessedImageInfo(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
     if (cameraInputRef.current) cameraInputRef.current.value = '';
   };
@@ -171,13 +293,15 @@ export default function ImageUpload({
         <div className="space-y-2">
           <Input
             placeholder="Enter image URL (optional)"
-            value={value && !value.startsWith('data:') ? value : ''}
+            value={value && !value.startsWith('data:') && !value.startsWith('/uploads/') ? value : ''}
             onChange={handleUrlChange}
             className="w-full p-3 text-sm sm:text-base border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            disabled={processing}
           />
           <p className="text-xs sm:text-sm text-gray-500">
             Or upload/capture an image below
             {isMobileDevice() && " (Camera available on mobile)"}
+            {processing && " • Processing..."}
           </p>
         </div>
 
@@ -194,7 +318,21 @@ export default function ImageUpload({
           onDrop={handleDrop}
         >
           <CardContent className="p-6">
-            {value && showPreview ? (
+            {processing ? (
+              <div className="text-center space-y-4">
+                <div className="flex justify-center">
+                  <Loader2 className="h-12 w-12 text-blue-500 animate-spin" />
+                </div>
+                <div className="space-y-2">
+                  <p className="text-sm font-medium text-gray-700">
+                    Processing image...
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    Resizing to 600x400, optimizing quality, and converting to WebP
+                  </p>
+                </div>
+              </div>
+            ) : value && showPreview ? (
               <div className="space-y-4">
                 <div className="relative">
                   <img
@@ -208,13 +346,23 @@ export default function ImageUpload({
                     size="sm"
                     className="absolute top-2 right-2"
                     onClick={clearImage}
+                    disabled={processing}
                   >
                     <X className="h-4 w-4" />
                   </Button>
                 </div>
-                <p className="text-sm text-muted-foreground text-center">
-                  Image uploaded successfully
-                </p>
+                <div className="space-y-2">
+                  <p className="text-sm text-green-600 font-medium text-center">
+                    ✓ Image processed successfully
+                  </p>
+                  {processedImageInfo && (
+                    <div className="text-xs text-gray-500 text-center space-y-1">
+                      <p>Dimensions: {processedImageInfo.dimensions.width}x{processedImageInfo.dimensions.height}px</p>
+                      <p>Size: {(processedImageInfo.size / 1024).toFixed(1)}KB</p>
+                      <p>Format: WebP (optimized for deal cards)</p>
+                    </div>
+                  )}
+                </div>
               </div>
             ) : (
               <div className="text-center space-y-4">
@@ -236,6 +384,7 @@ export default function ImageUpload({
                     variant="outline"
                     onClick={() => fileInputRef.current?.click()}
                     className="w-full sm:w-auto py-3 text-sm sm:text-base"
+                    disabled={processing}
                   >
                     <Upload className="h-4 w-4 mr-2" />
                     Upload File
@@ -247,6 +396,7 @@ export default function ImageUpload({
                       variant="outline"
                       onClick={handleCameraClick}
                       className="w-full sm:w-auto py-3 text-sm sm:text-base hover:bg-blue-50 hover:border-blue-300"
+                      disabled={processing}
                     >
                       <Camera className="h-4 w-4 mr-2" />
                       {isMobileDevice() ? "Take Photo" : "Camera"}

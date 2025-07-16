@@ -2,6 +2,7 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { initializeDatabase } from "./init-database";
+import path from "path";
 
 const app = express();
 // Increase payload size limits for image uploads
@@ -37,6 +38,9 @@ app.use((req, res, next) => {
 
   next();
 });
+
+// Serve static files from uploads directory
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
 (async () => {
   // Initialize database with sample data
