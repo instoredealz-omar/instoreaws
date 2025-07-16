@@ -101,9 +101,14 @@ export default function CustomerProfile() {
   });
 
   const onSubmit = (data: UpdateUserProfile) => {
-    // Filter out empty optional fields
+    // Filter out empty optional fields, but preserve profileImage even if empty to allow clearing
     const filteredData = Object.fromEntries(
-      Object.entries(data).filter(([, value]) => value && value.trim() !== "")
+      Object.entries(data).filter(([key, value]) => {
+        if (key === 'profileImage') {
+          return true; // Always include profileImage field
+        }
+        return value && value.trim() !== "";
+      })
     );
     updateMutation.mutate(filteredData);
   };
