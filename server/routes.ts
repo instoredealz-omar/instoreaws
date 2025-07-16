@@ -544,6 +544,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       state: user.state,
       phone: user.phone,
       username: user.username,
+      profileImage: user.profileImage,
     });
   });
 

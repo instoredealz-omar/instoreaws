@@ -19,6 +19,7 @@ import {
   Gift,
   Eye,
   EyeOff,
+  User,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -182,9 +183,27 @@ export default function MembershipCard() {
                 </CardHeader>
 
                 <CardContent className="space-y-4">
-                  <div>
-                    <p className="text-white/80 text-sm">Member Name</p>
-                    <p className="font-semibold text-lg">{user.name}</p>
+                  <div className="flex items-center space-x-4">
+                    {/* Profile Image */}
+                    <div className="flex-shrink-0">
+                      {user.profileImage ? (
+                        <img
+                          src={user.profileImage}
+                          alt={user.name}
+                          className="w-16 h-16 rounded-full object-cover border-2 border-white/30"
+                        />
+                      ) : (
+                        <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center border-2 border-white/30">
+                          <User className="w-8 h-8 text-white/60" />
+                        </div>
+                      )}
+                    </div>
+                    
+                    {/* Member Name */}
+                    <div className="flex-1">
+                      <p className="text-white/80 text-sm">Member Name</p>
+                      <p className="font-semibold text-lg">{user.name}</p>
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">

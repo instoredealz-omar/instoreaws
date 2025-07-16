@@ -14,6 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { indianStates, getCitiesByState } from "@/lib/cities";
 import Navbar from "@/components/ui/navbar";
+import { ImageUpload } from "@/components/ui/image-upload";
 
 const updateUserProfileSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters").optional(),
@@ -43,13 +44,6 @@ interface UserData {
 export default function CustomerProfile() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  
-  // Photo upload state
-  const [profilePhoto, setProfilePhoto] = useState<File | null>(null);
-  const [photoPreview, setPhotoPreview] = useState<string>("");
-  const [uploadMethod, setUploadMethod] = useState<"file" | "camera" | "url">("file");
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const cameraInputRef = useRef<HTMLInputElement>(null);
 
   // Scroll to top when component mounts
   useEffect(() => {
@@ -72,52 +66,7 @@ export default function CustomerProfile() {
     },
   });
 
-  // Photo upload helpers
-  const handlePhotoChange = (file: File) => {
-    setProfilePhoto(file);
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      const result = reader.result as string;
-      setPhotoPreview(result);
-      form.setValue("profileImage", result);
-    };
-    reader.readAsDataURL(file);
-  };
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) { // 5MB limit
-        toast({
-          title: "File too large",
-          description: "Please select a photo smaller than 5MB",
-          variant: "destructive",
-        });
-        return;
-      }
-      handlePhotoChange(file);
-    }
-  };
-
-  const handleUrlSubmit = () => {
-    const imageUrl = form.getValues("profileImage");
-    if (imageUrl) {
-      setPhotoPreview(imageUrl);
-      setProfilePhoto(null);
-      toast({
-        title: "Photo URL set",
-        description: "Profile photo has been updated",
-      });
-    }
-  };
-
-  const clearPhoto = () => {
-    setProfilePhoto(null);
-    setPhotoPreview("");
-    form.setValue("profileImage", "");
-    if (fileInputRef.current) fileInputRef.current.value = "";
-    if (cameraInputRef.current) cameraInputRef.current.value = "";
-  };
 
   // Update form defaults when user data loads
   useEffect(() => {
@@ -129,10 +78,6 @@ export default function CustomerProfile() {
         state: user.state || "",
         profileImage: user.profileImage || "",
       });
-      // Set photo preview if user has existing profile image
-      if (user.profileImage) {
-        setPhotoPreview(user.profileImage);
-      }
     }
   }, [user, form]);
 
@@ -233,150 +178,25 @@ export default function CustomerProfile() {
                         Profile Photo
                       </h3>
                       
-                      {/* Upload Method Selection */}
-                      <div className="flex space-x-2 mb-3">
-                        <Button
-                          type="button"
-                          variant={uploadMethod === "file" ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => setUploadMethod("file")}
-                          className="text-xs"
-                        >
-                          <Upload className="h-3 w-3 mr-1" />
-                          Upload
-                        </Button>
-                        <Button
-                          type="button"
-                          variant={uploadMethod === "camera" ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => setUploadMethod("camera")}
-                          className="text-xs"
-                        >
-                          <Camera className="h-3 w-3 mr-1" />
-                          Camera
-                        </Button>
-                        <Button
-                          type="button"
-                          variant={uploadMethod === "url" ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => setUploadMethod("url")}
-                          className="text-xs"
-                        >
-                          URL
-                        </Button>
-                      </div>
-
-                      {/* Photo Preview */}
-                      {photoPreview && (
-                        <div className="relative inline-block">
-                          <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-gray-200">
-                            <img
-                              src={photoPreview}
-                              alt="Profile preview"
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
-                          <Button
-                            type="button"
-                            variant="destructive"
-                            size="sm"
-                            onClick={clearPhoto}
-                            className="absolute -top-2 -right-2 w-6 h-6 rounded-full p-0"
-                          >
-                            <X className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      )}
-
-                      {/* Upload Controls */}
-                      {uploadMethod === "file" && (
-                        <div>
-                          <input
-                            ref={fileInputRef}
-                            type="file"
-                            accept="image/*"
-                            onChange={handleFileSelect}
-                            className="hidden"
-                          />
-                          <Button
-                            type="button"
-                            variant="outline"
-                            onClick={() => fileInputRef.current?.click()}
-                            className="w-full text-sm"
-                            disabled={updateMutation.isPending}
-                          >
-                            <Upload className="h-4 w-4 mr-2" />
-                            Choose Photo File
-                          </Button>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            JPG, PNG or GIF (max 5MB)
-                          </p>
-                        </div>
-                      )}
-
-                      {uploadMethod === "camera" && (
-                        <div>
-                          <input
-                            ref={cameraInputRef}
-                            type="file"
-                            accept="image/*"
-                            capture="user"
-                            onChange={handleFileSelect}
-                            className="hidden"
-                          />
-                          <Button
-                            type="button"
-                            variant="outline"
-                            onClick={() => cameraInputRef.current?.click()}
-                            className="w-full text-sm"
-                            disabled={updateMutation.isPending}
-                          >
-                            <Camera className="h-4 w-4 mr-2" />
-                            Take Photo
-                          </Button>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            Use your device camera to take a photo
-                          </p>
-                        </div>
-                      )}
-
-                      {uploadMethod === "url" && (
-                        <FormField
-                          control={form.control}
-                          name="profileImage"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormControl>
-                                <div className="space-y-2">
-                                  <div className="flex space-x-2">
-                                    <Input
-                                      type="url"
-                                      placeholder="Enter image URL"
-                                      {...field}
-                                      value={field.value || ""}
-                                      className="flex-1 text-sm"
-                                      disabled={updateMutation.isPending}
-                                    />
-                                    <Button
-                                      type="button"
-                                      variant="outline"
-                                      onClick={handleUrlSubmit}
-                                      size="sm"
-                                      disabled={!field.value || updateMutation.isPending}
-                                    >
-                                      <Check className="h-3 w-3" />
-                                    </Button>
-                                  </div>
-                                  <p className="text-xs text-muted-foreground">
-                                    Enter a direct link to your profile photo
-                                  </p>
-                                </div>
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      )}
+                      <FormField
+                        control={form.control}
+                        name="profileImage"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormControl>
+                              <ImageUpload
+                                value={field.value || ""}
+                                onChange={field.onChange}
+                                className="w-full"
+                                allowCamera={true}
+                                showPreview={true}
+                                maxSizeInMB={5}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
                     </div>
 
                     {/* Basic Info Section */}

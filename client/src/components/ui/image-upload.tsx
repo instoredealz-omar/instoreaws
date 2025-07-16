@@ -442,3 +442,5 @@ export default function ImageUpload({
     </div>
   );
 }
+
+export { ImageUpload };
