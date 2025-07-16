@@ -115,6 +115,15 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+### July 16, 2025 - Membership Card Profile Image Display Fix
+- **Profile Image Integration**: Fixed critical issue where uploaded profile images weren't displaying on membership cards in customer dashboard
+- **MembershipCard Component Enhancement**: Added profileImage prop to MembershipCard component interface and display logic
+- **Visual Profile Display**: Added profile image circle with User icon fallback matching the dedicated membership card page design
+- **Dashboard Integration**: Updated customer dashboard to pass user profileImage to MembershipCard component
+- **Form Submission Fix**: Modified profile update form to always include profileImage field in submission data
+- **Complete Image Upload Flow**: Verified end-to-end image upload functionality from profile upload to membership card display
+- **Consistent UI**: Profile images now appear on both dashboard membership card and dedicated membership card page
+
 ### July 15, 2025 - Database Persistence & Sample Data Implementation
 - **Database Persistence Fix**: Resolved critical issue where database data was not persisting between server restarts
 - **PostgreSQL Database Schema**: Properly implemented all database tables using PostgreSQL instead of in-memory storage
