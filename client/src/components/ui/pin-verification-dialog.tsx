@@ -83,23 +83,8 @@ export function PinVerificationDialog({
 
   const verifyPinMutation = useMutation({
     mutationFn: async (pin: string) => {
-      try {
-        const response = await apiRequest(`/api/deals/${dealId}/verify-pin`, 'POST', { pin });
-        const data = await response.json();
-
-        // Check if the response indicates an error
-        if (!data.success) {
-          throw new Error(data.error || "PIN verification failed");
-        }
-
-        return data;
-      } catch (error: any) {
-        // Handle authentication errors specifically
-        if (error.message && error.message.includes('401')) {
-          throw new Error("Authentication expired. Please log out and log back in.");
-        }
-        throw error;
-      }
+      const response = await apiRequest(`/api/deals/${dealId}/verify-pin`, 'POST', { pin });
+      return await response.json();
     },
     onSuccess: async (data: any) => {
       toast({
