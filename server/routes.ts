@@ -598,16 +598,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         deals = deals.filter(deal => cityVendorIds.includes(deal.vendorId));
       }
       
-      // Include vendor info
+      // Include vendor info and deal locations
       const vendors = await storage.getAllVendors();
       const vendorMap = new Map(vendors.map(v => [v.id, v]));
       
-      const dealsWithVendors = deals.map(deal => ({
-        ...deal,
-        vendor: vendorMap.get(deal.vendorId),
+      const dealsWithVendorsAndLocations = await Promise.all(deals.map(async deal => {
+        const locations = await storage.getDealLocations(deal.id);
+        return {
+          ...deal,
+          vendor: vendorMap.get(deal.vendorId),
+          locations: locations,
+          locationCount: locations.length,
+          hasMultipleLocations: locations.length > 1,
+        };
       }));
       
-      res.json(dealsWithVendors);
+      res.json(dealsWithVendorsAndLocations);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch deals" });
     }
@@ -623,8 +629,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Deal not found" });
       }
       
-      // Get vendor info
+      // Get vendor info and deal locations
       const vendor = await storage.getVendor(deal.vendorId);
+      const locations = await storage.getDealLocations(deal.id);
       
       // Remove sensitive data like PIN from public endpoint
       const { verificationPin, ...dealData } = deal;
@@ -632,6 +639,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({
         ...dealData,
         vendor,
+        locations: locations,
+        locationCount: locations.length,
+        hasMultipleLocations: locations.length > 1,
       });
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch deal" });
@@ -1283,7 +1293,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const deals = await storage.getDealsByVendor(vendor.id);
-      res.json(deals);
+      
+      // Include location data for each deal
+      const dealsWithLocations = await Promise.all(deals.map(async deal => {
+        const locations = await storage.getDealLocations(deal.id);
+        return {
+          ...deal,
+          locations: locations,
+          locationCount: locations.length,
+          hasMultipleLocations: locations.length > 1,
+        };
+      }));
+      
+      res.json(dealsWithLocations);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch vendor deals" });
     }
@@ -1662,16 +1684,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const deals = await storage.getPendingDeals();
       
-      // Include vendor info
+      // Include vendor info and location data
       const vendors = await storage.getAllVendors();
       const vendorMap = new Map(vendors.map(v => [v.id, v]));
       
-      const dealsWithVendors = deals.map(deal => ({
-        ...deal,
-        vendor: vendorMap.get(deal.vendorId),
+      const dealsWithVendorsAndLocations = await Promise.all(deals.map(async deal => {
+        const locations = await storage.getDealLocations(deal.id);
+        return {
+          ...deal,
+          vendor: vendorMap.get(deal.vendorId),
+          locations: locations,
+          locationCount: locations.length,
+          hasMultipleLocations: locations.length > 1,
+        };
       }));
       
-      res.json(dealsWithVendors);
+      res.json(dealsWithVendorsAndLocations);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch pending deals" });
     }

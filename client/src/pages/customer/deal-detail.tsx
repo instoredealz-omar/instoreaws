@@ -36,6 +36,16 @@ import {
 import { Link } from "wouter";
 import { PinVerificationDialog } from "@/components/ui/pin-verification-dialog";
 
+interface DealLocation {
+  id: number;
+  storeName: string;
+  address: string;
+  city: string;
+  state: string;
+  pincode?: string;
+  phone?: string;
+}
+
 interface Deal {
   id: number;
   title: string;
@@ -53,6 +63,9 @@ interface Deal {
   currentRedemptions?: number;
   viewCount?: number;
   imageUrl?: string;
+  locations?: DealLocation[];
+  locationCount?: number;
+  hasMultipleLocations?: boolean;
   vendor?: {
     id: number;
     businessName: string;
@@ -467,19 +480,53 @@ export default function DealDetail({ params }: DealDetailProps) {
                   )}
                 </div>
 
-                {/* Vendor Info */}
+                {/* Vendor & Location Info */}
                 {currentDeal.vendor && (
                   <>
                     <Separator />
-                    <div className="flex items-center space-x-3">
-                      <Store className="h-5 w-5 text-gray-500" />
-                      <div>
-                        <p className="font-medium">{currentDeal.vendor.businessName}</p>
-                        <p className="text-sm text-muted-foreground flex items-center">
-                          <MapPin className="h-3 w-3 mr-1" />
-                          {currentDeal.vendor.city}
-                        </p>
+                    <div className="space-y-3">
+                      <div className="flex items-center space-x-3">
+                        <Store className="h-5 w-5 text-gray-500" />
+                        <div className="flex-1">
+                          <p className="font-medium">{currentDeal.vendor.businessName}</p>
+                          {currentDeal.hasMultipleLocations && (
+                            <Badge variant="secondary" className="mt-1 text-xs">
+                              Available at {currentDeal.locationCount} locations
+                            </Badge>
+                          )}
+                        </div>
                       </div>
+                      
+                      {/* Store Locations */}
+                      {currentDeal.locations && currentDeal.locations.length > 0 ? (
+                        <div className="ml-8 space-y-2">
+                          <h4 className="font-medium text-sm text-foreground">Store Locations:</h4>
+                          <div className="space-y-2">
+                            {currentDeal.locations.map((location) => (
+                              <div key={location.id} className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
+                                <div className="flex items-start space-x-2">
+                                  <MapPin className="h-4 w-4 text-blue-500 mt-0.5" />
+                                  <div className="flex-1">
+                                    <p className="font-medium text-sm">{location.storeName}</p>
+                                    <p className="text-xs text-muted-foreground">{location.address}</p>
+                                    <p className="text-xs text-muted-foreground">{location.city}, {location.state} {location.pincode}</p>
+                                    {location.phone && (
+                                      <p className="text-xs text-blue-600 mt-1">📞 {location.phone}</p>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="ml-8">
+                          <p className="text-sm text-muted-foreground flex items-center">
+                            <MapPin className="h-3 w-3 mr-1" />
+                            {currentDeal.vendor.city}
+                          </p>
+                        </div>
+                      )}
                     </div>
                   </>
                 )}

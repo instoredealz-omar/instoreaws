@@ -23,7 +23,8 @@ import {
   CheckCircle,
   Clock,
   Target,
-  BookOpen
+  BookOpen,
+  MapPin
 } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, LineChart, Line, PieChart, Pie, Cell, ResponsiveContainer, AreaChart, Area, Tooltip, Legend } from "recharts";
 
@@ -61,19 +62,26 @@ export default function VendorDashboard() {
   const totalRedemptions = deals?.reduce((sum: number, deal: any) => sum + (deal.currentRedemptions || 0), 0) || 0;
   const totalViews = deals?.reduce((sum: number, deal: any) => sum + (deal.viewCount || 0), 0) || 0;
 
+  // Calculate multi-store location analytics
+  const totalLocations = deals?.reduce((sum: number, deal: any) => sum + (deal.locationCount || 0), 0) || 0;
+  const multiLocationDeals = deals?.filter((deal: any) => deal.hasMultipleLocations).length || 0;
+  const avgLocationsPerDeal = totalDeals > 0 ? (totalLocations / totalDeals).toFixed(1) : "0";
+
   const stats = [
     {
       title: "Active Deals",
       value: activeDeals,
+      subtitle: `${multiLocationDeals} multi-location`,
       icon: Store,
       color: "text-blue-600",
       bgColor: "bg-blue-100 dark:bg-blue-900/20",
       gradient: "from-blue-500 to-blue-600",
     },
     {
-      title: "Total Redemptions",
-      value: totalRedemptions,
-      icon: TrendingUp,
+      title: "Total Locations",
+      value: totalLocations,
+      subtitle: `${avgLocationsPerDeal} avg per deal`,
+      icon: MapPin,
       color: "text-green-600",
       bgColor: "bg-green-100 dark:bg-green-900/20",
       gradient: "from-green-500 to-green-600",
@@ -81,6 +89,7 @@ export default function VendorDashboard() {
     {
       title: "Total Views",
       value: totalViews.toLocaleString(),
+      subtitle: `${totalRedemptions} redemptions`,
       icon: Eye,
       color: "text-purple-600",
       bgColor: "bg-purple-100 dark:bg-purple-900/20",
@@ -89,6 +98,7 @@ export default function VendorDashboard() {
     {
       title: "Rating",
       value: vendor?.rating ? `${vendor.rating}/5` : "N/A",
+      subtitle: "Customer rating",
       icon: Star,
       color: "text-amber-600",
       bgColor: "bg-amber-100 dark:bg-amber-900/20",
@@ -251,6 +261,7 @@ export default function VendorDashboard() {
                       <div>
                         <p className="text-muted-foreground text-xs sm:text-sm font-medium">{stat.title}</p>
                         <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground mt-1 sm:mt-2">{stat.value}</p>
+                        <p className="text-xs text-muted-foreground mt-1">{stat.subtitle}</p>
                         <div className="flex items-center mt-1 sm:mt-2">
                           <div className={`w-full bg-gradient-to-r ${stat.gradient} h-1 rounded-full`}></div>
                         </div>

@@ -17,6 +17,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Loader2, Gift, Star, MapPin, Calendar, QrCode, Calculator, Receipt, Shield, Lock, Filter, Grid, List, Store, Eye, Heart, Crown, Percent, Users, ArrowLeft } from 'lucide-react';
 import { PinVerificationDialog } from '@/components/ui/pin-verification-dialog';
 
+interface DealLocation {
+  id: number;
+  storeName: string;
+  address: string;
+  city: string;
+  state: string;
+  pincode?: string;
+  phone?: string;
+}
+
 interface Deal {
   id: number;
   title: string;
@@ -34,6 +44,9 @@ interface Deal {
     state: string;
     address: string;
   };
+  locations?: DealLocation[];
+  locationCount?: number;
+  hasMultipleLocations?: boolean;
   isActive: boolean;
   maxRedemptions?: number;
   currentRedemptions?: number;
@@ -457,15 +470,46 @@ const DealList = () => {
                   </div>
 
                   <div className="space-y-2 text-sm text-muted-foreground">
-                    <div className="flex items-center space-x-2">
-                      <MapPin className="h-4 w-4" />
-                      <span>
-                        {deal.vendor ? 
-                          `${deal.vendor.name || 'Vendor'} - ${deal.vendor.city}, ${deal.vendor.state}` : 
-                          'Location not available'
-                        }
-                      </span>
+                    {/* Multi-Store Location Display */}
+                    <div className="space-y-1">
+                      <div className="flex items-center space-x-2">
+                        <Store className="h-4 w-4" />
+                        <span className="font-medium">
+                          {deal.vendor?.businessName || 'Vendor'}
+                          {deal.hasMultipleLocations && (
+                            <Badge variant="secondary" className="ml-2 text-xs">
+                              {deal.locationCount} locations
+                            </Badge>
+                          )}
+                        </span>
+                      </div>
+                      
+                      {deal.locations && deal.locations.length > 0 ? (
+                        <div className="ml-6 space-y-1">
+                          {deal.locations.slice(0, 2).map((location, index) => (
+                            <div key={location.id} className="flex items-center space-x-1 text-xs">
+                              <MapPin className="h-3 w-3" />
+                              <span>
+                                {location.storeName} - {location.city}, {location.state}
+                              </span>
+                            </div>
+                          ))}
+                          {deal.locations.length > 2 && (
+                            <div className="text-xs text-blue-600 ml-4">
+                              +{deal.locations.length - 2} more locations
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="ml-6 flex items-center space-x-1 text-xs">
+                          <MapPin className="h-3 w-3" />
+                          <span>
+                            {deal.vendor ? `${deal.vendor.city}, ${deal.vendor.state}` : 'Location not available'}
+                          </span>
+                        </div>
+                      )}
                     </div>
+                    
                     <div className="flex items-center space-x-2">
                       <Calendar className="h-4 w-4" />
                       <span>Valid until {new Date(deal.validUntil).toLocaleDateString()}</span>

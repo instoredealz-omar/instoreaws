@@ -196,6 +196,7 @@ export class MemStorage implements IStorage {
   private users: Map<number, User> = new Map();
   private vendors: Map<number, Vendor> = new Map();
   private deals: Map<number, Deal> = new Map();
+  private dealLocations: Map<number, DealLocation> = new Map();
   private dealClaims: Map<number, DealClaim> = new Map();
   private helpTickets: Map<number, HelpTicket> = new Map();
   private systemLogs: Map<number, SystemLog> = new Map();
@@ -214,6 +215,7 @@ export class MemStorage implements IStorage {
   private currentUserId = 1;
   private currentVendorId = 1;
   private currentDealId = 1;
+  private currentDealLocationId = 1;
   private currentDealClaimId = 1;
   private currentHelpTicketId = 1;
   private currentSystemLogId = 1;
@@ -912,6 +914,23 @@ export class MemStorage implements IStorage {
       deal.viewCount = (deal.viewCount || 0) + 1;
       this.deals.set(id, deal);
     }
+  }
+
+  // Deal location operations
+  async createDealLocation(location: InsertDealLocation): Promise<DealLocation> {
+    const newLocation: DealLocation = {
+      id: this.currentDealLocationId++,
+      ...location,
+      isActive: true,
+      createdAt: new Date(),
+    };
+    this.dealLocations.set(newLocation.id, newLocation);
+    return newLocation;
+  }
+
+  async getDealLocations(dealId: number): Promise<DealLocation[]> {
+    return Array.from(this.dealLocations.values())
+      .filter(location => location.dealId === dealId && location.isActive);
   }
 
   // Deal claim operations
