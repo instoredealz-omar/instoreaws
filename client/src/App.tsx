@@ -42,6 +42,7 @@ import VendorProfile from "@/pages/vendor/profile";
 import VendorProcess from "@/pages/vendor/VendorProcess";
 import VendorOnboarding from "@/pages/vendor/VendorOnboarding";
 import VendorDealCreation from "@/pages/vendor/VendorDealCreation";
+import VendorLocationAnalytics from "@/pages/vendor/location-analytics";
 
 // Admin pages
 import AdminDashboard from "@/pages/admin/dashboard";
@@ -51,6 +52,7 @@ import AdminDeals from "@/pages/admin/deals";
 import AdminReports from "@/pages/admin/reports";
 import AdminDealDistribution from "@/pages/admin/deal-distribution";
 import AdminAnalytics from "@/pages/admin/analytics";
+import AdminLocationAnalytics from "@/pages/admin/location-analytics";
 
 // Super Admin pages
 import SuperAdminDashboard from "@/pages/superadmin/dashboard";
@@ -158,6 +160,7 @@ function Router() {
   const [matchVendorCreateDeal] = useRoute("/vendor/create-deal");
   const [matchVendorDealCreation] = useRoute("/vendor/deals/create");
   const [matchVendorAnalytics] = useRoute("/vendor/analytics");
+  const [matchVendorLocationAnalytics] = useRoute("/vendor/location-analytics");
   const [matchVendorPos] = useRoute("/vendor/pos");
   const [matchVendorPosTransactions] = useRoute("/vendor/pos/transactions");
   const [matchVendorProfile] = useRoute("/vendor/profile");
@@ -171,6 +174,7 @@ function Router() {
   const [matchAdminDeals] = useRoute("/admin/deals");
   const [matchAdminReports] = useRoute("/admin/reports");
   const [matchAdminAnalytics] = useRoute("/admin/analytics");
+  const [matchAdminLocationAnalytics] = useRoute("/admin/location-analytics");
 
   // Super Admin routes
   const [matchSuperAdmin] = useRoute("/superadmin");
@@ -332,6 +336,13 @@ function Router() {
       </RoleProtectedRoute>
     );
   }
+  if (matchVendorLocationAnalytics) {
+    return (
+      <RoleProtectedRoute allowedRoles={['vendor']}>
+        <VendorLocationAnalytics />
+      </RoleProtectedRoute>
+    );
+  }
   if (matchVendorPos) {
     return (
       <RoleProtectedRoute allowedRoles={['vendor']}>
@@ -422,6 +433,13 @@ function Router() {
     return (
       <RoleProtectedRoute allowedRoles={['admin', 'superadmin']}>
         <AdminAnalytics />
+      </RoleProtectedRoute>
+    );
+  }
+  if (matchAdminLocationAnalytics) {
+    return (
+      <RoleProtectedRoute allowedRoles={['admin', 'superadmin']}>
+        <AdminLocationAnalytics />
       </RoleProtectedRoute>
     );
   }

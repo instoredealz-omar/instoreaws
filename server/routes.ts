@@ -1430,6 +1430,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             address: location.address,
             city: location.city,
             state: location.state,
+            sublocation: location.sublocation || null, // Added sublocation support
             pincode: location.pincode || null,
             phone: location.phone || null,
             latitude: null, // Will be populated later if needed
@@ -1556,6 +1557,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Analytics API error:', error);
       res.status(500).json({ message: "Failed to fetch analytics" });
+    }
+  });
+
+  // Location-based analytics for admin
+  app.get('/api/admin/location-analytics', requireAuth, requireRole(['admin', 'superadmin']), async (req: AuthenticatedRequest, res) => {
+    try {
+      const locationAnalytics = await storage.getLocationAnalytics();
+      res.json(locationAnalytics);
+    } catch (error) {
+      console.error('Location analytics API error:', error);
+      res.status(500).json({ 
+        sublocationStats: [],
+        cityDealDistribution: [],
+        areaPerformance: []
+      });
+    }
+  });
+
+  // Vendor location analytics
+  app.get('/api/vendors/location-analytics', requireAuth, requireRole(['vendor']), async (req: AuthenticatedRequest, res) => {
+    try {
+      const vendor = await storage.getVendorByUserId(req.user!.id);
+      if (!vendor) {
+        return res.status(404).json({ error: "Vendor not found" });
+      }
+
+      const locationAnalytics = await storage.getVendorLocationAnalytics(vendor.id);
+      res.json(locationAnalytics);
+    } catch (error) {
+      console.error('Vendor location analytics API error:', error);
+      res.status(500).json({ 
+        storePerformance: [],
+        cityBreakdown: []
+      });
     }
   });
 

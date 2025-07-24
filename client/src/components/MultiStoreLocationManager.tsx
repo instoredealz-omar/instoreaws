@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Trash2, Plus, MapPin, Phone, Building } from "lucide-react";
 import { indianStates, getCitiesByState } from "@/lib/cities";
-import { isMetroCity, getSublocations } from "@/lib/metro-cities";
+import { isMetroCity, getSublocations, getPrimaryPincode } from "@/lib/metro-cities";
 import { InsertDealLocation } from "@shared/schema";
 
 interface StoreLocation {
@@ -71,7 +71,19 @@ export default function MultiStoreLocationManager({ locations, onChange }: Multi
   };
 
   const handleSublocationChange = (locationId: string, sublocation: string) => {
-    updateLocation(locationId, 'sublocation', sublocation);
+    const location = locations.find(loc => loc.id === locationId);
+    if (location && location.city) {
+      // Auto-fill pincode when sublocation is selected
+      const primaryPincode = getPrimaryPincode(location.city, sublocation);
+      const updatedLocations = locations.map(loc => 
+        loc.id === locationId 
+          ? { ...loc, sublocation: sublocation, pincode: primaryPincode }
+          : loc
+      );
+      onChange(updatedLocations);
+    } else {
+      updateLocation(locationId, 'sublocation', sublocation);
+    }
   };
 
   return (

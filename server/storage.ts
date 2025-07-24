@@ -114,6 +114,18 @@ export interface IStorage {
 
   getAdminAnalytics(): Promise<any>;
 
+  // Location-based analytics
+  getLocationAnalytics(): Promise<{
+    sublocationStats: Array<{ sublocation: string; city: string; state: string; dealCount: number; claimCount: number }>;
+    cityDealDistribution: Array<{ city: string; state: string; totalDeals: number; totalClaims: number }>;
+    areaPerformance: Array<{ area: string; city: string; conversionRate: number; averageSavings: number }>;
+  }>;
+
+  getVendorLocationAnalytics(vendorId: number): Promise<{
+    storePerformance: Array<{ storeName: string; sublocation: string; city: string; dealCount: number; claimCount: number; revenue: number }>;
+    cityBreakdown: Array<{ city: string; state: string; storeCount: number; totalDeals: number; totalClaims: number }>;
+  }>;
+
   // Get deals ordered by claims (most claimed first)
   getMostClaimedDeals(): Promise<Deal[]>;
   

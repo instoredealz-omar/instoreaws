@@ -23,12 +23,13 @@ interface DealLocation {
   address: string;
   city: string;
   state: string;
+  sublocation?: string;
   pincode?: string;
   phone?: string;
 }
 
 interface Deal {
-  id: number;
+  id: number | string;
   title: string;
   description: string;
   category: string;
@@ -53,6 +54,10 @@ interface Deal {
   viewCount?: number;
   imageUrl?: string;
   requiredMembership?: string;
+  // New fields for multistore expansion
+  originalDealId?: number;
+  locationIndex?: number;
+  singleLocation?: DealLocation;
 }
 
 interface ClaimResponse {
@@ -167,7 +172,8 @@ const DealList = () => {
     }
   });
 
-  const handleDealClick = (dealId: number) => {
+  const handleDealClick = (deal: Deal) => {
+    const dealId = deal.originalDealId || deal.id;
     setLocation(`/deals/${dealId}`);
   };
 
@@ -207,8 +213,30 @@ const DealList = () => {
     );
   }
 
+  // Expand multistore deals as separate entries
+  const expandedDeals = deals.flatMap(deal => {
+    if (deal.hasMultipleLocations && deal.locations && deal.locations.length > 0) {
+      // Create separate deal entries for each location
+      return deal.locations.map((location, index) => ({
+        ...deal,
+        id: `${deal.id}-${location.id}`, // Unique ID for tracking
+        originalDealId: deal.id, // Keep reference to original deal
+        locationIndex: index,
+        singleLocation: location,
+        title: `${deal.title} - ${location.storeName}`,
+        vendor: {
+          ...deal.vendor,
+          city: location.city,
+          state: location.state,
+          address: location.address
+        }
+      }));
+    }
+    return [deal];
+  });
+
   // Sort deals based on selected criteria
-  const sortedDeals = [...deals].sort((a, b) => {
+  const sortedDeals = [...expandedDeals].sort((a, b) => {
     switch (sortBy) {
       case 'discount':
         return b.discountPercentage - a.discountPercentage;
@@ -218,7 +246,7 @@ const DealList = () => {
         return new Date(a.validUntil).getTime() - new Date(b.validUntil).getTime();
       case 'newest':
       default:
-        return b.id - a.id;
+        return (b.originalDealId || b.id) - (a.originalDealId || a.id);
     }
   });
 
@@ -325,8 +353,9 @@ const DealList = () => {
               deal.currentRedemptions >= deal.maxRedemptions;
             const canClaim = deal.isActive && !isExpired && !isLimitReached;
             
-            // Check if user has claimed this deal
-            const userClaim = userClaims.find(claim => claim.dealId === deal.id);
+            // Check if user has claimed this deal (use original deal ID for multistore deals)
+            const dealIdToCheck = deal.originalDealId || deal.id;
+            const userClaim = userClaims.find(claim => claim.dealId === dealIdToCheck);
             const hasClaimedDeal = !!userClaim;
             
             // Show Add Bill Amount button for verified/completed claims (status 'used')
@@ -336,7 +365,7 @@ const DealList = () => {
               <div 
                 key={`deal-${deal.id}-${index}`} 
                 className="bg-card rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow cursor-pointer border"
-                onClick={() => handleDealClick(deal.id)}
+                onClick={() => handleDealClick(deal)}
               >
                 <div className="relative">
                   {deal.imageUrl ? (
@@ -422,7 +451,10 @@ const DealList = () => {
                         <Button
                           onClick={(e) => {
                             e.stopPropagation();
-                            setPinDialogDeal(deal);
+                            setPinDialogDeal({
+                              ...deal,
+                              id: deal.originalDealId || deal.id // Use original deal ID for PIN verification
+                            });
                             setShowPinDialog(true);
                           }}
                           disabled={!canClaim}
@@ -470,44 +502,50 @@ const DealList = () => {
                   </div>
 
                   <div className="space-y-2 text-sm text-muted-foreground">
-                    {/* Multi-Store Location Display */}
+                    {/* Location Display */}
                     <div className="space-y-1">
-                      <div className="flex items-center space-x-2">
-                        <Store className="h-4 w-4" />
-                        <span className="font-medium">
-                          {deal.vendor?.businessName || 'Vendor'}
-                          {deal.hasMultipleLocations && (
-                            <Badge variant="secondary" className="ml-2 text-xs">
-                              {deal.locationCount} locations
-                            </Badge>
-                          )}
-                        </span>
-                      </div>
-                      
-                      {deal.locations && deal.locations.length > 0 ? (
-                        <div className="ml-6 space-y-1">
-                          {deal.locations.slice(0, 2).map((location, index) => (
-                            <div key={location.id} className="flex items-center space-x-1 text-xs">
-                              <MapPin className="h-3 w-3" />
-                              <span>
-                                {location.storeName} - {location.city}, {location.state}
-                              </span>
+                      {deal.singleLocation ? (
+                        // Display specific location for multistore deal entry
+                        <div className="bg-blue-50 dark:bg-blue-900/20 p-2 rounded-lg">
+                          <div className="flex items-center gap-1 mb-1">
+                            <Store className="h-3 w-3 text-blue-600" />
+                            <span className="text-xs font-medium text-blue-600">
+                              Store Location
+                            </span>
+                          </div>
+                          <div className="flex items-start gap-1 text-xs">
+                            <MapPin className="h-3 w-3 text-blue-500 mt-0.5 flex-shrink-0" />
+                            <div className="flex-1">
+                              <div className="font-medium">{deal.singleLocation.storeName}</div>
+                              <div className="text-muted-foreground">
+                                {deal.singleLocation.sublocation && `${deal.singleLocation.sublocation}, `}
+                                {deal.singleLocation.city}, {deal.singleLocation.state}
+                                {deal.singleLocation.pincode && ` - ${deal.singleLocation.pincode}`}
+                              </div>
+                              {deal.singleLocation.phone && (
+                                <div className="text-muted-foreground text-xs mt-1">
+                                  📞 {deal.singleLocation.phone}
+                                </div>
+                              )}
                             </div>
-                          ))}
-                          {deal.locations.length > 2 && (
-                            <div className="text-xs text-blue-600 ml-4">
-                              +{deal.locations.length - 2} more locations
-                            </div>
-                          )}
+                          </div>
                         </div>
                       ) : (
-                        <div className="ml-6 flex items-center space-x-1 text-xs">
+                        // Display vendor location for single-store deals
+                        <div className="flex items-center gap-1">
                           <MapPin className="h-3 w-3" />
-                          <span>
-                            {deal.vendor ? `${deal.vendor.city}, ${deal.vendor.state}` : 'Location not available'}
+                          <span className="text-xs">
+                            {deal.vendor.city}, {deal.vendor.state}
                           </span>
                         </div>
                       )}
+                    </div>
+                    
+                    <div className="flex items-center space-x-2">
+                      <Store className="h-4 w-4" />
+                      <span className="font-medium">
+                        {deal.vendor?.businessName || 'Vendor'}
+                      </span>
                     </div>
                     
                     <div className="flex items-center space-x-2">

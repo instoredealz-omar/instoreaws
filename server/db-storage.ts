@@ -748,4 +748,182 @@ export class DatabaseStorage implements IStorage {
       };
     }
   }
+
+  // Location-based analytics methods
+  async getLocationAnalytics(): Promise<{
+    sublocationStats: Array<{ sublocation: string; city: string; state: string; dealCount: number; claimCount: number }>;
+    cityDealDistribution: Array<{ city: string; state: string; totalDeals: number; totalClaims: number }>;
+    areaPerformance: Array<{ area: string; city: string; conversionRate: number; averageSavings: number }>;
+  }> {
+    try {
+      // Get sublocation stats from deal locations
+      const sublocationDealStats = await db.select({
+        sublocation: schema.dealLocations.sublocation,
+        city: schema.dealLocations.city,
+        state: schema.dealLocations.state,
+        dealCount: count()
+      })
+      .from(schema.dealLocations)
+      .where(isNotNull(schema.dealLocations.sublocation))
+      .groupBy(schema.dealLocations.sublocation, schema.dealLocations.city, schema.dealLocations.state);
+
+      // Get claim stats by sublocation
+      const sublocationClaimStats = await db.select({
+        sublocation: schema.dealLocations.sublocation,
+        city: schema.dealLocations.city,
+        state: schema.dealLocations.state,
+        claimCount: count()
+      })
+      .from(schema.dealClaims)
+      .innerJoin(schema.deals, eq(schema.dealClaims.dealId, schema.deals.id))
+      .innerJoin(schema.dealLocations, eq(schema.deals.id, schema.dealLocations.dealId))
+      .where(isNotNull(schema.dealLocations.sublocation))
+      .groupBy(schema.dealLocations.sublocation, schema.dealLocations.city, schema.dealLocations.state);
+
+      // Merge sublocation stats
+      const sublocationMap = new Map<string, { sublocation: string; city: string; state: string; dealCount: number; claimCount: number }>();
+      
+      sublocationDealStats.forEach(stat => {
+        if (stat.sublocation) {
+          const key = `${stat.sublocation}-${stat.city}`;
+          sublocationMap.set(key, {
+            sublocation: stat.sublocation,
+            city: stat.city,
+            state: stat.state,
+            dealCount: Number(stat.dealCount),
+            claimCount: 0
+          });
+        }
+      });
+
+      sublocationClaimStats.forEach(stat => {
+        if (stat.sublocation) {
+          const key = `${stat.sublocation}-${stat.city}`;
+          const existing = sublocationMap.get(key) || { 
+            sublocation: stat.sublocation, 
+            city: stat.city, 
+            state: stat.state, 
+            dealCount: 0, 
+            claimCount: 0 
+          };
+          existing.claimCount = Number(stat.claimCount);
+          sublocationMap.set(key, existing);
+        }
+      });
+
+      // Get city-wise deal distribution including both main deals and location-specific deals
+      const cityDistribution = await db.select({
+        city: schema.dealLocations.city,
+        state: schema.dealLocations.state,
+        totalDeals: count(schema.deals.id),
+        totalClaims: sql<number>`COALESCE(SUM(CASE WHEN ${schema.dealClaims.id} IS NOT NULL THEN 1 ELSE 0 END), 0)`
+      })
+      .from(schema.dealLocations)
+      .innerJoin(schema.deals, eq(schema.dealLocations.dealId, schema.deals.id))
+      .leftJoin(schema.dealClaims, eq(schema.deals.id, schema.dealClaims.dealId))
+      .groupBy(schema.dealLocations.city, schema.dealLocations.state);
+
+      // Calculate area performance metrics
+      const areaPerformance = await db.select({
+        area: schema.dealLocations.sublocation,
+        city: schema.dealLocations.city,
+        totalDeals: count(schema.deals.id),
+        totalClaims: sql<number>`COALESCE(SUM(CASE WHEN ${schema.dealClaims.id} IS NOT NULL THEN 1 ELSE 0 END), 0)`,
+        averageSavings: sql<number>`COALESCE(AVG(${schema.dealClaims.actualSavings}), 0)`
+      })
+      .from(schema.dealLocations)
+      .innerJoin(schema.deals, eq(schema.dealLocations.dealId, schema.deals.id))
+      .leftJoin(schema.dealClaims, eq(schema.deals.id, schema.dealClaims.dealId))
+      .where(isNotNull(schema.dealLocations.sublocation))
+      .groupBy(schema.dealLocations.sublocation, schema.dealLocations.city);
+
+      const sublocationStats = Array.from(sublocationMap.values());
+      const cityDealDistribution = cityDistribution.map(stat => ({
+        city: stat.city,
+        state: stat.state,
+        totalDeals: Number(stat.totalDeals),
+        totalClaims: Number(stat.totalClaims)
+      }));
+
+      const areaPerformanceData = areaPerformance.map(stat => ({
+        area: stat.area || 'Unknown',
+        city: stat.city,
+        conversionRate: Number(stat.totalDeals) > 0 ? (Number(stat.totalClaims) / Number(stat.totalDeals)) * 100 : 0,
+        averageSavings: Number(stat.averageSavings)
+      }));
+
+      return {
+        sublocationStats,
+        cityDealDistribution,
+        areaPerformance: areaPerformanceData
+      };
+    } catch (error) {
+      console.error('Error fetching location analytics:', error);
+      return {
+        sublocationStats: [],
+        cityDealDistribution: [],
+        areaPerformance: []
+      };
+    }
+  }
+
+  async getVendorLocationAnalytics(vendorId: number): Promise<{
+    storePerformance: Array<{ storeName: string; sublocation: string; city: string; dealCount: number; claimCount: number; revenue: number }>;
+    cityBreakdown: Array<{ city: string; state: string; storeCount: number; totalDeals: number; totalClaims: number }>;
+  }> {
+    try {
+      // Get vendor store performance
+      const storePerformance = await db.select({
+        storeName: schema.dealLocations.storeName,
+        sublocation: schema.dealLocations.sublocation,
+        city: schema.dealLocations.city,
+        dealCount: count(schema.deals.id),
+        claimCount: sql<number>`COALESCE(SUM(CASE WHEN ${schema.dealClaims.id} IS NOT NULL THEN 1 ELSE 0 END), 0)`,
+        revenue: sql<number>`COALESCE(SUM(${schema.dealClaims.actualSavings}), 0)`
+      })
+      .from(schema.dealLocations)
+      .innerJoin(schema.deals, eq(schema.dealLocations.dealId, schema.deals.id))
+      .leftJoin(schema.dealClaims, eq(schema.deals.id, schema.dealClaims.dealId))
+      .where(eq(schema.deals.vendorId, vendorId))
+      .groupBy(schema.dealLocations.storeName, schema.dealLocations.sublocation, schema.dealLocations.city);
+
+      // Get city breakdown for vendor
+      const cityBreakdown = await db.select({
+        city: schema.dealLocations.city,
+        state: schema.dealLocations.state,
+        storeCount: sql<number>`COUNT(DISTINCT ${schema.dealLocations.id})`,
+        totalDeals: count(schema.deals.id),
+        totalClaims: sql<number>`COALESCE(SUM(CASE WHEN ${schema.dealClaims.id} IS NOT NULL THEN 1 ELSE 0 END), 0)`
+      })
+      .from(schema.dealLocations)
+      .innerJoin(schema.deals, eq(schema.dealLocations.dealId, schema.deals.id))
+      .leftJoin(schema.dealClaims, eq(schema.deals.id, schema.dealClaims.dealId))
+      .where(eq(schema.deals.vendorId, vendorId))
+      .groupBy(schema.dealLocations.city, schema.dealLocations.state);
+
+      return {
+        storePerformance: storePerformance.map(stat => ({
+          storeName: stat.storeName,
+          sublocation: stat.sublocation || 'Main Location',
+          city: stat.city,
+          dealCount: Number(stat.dealCount),
+          claimCount: Number(stat.claimCount),
+          revenue: Number(stat.revenue)
+        })),
+        cityBreakdown: cityBreakdown.map(stat => ({
+          city: stat.city,
+          state: stat.state,
+          storeCount: Number(stat.storeCount),
+          totalDeals: Number(stat.totalDeals),
+          totalClaims: Number(stat.totalClaims)
+        }))
+      };
+    } catch (error) {
+      console.error('Error fetching vendor location analytics:', error);
+      return {
+        storePerformance: [],
+        cityBreakdown: []
+      };
+    }
+  }
 }
