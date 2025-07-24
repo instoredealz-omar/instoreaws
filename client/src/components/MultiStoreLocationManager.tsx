@@ -24,16 +24,8 @@ interface MultiStoreLocationManagerProps {
 }
 
 export default function MultiStoreLocationManager({ locations, onChange }: MultiStoreLocationManagerProps) {
-  // Initialize selectedStates with existing state values
-  const [selectedStates, setSelectedStates] = useState<{ [key: string]: string }>(() => {
-    const initialStates: { [key: string]: string } = {};
-    locations.forEach(location => {
-      if (location.state) {
-        initialStates[location.id] = location.state;
-      }
-    });
-    return initialStates;
-  });
+  // Track states for proper Select component rendering
+  const [internalStates, setInternalStates] = useState<{ [key: string]: string }>({});
 
   const addLocation = () => {
     const newLocation: StoreLocation = {
@@ -49,8 +41,8 @@ export default function MultiStoreLocationManager({ locations, onChange }: Multi
   };
 
   const removeLocation = (id: string) => {
-    // Remove from selectedStates when location is removed
-    setSelectedStates(prev => {
+    // Remove from internal states when location is removed
+    setInternalStates(prev => {
       const newStates = { ...prev };
       delete newStates[id];
       return newStates;
@@ -64,19 +56,19 @@ export default function MultiStoreLocationManager({ locations, onChange }: Multi
     ));
   };
 
-  // Update selectedStates when locations prop changes
+  // Keep internal states synchronized with locations
   useEffect(() => {
-    const newSelectedStates: { [key: string]: string } = {};
+    const newInternalStates: { [key: string]: string } = {};
     locations.forEach(location => {
-      if (location.state) {
-        newSelectedStates[location.id] = location.state;
-      }
+      newInternalStates[location.id] = location.state || '';
     });
-    setSelectedStates(newSelectedStates);
+    setInternalStates(newInternalStates);
   }, [locations]);
 
   const handleStateChange = (locationId: string, state: string) => {
-    setSelectedStates(prev => ({ ...prev, [locationId]: state }));
+    // Update internal state immediately for UI responsiveness
+    setInternalStates(prev => ({ ...prev, [locationId]: state }));
+    // Update the actual location data
     updateLocation(locationId, 'state', state);
     // Clear city when state changes
     updateLocation(locationId, 'city', '');
@@ -160,7 +152,8 @@ export default function MultiStoreLocationManager({ locations, onChange }: Multi
               <div>
                 <Label htmlFor={`state-${location.id}`}>State *</Label>
                 <Select
-                  value={location.state}
+                  key={`state-${location.id}-${internalStates[location.id] || 'empty'}`}
+                  value={internalStates[location.id] || location.state || ''}
                   onValueChange={(value) => handleStateChange(location.id, value)}
                 >
                   <SelectTrigger className="mt-1">
@@ -179,15 +172,17 @@ export default function MultiStoreLocationManager({ locations, onChange }: Multi
               <div>
                 <Label htmlFor={`city-${location.id}`}>City *</Label>
                 <Select
-                  value={location.city}
+                  key={`city-${location.id}-${location.state || 'no-state'}`}
+                  value={location.city || ''}
                   onValueChange={(value) => updateLocation(location.id, 'city', value)}
-                  disabled={!location.state}
+                  disabled={!(internalStates[location.id] || location.state)}
                 >
                   <SelectTrigger className="mt-1">
                     <SelectValue placeholder="Select City" />
                   </SelectTrigger>
                   <SelectContent>
-                    {location.state && getCitiesByState(location.state).map((city) => (
+                    {(internalStates[location.id] || location.state) && 
+                     getCitiesByState(internalStates[location.id] || location.state).map((city) => (
                       <SelectItem key={city} value={city}>
                         {city}
                       </SelectItem>
