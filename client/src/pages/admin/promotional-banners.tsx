@@ -40,8 +40,12 @@ interface PromotionalBanner {
   id: number;
   title: string;
   description: string;
-  videoUrl?: string;
-  videoTitle?: string;
+  videos: Array<{
+    url: string;
+    title: string;
+    thumbnail?: string;
+    duration?: string;
+  }>;
   socialMediaLinks: {
     facebook?: string;
     instagram?: string;
@@ -109,8 +113,12 @@ export default function PromotionalBanners() {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    videoUrl: '',
-    videoTitle: '',
+    videos: [] as Array<{
+      url: string;
+      title: string;
+      thumbnail?: string;
+      duration?: string;
+    }>,
     socialMediaLinks: {
       facebook: '',
       instagram: '',
@@ -122,6 +130,15 @@ export default function PromotionalBanners() {
     isActive: true,
     displayPages: [] as string[]
   });
+
+  // Video form state for adding/editing individual videos
+  const [videoFormData, setVideoFormData] = useState({
+    url: '',
+    title: '',
+    thumbnail: '',
+    duration: ''
+  });
+  const [editingVideoIndex, setEditingVideoIndex] = useState<number | null>(null);
 
   const { data: banners = [], isLoading } = useQuery<PromotionalBanner[]>({
     queryKey: ['/api/admin/promotional-banners'],

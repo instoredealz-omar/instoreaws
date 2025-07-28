@@ -763,8 +763,12 @@ export const promotionalBanners = pgTable("promotional_banners", {
   id: serial("id").primaryKey(),
   title: text("title").notNull(),
   description: text("description"),
-  videoUrl: text("video_url"),
-  videoTitle: text("video_title"),
+  videos: json("videos").$type<Array<{
+    url: string;
+    title: string;
+    thumbnail?: string;
+    duration?: string;
+  }>>().default([]), // array of video objects
   socialMediaLinks: json("social_media_links").default({}), // {facebook, instagram, twitter, website, whatsapp}
   variant: text("variant").notNull().default("hero"), // hero, compact, video
   isActive: boolean("is_active").default(true),

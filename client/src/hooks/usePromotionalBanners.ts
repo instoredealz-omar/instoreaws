@@ -4,8 +4,12 @@ interface PromotionalBanner {
   id: number;
   title: string;
   description: string;
-  videoUrl?: string;
-  videoTitle?: string;
+  videos: Array<{
+    url: string;
+    title: string;
+    thumbnail?: string;
+    duration?: string;
+  }>;
   socialMediaLinks: {
     facebook?: string;
     instagram?: string;

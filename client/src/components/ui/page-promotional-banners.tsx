@@ -22,20 +22,24 @@ export function PagePromotionalBanners({ page, className = '' }: PagePromotional
     return null;
   }
 
+  // Show only the first active banner
+  const activeBanner = banners[0];
+  
+  if (!activeBanner) {
+    return null;
+  }
+
   return (
-    <div className={`space-y-4 ${className}`}>
-      {banners.map((banner) => (
-        <PromotionalLaunchBanner
-          key={banner.id}
-          variant={banner.variant}
-          title={banner.title}
-          description={banner.description}
-          videoUrl={banner.videoUrl}
-          videoTitle={banner.videoTitle}
-          socialMediaLinks={banner.socialMediaLinks}
-          showVideo={!!banner.videoUrl}
-        />
-      ))}
+    <div className={className}>
+      <PromotionalLaunchBanner
+        key={activeBanner.id}
+        variant={activeBanner.variant}
+        title={activeBanner.title}
+        description={activeBanner.description}
+        videos={activeBanner.videos || []}
+        socialMediaLinks={activeBanner.socialMediaLinks}
+        showVideo={activeBanner.videos && activeBanner.videos.length > 0}
+      />
     </div>
   );
 }

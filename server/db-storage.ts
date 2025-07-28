@@ -974,7 +974,8 @@ export class DatabaseStorage implements IStorage {
     const banners = await db.select()
       .from(schema.promotionalBanners)
       .where(eq(schema.promotionalBanners.isActive, true))
-      .orderBy(desc(schema.promotionalBanners.createdAt));
+      .orderBy(desc(schema.promotionalBanners.createdAt))
+      .limit(1); // Only get one banner per page
     
     return banners.filter(banner => {
       if (!banner.displayPages) return false;
