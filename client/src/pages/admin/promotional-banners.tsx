@@ -85,10 +85,7 @@ export default function PromotionalBanners() {
 
   // Create banner mutation
   const createBannerMutation = useMutation({
-    mutationFn: (data: any) => apiRequest('/api/admin/promotional-banners', {
-      method: 'POST',
-      data
-    }),
+    mutationFn: (data: any) => apiRequest('/api/admin/promotional-banners', 'POST', data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/promotional-banners'] });
       queryClient.invalidateQueries({ queryKey: ['promotional-banners'] });
@@ -111,10 +108,7 @@ export default function PromotionalBanners() {
   // Update banner mutation
   const updateBannerMutation = useMutation({
     mutationFn: ({ id, data }: { id: number; data: any }) => 
-      apiRequest(`/api/admin/promotional-banners/${id}`, {
-        method: 'PUT',
-        data
-      }),
+      apiRequest(`/api/admin/promotional-banners/${id}`, 'PUT', data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/promotional-banners'] });
       queryClient.invalidateQueries({ queryKey: ['promotional-banners'] });
@@ -136,9 +130,7 @@ export default function PromotionalBanners() {
 
   // Delete banner mutation
   const deleteBannerMutation = useMutation({
-    mutationFn: (id: number) => apiRequest(`/api/admin/promotional-banners/${id}`, {
-      method: 'DELETE'
-    }),
+    mutationFn: (id: number) => apiRequest(`/api/admin/promotional-banners/${id}`, 'DELETE'),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/promotional-banners'] });
       queryClient.invalidateQueries({ queryKey: ['promotional-banners'] });
@@ -158,10 +150,7 @@ export default function PromotionalBanners() {
 
   // Toggle active status
   const toggleActiveMutation = useMutation({
-    mutationFn: (banner: PromotionalBanner) => apiRequest(`/api/admin/promotional-banners/${banner.id}`, {
-      method: 'PUT',
-      data: { ...banner, isActive: !banner.isActive }
-    }),
+    mutationFn: (banner: PromotionalBanner) => apiRequest(`/api/admin/promotional-banners/${banner.id}`, 'PUT', { ...banner, isActive: !banner.isActive }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/promotional-banners'] });
       queryClient.invalidateQueries({ queryKey: ['promotional-banners'] });
