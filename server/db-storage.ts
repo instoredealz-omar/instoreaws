@@ -41,6 +41,8 @@ import type {
   InsertPinAttempt,
   PromotionalBanner,
   InsertPromotionalBanner,
+  BannerAnalytics,
+  InsertBannerAnalytics,
 } from "@shared/schema";
 
 export class DatabaseStorage implements IStorage {
@@ -985,6 +987,99 @@ export class DatabaseStorage implements IStorage {
             : []);
       
       return pages.includes(page);
+    });
+  }
+
+  // Banner Analytics operations
+  async trackBannerEvent(analytics: InsertBannerAnalytics): Promise<BannerAnalytics> {
+    const result = await db.insert(schema.bannerAnalytics).values(analytics).returning();
+    return result[0];
+  }
+
+  async incrementBannerViews(bannerId: number): Promise<void> {
+    await db.update(schema.promotionalBanners)
+      .set({ 
+        viewCount: sql`${schema.promotionalBanners.viewCount} + 1`,
+        updatedAt: new Date()
+      })
+      .where(eq(schema.promotionalBanners.id, bannerId));
+  }
+
+  async incrementBannerClicks(bannerId: number): Promise<void> {
+    await db.update(schema.promotionalBanners)
+      .set({ 
+        clickCount: sql`${schema.promotionalBanners.clickCount} + 1`,
+        updatedAt: new Date()
+      })
+      .where(eq(schema.promotionalBanners.id, bannerId));
+  }
+
+  async incrementBannerSocialClicks(bannerId: number): Promise<void> {
+    await db.update(schema.promotionalBanners)
+      .set({ 
+        socialClickCount: sql`${schema.promotionalBanners.socialClickCount} + 1`,
+        updatedAt: new Date()
+      })
+      .where(eq(schema.promotionalBanners.id, bannerId));
+  }
+
+  async getBannerAnalytics(bannerId: number): Promise<BannerAnalytics[]> {
+    return await db.select()
+      .from(schema.bannerAnalytics)
+      .where(eq(schema.bannerAnalytics.bannerId, bannerId))
+      .orderBy(desc(schema.bannerAnalytics.timestamp));
+  }
+
+  async getBannerStats(bannerId: number): Promise<{ views: number; clicks: number; socialClicks: number; ctr: number }> {
+    const banner = await db.select({
+      views: schema.promotionalBanners.viewCount,
+      clicks: schema.promotionalBanners.clickCount,
+      socialClicks: schema.promotionalBanners.socialClickCount,
+    })
+      .from(schema.promotionalBanners)
+      .where(eq(schema.promotionalBanners.id, bannerId));
+
+    if (banner.length === 0) {
+      return { views: 0, clicks: 0, socialClicks: 0, ctr: 0 };
+    }
+
+    const stats = banner[0];
+    const views = stats.views || 0;
+    const totalClicks = (stats.clicks || 0) + (stats.socialClicks || 0);
+    const ctr = views > 0 ? (totalClicks / views) * 100 : 0;
+
+    return {
+      views,
+      clicks: stats.clicks || 0,
+      socialClicks: stats.socialClicks || 0,
+      ctr: Math.round(ctr * 100) / 100
+    };
+  }
+
+  async getAllBannerStats(): Promise<Array<{ bannerId: number; title: string; views: number; clicks: number; socialClicks: number; ctr: number }>> {
+    const banners = await db.select({
+      bannerId: schema.promotionalBanners.id,
+      title: schema.promotionalBanners.title,
+      views: schema.promotionalBanners.viewCount,
+      clicks: schema.promotionalBanners.clickCount,
+      socialClicks: schema.promotionalBanners.socialClickCount,
+    })
+      .from(schema.promotionalBanners)
+      .orderBy(desc(schema.promotionalBanners.createdAt));
+
+    return banners.map(banner => {
+      const views = banner.views || 0;
+      const totalClicks = (banner.clicks || 0) + (banner.socialClicks || 0);
+      const ctr = views > 0 ? (totalClicks / views) * 100 : 0;
+
+      return {
+        bannerId: banner.bannerId,
+        title: banner.title,
+        views,
+        clicks: banner.clicks || 0,
+        socialClicks: banner.socialClicks || 0,
+        ctr: Math.round(ctr * 100) / 100
+      };
     });
   }
 }

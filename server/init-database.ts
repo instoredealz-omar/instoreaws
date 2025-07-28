@@ -1,8 +1,44 @@
 import { db } from './db';
 import { users, vendors, deals } from '../shared/schema';
+import { sql } from 'drizzle-orm';
 
 export async function initializeDatabase() {
   try {
+    // Create promotional_banners table if it doesn't exist
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS promotional_banners (
+        id SERIAL PRIMARY KEY,
+        title TEXT NOT NULL,
+        description TEXT,
+        video_url TEXT,
+        video_title TEXT,
+        social_media_links JSON DEFAULT '{}',
+        variant TEXT NOT NULL DEFAULT 'hero',
+        is_active BOOLEAN DEFAULT true,
+        display_pages JSON DEFAULT '[]',
+        view_count INTEGER DEFAULT 0,
+        click_count INTEGER DEFAULT 0,
+        social_click_count INTEGER DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        created_by INTEGER REFERENCES users(id)
+      )
+    `);
+    
+    // Create banner_analytics table if it doesn't exist
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS banner_analytics (
+        id SERIAL PRIMARY KEY,
+        banner_id INTEGER REFERENCES promotional_banners(id) NOT NULL,
+        event_type TEXT NOT NULL,
+        event_data JSON DEFAULT '{}',
+        user_id INTEGER REFERENCES users(id),
+        ip_address TEXT,
+        user_agent TEXT,
+        page TEXT,
+        timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
     // Insert demo users
     await db.insert(users).values([
       {
@@ -221,6 +257,23 @@ export async function initializeDatabase() {
         requiredMembership: 'basic',
       }
     ]).onConflictDoNothing();
+
+    // Initialize promotional banners with sample data
+    await db.execute(sql`
+      INSERT INTO promotional_banners (title, description, video_url, video_title, social_media_links, variant, is_active, display_pages, created_by)
+      VALUES (
+        'Welcome to Instoredealz!',
+        'Discover amazing deals from local businesses. Connect with us on social media for updates.',
+        '',
+        '',
+        '{"facebook": "https://facebook.com/instoredealz", "instagram": "https://instagram.com/instoredealz", "twitter": "https://twitter.com/instoredealz", "website": "https://instoredealz.com", "whatsapp": "+91 9876543210"}',
+        'hero',
+        true,
+        '["home", "dashboard"]',
+        1
+      )
+      ON CONFLICT DO NOTHING
+    `);
 
     console.log('Database initialized successfully with sample data');
   } catch (error) {

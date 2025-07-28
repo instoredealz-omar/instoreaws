@@ -765,10 +765,13 @@ export const promotionalBanners = pgTable("promotional_banners", {
   description: text("description"),
   videoUrl: text("video_url"),
   videoTitle: text("video_title"),
-  socialMediaLinks: json("social_media_links").default({}), // {facebook, instagram, twitter, website}
+  socialMediaLinks: json("social_media_links").default({}), // {facebook, instagram, twitter, website, whatsapp}
   variant: text("variant").notNull().default("hero"), // hero, compact, video
   isActive: boolean("is_active").default(true),
   displayPages: json("display_pages").default([]), // array of page names
+  viewCount: integer("view_count").default(0),
+  clickCount: integer("click_count").default(0),
+  socialClickCount: integer("social_click_count").default(0),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
   createdBy: integer("created_by").references(() => users.id),
@@ -786,3 +789,29 @@ export const insertPromotionalBannerSchema = createInsertSchema(promotionalBanne
 
 export type PromotionalBanner = typeof promotionalBanners.$inferSelect;
 export type InsertPromotionalBanner = z.infer<typeof insertPromotionalBannerSchema>;
+
+// Banner Analytics table for tracking banner performance
+export const bannerAnalytics = pgTable("banner_analytics", {
+  id: serial("id").primaryKey(),
+  bannerId: integer("banner_id").references(() => promotionalBanners.id).notNull(),
+  eventType: text("event_type").notNull(), // view, click, social_click, video_play
+  eventData: json("event_data").default({}), // additional data like social platform, page, user agent
+  userId: integer("user_id").references(() => users.id), // optional, for logged-in users
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
+  page: text("page"), // which page the event occurred on
+  timestamp: timestamp("timestamp").defaultNow(),
+});
+
+export const bannerAnalyticsRelations = relations(bannerAnalytics, ({ one }) => ({
+  banner: one(promotionalBanners, { fields: [bannerAnalytics.bannerId], references: [promotionalBanners.id] }),
+  user: one(users, { fields: [bannerAnalytics.userId], references: [users.id] }),
+}));
+
+export const insertBannerAnalyticsSchema = createInsertSchema(bannerAnalytics).omit({
+  id: true,
+  timestamp: true,
+});
+
+export type BannerAnalytics = typeof bannerAnalytics.$inferSelect;
+export type InsertBannerAnalytics = z.infer<typeof insertBannerAnalyticsSchema>;

@@ -213,6 +213,15 @@ export interface IStorage {
   deletePromotionalBanner(id: number): Promise<boolean>;
   getActivePromotionalBanners(): Promise<PromotionalBanner[]>;
   getPromotionalBannersByPage(page: string): Promise<PromotionalBanner[]>;
+
+  // Banner Analytics operations
+  trackBannerEvent(analytics: InsertBannerAnalytics): Promise<BannerAnalytics>;
+  incrementBannerViews(bannerId: number): Promise<void>;
+  incrementBannerClicks(bannerId: number): Promise<void>;
+  incrementBannerSocialClicks(bannerId: number): Promise<void>;
+  getBannerAnalytics(bannerId: number): Promise<BannerAnalytics[]>;
+  getBannerStats(bannerId: number): Promise<{ views: number; clicks: number; socialClicks: number; ctr: number }>;
+  getAllBannerStats(): Promise<Array<{ bannerId: number; title: string; views: number; clicks: number; socialClicks: number; ctr: number }>>;
 }
 
 export class MemStorage implements IStorage {
@@ -235,6 +244,7 @@ export class MemStorage implements IStorage {
   private alertNotifications: Map<number, AlertNotification> = new Map();
   private pinAttempts: Map<number, PinAttempt> = new Map();
   private promotionalBanners: Map<number, PromotionalBanner> = new Map();
+  private bannerAnalytics: Map<number, BannerAnalytics> = new Map();
 
   private currentUserId = 1;
   private currentVendorId = 1;
@@ -252,6 +262,7 @@ export class MemStorage implements IStorage {
   private currentVendorRatingId = 1;
   private currentPinAttemptId = 1;
   private currentPromotionalBannerId = 1;
+  private currentBannerAnalyticsId = 1;
 
   constructor() {
     this.initializeWithSampleData();
@@ -1999,6 +2010,92 @@ export class MemStorage implements IStorage {
         return pages.includes(page);
       })
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+  }
+
+  // Banner Analytics operations
+  async trackBannerEvent(analytics: InsertBannerAnalytics): Promise<BannerAnalytics> {
+    const newAnalytics: BannerAnalytics = {
+      id: this.currentBannerAnalyticsId++,
+      ...analytics,
+      timestamp: new Date(),
+    };
+    
+    this.bannerAnalytics.set(newAnalytics.id, newAnalytics);
+    return newAnalytics;
+  }
+
+  async incrementBannerViews(bannerId: number): Promise<void> {
+    const banner = this.promotionalBanners.get(bannerId);
+    if (banner) {
+      banner.viewCount = (banner.viewCount || 0) + 1;
+      banner.updatedAt = new Date();
+      this.promotionalBanners.set(bannerId, banner);
+    }
+  }
+
+  async incrementBannerClicks(bannerId: number): Promise<void> {
+    const banner = this.promotionalBanners.get(bannerId);
+    if (banner) {
+      banner.clickCount = (banner.clickCount || 0) + 1;
+      banner.updatedAt = new Date();
+      this.promotionalBanners.set(bannerId, banner);
+    }
+  }
+
+  async incrementBannerSocialClicks(bannerId: number): Promise<void> {
+    const banner = this.promotionalBanners.get(bannerId);
+    if (banner) {
+      banner.socialClickCount = (banner.socialClickCount || 0) + 1;
+      banner.updatedAt = new Date();
+      this.promotionalBanners.set(bannerId, banner);
+    }
+  }
+
+  async getBannerAnalytics(bannerId: number): Promise<BannerAnalytics[]> {
+    return Array.from(this.bannerAnalytics.values())
+      .filter(analytics => analytics.bannerId === bannerId)
+      .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+  }
+
+  async getBannerStats(bannerId: number): Promise<{ views: number; clicks: number; socialClicks: number; ctr: number }> {
+    const banner = this.promotionalBanners.get(bannerId);
+    if (!banner) {
+      return { views: 0, clicks: 0, socialClicks: 0, ctr: 0 };
+    }
+
+    const views = banner.viewCount || 0;
+    const clicks = banner.clickCount || 0;
+    const socialClicks = banner.socialClickCount || 0;
+    const totalClicks = clicks + socialClicks;
+    const ctr = views > 0 ? (totalClicks / views) * 100 : 0;
+
+    return {
+      views,
+      clicks,
+      socialClicks,
+      ctr: Math.round(ctr * 100) / 100
+    };
+  }
+
+  async getAllBannerStats(): Promise<Array<{ bannerId: number; title: string; views: number; clicks: number; socialClicks: number; ctr: number }>> {
+    const banners = Array.from(this.promotionalBanners.values());
+    
+    return banners.map(banner => {
+      const views = banner.viewCount || 0;
+      const clicks = banner.clickCount || 0;
+      const socialClicks = banner.socialClickCount || 0;
+      const totalClicks = clicks + socialClicks;
+      const ctr = views > 0 ? (totalClicks / views) * 100 : 0;
+
+      return {
+        bannerId: banner.id,
+        title: banner.title,
+        views,
+        clicks,
+        socialClicks,
+        ctr: Math.round(ctr * 100) / 100
+      };
+    });
   }
 }
 
