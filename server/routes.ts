@@ -4695,6 +4695,68 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Banner Analytics API Routes
+  app.post('/api/banners/:id/track', async (req, res) => {
+    try {
+      const bannerId = parseInt(req.params.id);
+      const { eventType, eventData, page } = req.body;
+      
+      // Track the event
+      await storage.trackBannerEvent({
+        bannerId,
+        eventType,
+        eventData: eventData || {},
+        userId: req.user?.id || null,
+        ipAddress: req.ip,
+        userAgent: req.headers['user-agent'] || null,
+        page: page || null,
+      });
+      
+      // Increment the appropriate counter
+      switch (eventType) {
+        case 'view':
+          await storage.incrementBannerViews(bannerId);
+          break;
+        case 'click':
+          await storage.incrementBannerClicks(bannerId);
+          break;
+        case 'social_click':
+          await storage.incrementBannerSocialClicks(bannerId);
+          break;
+      }
+      
+      res.json({ success: true, message: 'Event tracked successfully' });
+    } catch (error) {
+      console.error('Track banner event error:', error);
+      res.status(500).json({ message: "Failed to track banner event" });
+    }
+  });
+
+  app.get('/api/admin/banners/:id/analytics', requireAuth, requireRole(['admin', 'superadmin']), async (req: AuthenticatedRequest, res) => {
+    try {
+      const bannerId = parseInt(req.params.id);
+      const [stats, analytics] = await Promise.all([
+        storage.getBannerStats(bannerId),
+        storage.getBannerAnalytics(bannerId)
+      ]);
+      
+      res.json({ stats, analytics });
+    } catch (error) {
+      console.error('Get banner analytics error:', error);
+      res.status(500).json({ message: "Failed to fetch banner analytics" });
+    }
+  });
+
+  app.get('/api/admin/banners/stats', requireAuth, requireRole(['admin', 'superadmin']), async (req: AuthenticatedRequest, res) => {
+    try {
+      const stats = await storage.getAllBannerStats();
+      res.json(stats);
+    } catch (error) {
+      console.error('Get all banner stats error:', error);
+      res.status(500).json({ message: "Failed to fetch banner statistics" });
+    }
+  });
+
   // Add the error handling middleware at the end
   app.use(errorHandler);
 
