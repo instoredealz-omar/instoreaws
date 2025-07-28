@@ -756,6 +756,7 @@ export default function PromotionalBanners() {
               disabled={
                 !formData.title || 
                 (!formData.displayPages.length) ||
+                (formData.videoUrl && !validateVideoUrl(formData.videoUrl)) ||
                 createBannerMutation.isPending || 
                 updateBannerMutation.isPending
               }
