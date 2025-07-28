@@ -319,6 +319,19 @@ export default function PromotionalBanners() {
     return allPatterns.some(pattern => pattern.test(url));
   };
 
+  const hasSocialMediaContent = () => {
+    const { socialMediaLinks } = formData;
+    return socialMediaLinks.facebook || 
+           socialMediaLinks.instagram || 
+           socialMediaLinks.twitter || 
+           socialMediaLinks.website || 
+           socialMediaLinks.whatsapp;
+  };
+
+  const hasValidContent = () => {
+    return formData.videoUrl || hasSocialMediaContent() || formData.description;
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -756,6 +769,7 @@ export default function PromotionalBanners() {
               disabled={
                 !formData.title || 
                 (!formData.displayPages.length) ||
+                (!hasValidContent()) ||
                 (formData.videoUrl && !validateVideoUrl(formData.videoUrl)) ||
                 createBannerMutation.isPending || 
                 updateBannerMutation.isPending
