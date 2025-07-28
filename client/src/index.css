@@ -874,6 +874,69 @@ body[data-non-blocking-modal-open] {
   animation: flash-peacock 2s ease-in-out infinite;
 }
 
+/* Banner video responsiveness */
+.banner-video-container {
+  position: relative;
+  width: 100%;
+  height: 0;
+  overflow: hidden;
+}
+
+.banner-video-container iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 0.5rem;
+}
+
+/* Variant-specific video sizing */
+.banner-video-compact {
+  padding-bottom: 25%; /* 4:1 aspect ratio for compact */
+  max-height: 160px;
+}
+
+.banner-video-hero {
+  padding-bottom: 35%; /* More balanced ratio for hero */
+  max-height: 240px;
+}
+
+.banner-video-video {
+  padding-bottom: 45%; /* Larger video focus */
+  max-height: 320px;
+}
+
+@media (min-width: 640px) {
+  .banner-video-compact {
+    max-height: 180px;
+  }
+  
+  .banner-video-hero {
+    max-height: 280px;
+  }
+  
+  .banner-video-video {
+    max-height: 360px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .banner-video-compact {
+    max-height: 200px;
+  }
+  
+  .banner-video-hero {
+    padding-bottom: 40%;
+    max-height: 320px;
+  }
+  
+  .banner-video-video {
+    padding-bottom: 50%;
+    max-height: 400px;
+  }
+}
+
 /* Membership card gradient */
 .membership-card {
   background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--royal)) 100%);

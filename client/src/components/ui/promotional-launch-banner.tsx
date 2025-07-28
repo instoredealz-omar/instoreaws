@@ -63,19 +63,31 @@ export function PromotionalLaunchBanner({
     window.open('https://instoredealz.com', '_blank');
   };
 
-  // Single Video Component
-  const VideoPlayer = ({ embedded = false }: { embedded?: boolean }) => {
+  // Single Video Component with variant-specific sizing
+  const VideoPlayer = ({ embedded = false, variant: videoVariant = variant }: { embedded?: boolean; variant?: 'hero' | 'compact' | 'video' }) => {
     if (!videoUrl) return null;
     
     const embedUrl = getEmbedUrl(videoUrl);
+    
+    // Define video container classes based on banner variant
+    const getVideoContainerClass = () => {
+      switch (videoVariant) {
+        case 'compact':
+          return 'banner-video-container banner-video-compact';
+        case 'video':
+          return 'banner-video-container banner-video-video';
+        case 'hero':
+        default:
+          return 'banner-video-container banner-video-hero';
+      }
+    };
 
     return (
       <div className={`${embedded ? 'bg-black/20 rounded-lg overflow-hidden' : ''}`}>
-        <div className="aspect-video w-full">
+        <div className={getVideoContainerClass()}>
           <iframe
             src={embedUrl}
             title={title}
-            className="w-full h-full rounded-lg"
             frameBorder="0"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowFullScreen
@@ -112,7 +124,7 @@ export function PromotionalLaunchBanner({
           
           {/* Single embedded video for compact variant */}
           {showVideo && videoUrl && (
-            <VideoPlayer embedded />
+            <VideoPlayer embedded variant="compact" />
           )}
         </div>
       </div>
@@ -131,7 +143,7 @@ export function PromotionalLaunchBanner({
           
           {showVideo && videoUrl && (
             <div className="space-y-4">
-              <VideoPlayer />
+              <VideoPlayer variant="video" />
               <div className="flex flex-wrap justify-center gap-2">
                 <Button 
                   variant="secondary" 
@@ -236,7 +248,7 @@ export function PromotionalLaunchBanner({
                 <Button 
                   variant="ghost" 
                   size="sm"
-                  onClick={() => window.open(`https://wa.me/${socialMediaLinks.whatsapp.replace(/[^0-9]/g, '')}`, '_blank')}
+                  onClick={() => window.open(`https://wa.me/${socialMediaLinks.whatsapp?.replace(/[^0-9]/g, '')}`, '_blank')}
                   className="text-white hover:bg-white/10"
                 >
                   WhatsApp
@@ -265,7 +277,7 @@ export function PromotionalLaunchBanner({
               <DialogTitle className="text-xl font-bold pr-8">{title}</DialogTitle>
             </DialogHeader>
             
-            <div className="aspect-video w-full">
+            <div className="aspect-video w-full max-h-96">
               <iframe
                 src={getEmbedUrl(videoUrl)}
                 title={title}
