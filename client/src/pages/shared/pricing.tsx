@@ -2,6 +2,7 @@ import { Link } from "wouter";
 import { useEffect } from "react";
 import Navbar from "@/components/ui/navbar";
 import Footer from "@/components/ui/footer";
+import PromotionalLaunchBanner from "@/components/ui/promotional-launch-banner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -94,13 +95,9 @@ export default function Pricing() {
         </div>
       </section>
 
-      {/* Promotional Banner */}
+      {/* Promotional Launch Banner */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-8">
-        <div className="flash-peacock rounded-2xl p-6 text-center text-white shadow-lg">
-          <h3 className="text-2xl font-bold mb-2">🎉 Early Bird Offer!</h3>
-          <p className="text-lg mb-2">Enjoy 1 Year Free Premium Plan – Limited Time Offer </p>
-          <p className="text-sm opacity-90">New users only. </p>
-        </div>
+        <PromotionalLaunchBanner variant="video" />
       </div>
 
       {/* Pricing Cards */}

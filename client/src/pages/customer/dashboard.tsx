@@ -5,6 +5,7 @@ import Footer from "@/components/ui/footer";
 import MembershipCard from "@/components/ui/membership-card";
 import DealCard from "@/components/ui/deal-card";
 import Tutorial from "@/components/ui/tutorial";
+import PromotionalLaunchBanner from "@/components/ui/promotional-launch-banner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -114,6 +115,11 @@ export default function CustomerDashboard() {
               </Button>
             </div>
           </div>
+        </div>
+
+        {/* Promotional Launch Banner */}
+        <div className="mb-6">
+          <PromotionalLaunchBanner variant="compact" />
         </div>
 
         {/* Promotional Banner for promotional users */}

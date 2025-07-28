@@ -7,6 +7,7 @@ import Carousel from "@/components/ui/carousel";
 import CategoryCard from "@/components/ui/category-card";
 import DealCard from "@/components/ui/deal-card";
 import DealCarousel from "@/components/ui/deal-carousel";
+import PromotionalLaunchBanner from "@/components/ui/promotional-launch-banner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -243,6 +244,13 @@ export default function Home() {
               </Card>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* Promotional Launch Banner */}
+      <section className="py-8 bg-background">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <PromotionalLaunchBanner variant="hero" className="animate-fade-in" />
         </div>
       </section>
 

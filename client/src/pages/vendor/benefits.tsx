@@ -3,6 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Navbar from "@/components/ui/navbar";
 import Footer from "@/components/ui/footer";
+import PromotionalLaunchBanner from "@/components/ui/promotional-launch-banner";
 
 import { Link } from "wouter";
 import { 
@@ -145,6 +146,13 @@ export default function VendorBenefits() {
               </div>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* Promotional Launch Banner */}
+      <section className="py-8 bg-background">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <PromotionalLaunchBanner variant="compact" />
         </div>
       </section>
 
