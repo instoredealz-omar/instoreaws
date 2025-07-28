@@ -504,7 +504,7 @@ export default function PromotionalBanners() {
                   placeholder="https://www.youtube.com/watch?v=VIDEO_ID or https://vimeo.com/VIDEO_ID"
                 />
                 <p className="text-xs text-muted-foreground">
-                  YouTube and Vimeo URLs are automatically converted to embed format for proper display
+                  Videos will display directly on the banner once uploaded. YouTube and Vimeo URLs are automatically converted to embed format.
                 </p>
               </div>
 

@@ -115,6 +115,15 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+### July 28, 2025 - Direct Inline Video Display Enhancement
+- **Inline Video Display**: Videos now display directly on promotional banners once uploaded, eliminating the need for modal popups
+- **Immediate Video Visibility**: Updated all banner variants (compact, hero, video) to show videos inline immediately after URL upload
+- **Enhanced User Experience**: Removed "Watch Video" buttons that required clicking to open modals - videos are now always visible
+- **Responsive Video Sizing**: Videos automatically scale based on banner variant with proper aspect ratios and responsive CSS classes
+- **Streamlined Admin Interface**: Updated admin form descriptions to clarify that videos display directly on banners
+- **Clean Banner Layout**: Videos integrate seamlessly into banner design with proper spacing and styling
+- **Cross-Device Compatibility**: Inline videos work perfectly across all screen sizes and devices
+
 ### July 28, 2025 - Global Single Banner with Multiple Video Support System
 - **Global Banner System**: Created one single promotional banner that displays across all pages of the website
 - **Multiple Video Upload**: Enhanced admin interface to support adding multiple video links within the single global banner

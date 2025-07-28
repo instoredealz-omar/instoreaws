@@ -109,17 +109,7 @@ export function PromotionalLaunchBanner({
                 <p className="text-xs sm:text-sm opacity-90">{description}</p>
               </div>
             </div>
-            {showVideo && videoUrl && (
-              <Button 
-                variant="secondary" 
-                size="sm"
-                onClick={handleWatchVideo}
-                className="bg-white/20 hover:bg-white/30 text-white border-white/30"
-              >
-                <Play className="h-3 w-3 mr-1" />
-                Watch Demo
-              </Button>
-            )}
+
           </div>
           
           {/* Single embedded video for compact variant */}
@@ -145,14 +135,6 @@ export function PromotionalLaunchBanner({
             <div className="space-y-4">
               <VideoPlayer variant="video" />
               <div className="flex flex-wrap justify-center gap-2">
-                <Button 
-                  variant="secondary" 
-                  onClick={handleWatchVideo}
-                  className="bg-white/20 hover:bg-white/30 text-white border-white/30"
-                >
-                  <Play className="h-4 w-4 mr-2" />
-                  Watch in Modal
-                </Button>
                 {socialMediaLinks.website && (
                   <Button 
                     variant="secondary" 
@@ -183,19 +165,14 @@ export function PromotionalLaunchBanner({
           <p className="text-base sm:text-lg lg:text-xl opacity-90 max-w-3xl mx-auto">{description}</p>
         </div>
 
+        {/* Display video directly inline */}
+        {showVideo && videoUrl && (
+          <div className="my-6">
+            <VideoPlayer variant="hero" />
+          </div>
+        )}
+
         <div className="flex flex-wrap justify-center gap-4">
-          {showVideo && videoUrl && (
-            <Button 
-              variant="secondary" 
-              size="lg"
-              onClick={handleWatchVideo}
-              className="bg-white/20 hover:bg-white/30 text-white border-white/30 touch-target"
-            >
-              <Play className="h-5 w-5 mr-2" />
-              Watch Launch Demo
-            </Button>
-          )}
-          
           {socialMediaLinks.website && (
             <Button 
               variant="secondary" 
