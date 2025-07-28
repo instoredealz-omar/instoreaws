@@ -321,15 +321,31 @@ export default function PromotionalBanners() {
 
   const hasSocialMediaContent = () => {
     const { socialMediaLinks } = formData;
-    return socialMediaLinks.facebook || 
-           socialMediaLinks.instagram || 
-           socialMediaLinks.twitter || 
-           socialMediaLinks.website || 
-           socialMediaLinks.whatsapp;
+    return (socialMediaLinks.facebook && socialMediaLinks.facebook.trim()) || 
+           (socialMediaLinks.instagram && socialMediaLinks.instagram.trim()) || 
+           (socialMediaLinks.twitter && socialMediaLinks.twitter.trim()) || 
+           (socialMediaLinks.website && socialMediaLinks.website.trim()) || 
+           (socialMediaLinks.whatsapp && socialMediaLinks.whatsapp.trim());
   };
 
   const hasValidContent = () => {
-    return formData.videoUrl || hasSocialMediaContent() || formData.description;
+    const hasVideo = formData.videoUrl && formData.videoUrl.trim();
+    const hasSocial = hasSocialMediaContent();
+    const hasDesc = formData.description && formData.description.trim();
+    const result = hasVideo || hasSocial || hasDesc;
+    
+    // Debug logging to help identify the issue
+    console.log('Validation check:', {
+      hasVideo,
+      hasSocial,
+      hasDesc,
+      result,
+      title: formData.title,
+      displayPages: formData.displayPages.length,
+      socialLinks: formData.socialMediaLinks
+    });
+    
+    return result;
   };
 
   return (
