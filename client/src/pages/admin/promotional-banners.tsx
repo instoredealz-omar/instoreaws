@@ -60,23 +60,32 @@ const SUPPORTED_PLATFORMS = [
   {
     name: 'YouTube',
     icon: Youtube,
-    format: 'https://www.youtube.com/embed/VIDEO_ID?autoplay=1&rel=0&modestbranding=1',
-    example: 'https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1&rel=0&modestbranding=1',
-    description: 'Upload to YouTube and get the embed URL'
-  },
-  {
-    name: 'Google Drive',
-    icon: Globe,
-    format: 'https://drive.google.com/file/d/FILE_ID/preview',
-    example: 'https://drive.google.com/file/d/1a2b3c4d5e6f7g8h9i0j/preview',
-    description: 'Upload to Google Drive and get shareable link'
+    format: 'Any YouTube URL format works:',
+    examples: [
+      'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+      'https://youtu.be/dQw4w9WgXcQ',
+      'https://www.youtube.com/embed/dQw4w9WgXcQ'
+    ],
+    description: 'Just copy the URL from YouTube - we will auto-convert it!'
   },
   {
     name: 'Vimeo',
     icon: PlayCircle,
-    format: 'https://player.vimeo.com/video/VIDEO_ID?autoplay=1',
-    example: 'https://player.vimeo.com/video/123456789?autoplay=1',
-    description: 'Upload to Vimeo and get the player URL'
+    format: 'Any Vimeo URL format works:',
+    examples: [
+      'https://vimeo.com/123456789',
+      'https://player.vimeo.com/video/123456789'
+    ],
+    description: 'Copy the video URL from Vimeo'
+  },
+  {
+    name: 'Google Drive',
+    icon: Globe,
+    format: 'Google Drive video file URL:',
+    examples: [
+      'https://drive.google.com/file/d/1a2b3c4d5e6f7g8h9i0j/view'
+    ],
+    description: 'Upload video to Google Drive and get shareable link'
   }
 ];
 
@@ -200,7 +209,8 @@ export default function PromotionalBanners() {
         facebook: '',
         instagram: '',
         twitter: '',
-        website: ''
+        website: '',
+        whatsapp: ''
       },
       variant: 'hero',
       isActive: true,
@@ -216,7 +226,13 @@ export default function PromotionalBanners() {
       description: banner.description,
       videoUrl: banner.videoUrl || '',
       videoTitle: banner.videoTitle || '',
-      socialMediaLinks: banner.socialMediaLinks,
+      socialMediaLinks: {
+        facebook: banner.socialMediaLinks.facebook || '',
+        instagram: banner.socialMediaLinks.instagram || '',
+        twitter: banner.socialMediaLinks.twitter || '',
+        website: banner.socialMediaLinks.website || '',
+        whatsapp: banner.socialMediaLinks.whatsapp || ''
+      },
       variant: banner.variant,
       isActive: banner.isActive,
       displayPages: banner.displayPages
@@ -225,21 +241,81 @@ export default function PromotionalBanners() {
   };
 
   const handleSubmit = () => {
+    // Convert video URL to embed format before submitting
+    const submissionData = {
+      ...formData,
+      videoUrl: formData.videoUrl ? convertToEmbedUrl(formData.videoUrl) : formData.videoUrl
+    };
+    
     if (selectedBanner) {
-      updateBannerMutation.mutate({ id: selectedBanner.id, data: formData });
+      updateBannerMutation.mutate({ id: selectedBanner.id, data: submissionData });
     } else {
-      createBannerMutation.mutate(formData);
+      createBannerMutation.mutate(submissionData);
     }
+  };
+
+  const convertToEmbedUrl = (url: string): string => {
+    if (!url) return url;
+
+    // YouTube watch URL to embed URL
+    const youtubeWatchMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]+)/);
+    if (youtubeWatchMatch) {
+      return `https://www.youtube.com/embed/${youtubeWatchMatch[1]}?autoplay=1&rel=0&modestbranding=1`;
+    }
+
+    // YouTube embed URL (already correct format)
+    if (/youtube\.com\/embed\//.test(url)) {
+      return url;
+    }
+
+    // Vimeo watch URL to embed URL
+    const vimeoWatchMatch = url.match(/vimeo\.com\/(\d+)/);
+    if (vimeoWatchMatch) {
+      return `https://player.vimeo.com/video/${vimeoWatchMatch[1]}?autoplay=1`;
+    }
+
+    // Vimeo embed URL (already correct format)
+    if (/player\.vimeo\.com\/video\//.test(url)) {
+      return url;
+    }
+
+    // Google Drive file URL to preview URL
+    const driveMatch = url.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/);
+    if (driveMatch) {
+      return `https://drive.google.com/file/d/${driveMatch[1]}/preview`;
+    }
+
+    // Google Drive preview URL (already correct format)
+    if (/drive\.google\.com\/file\/d\/.*\/preview/.test(url)) {
+      return url;
+    }
+
+    return url;
   };
 
   const validateVideoUrl = (url: string) => {
     if (!url) return true;
-    const validPatterns = [
-      /youtube\.com\/embed\//,
-      /player\.vimeo\.com\/video\//,
-      /drive\.google\.com\/file\/d\//,
+    
+    // Check for YouTube URLs (both watch and embed formats)
+    const youtubePatterns = [
+      /youtube\.com\/watch\?v=/,
+      /youtu\.be\//,
+      /youtube\.com\/embed\//
     ];
-    return validPatterns.some(pattern => pattern.test(url));
+    
+    // Check for Vimeo URLs (both watch and embed formats)
+    const vimeoPatterns = [
+      /vimeo\.com\/\d+/,
+      /player\.vimeo\.com\/video\//
+    ];
+    
+    // Check for Google Drive URLs
+    const drivePatterns = [
+      /drive\.google\.com\/file\/d\//
+    ];
+    
+    const allPatterns = [...youtubePatterns, ...vimeoPatterns, ...drivePatterns];
+    return allPatterns.some(pattern => pattern.test(url));
   };
 
   return (
@@ -281,16 +357,17 @@ export default function PromotionalBanners() {
                   </div>
                   <p className="text-sm text-muted-foreground">{platform.description}</p>
                   <div className="space-y-2">
-                    <Label className="text-xs font-medium">URL Format:</Label>
-                    <code className="text-xs bg-gray-100 dark:bg-gray-800 p-2 rounded block overflow-x-auto">
-                      {platform.format}
-                    </code>
+                    <Label className="text-xs font-medium">{platform.format}</Label>
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-xs font-medium">Example:</Label>
-                    <code className="text-xs bg-blue-50 dark:bg-blue-900/20 p-2 rounded block overflow-x-auto">
-                      {platform.example}
-                    </code>
+                    <Label className="text-xs font-medium">Examples:</Label>
+                    <div className="space-y-1">
+                      {platform.examples.map((example, index) => (
+                        <code key={index} className="text-xs bg-blue-50 dark:bg-blue-900/20 p-2 rounded block overflow-x-auto">
+                          {example}
+                        </code>
+                      ))}
+                    </div>
                   </div>
                 </div>
               );
@@ -503,19 +580,35 @@ export default function PromotionalBanners() {
                   <Input
                     id="videoUrl"
                     value={formData.videoUrl}
-                    onChange={(e) => setFormData({ ...formData, videoUrl: e.target.value })}
-                    placeholder="https://www.youtube.com/embed/..."
+                    onChange={(e) => {
+                      const inputUrl = e.target.value;
+                      setFormData({ ...formData, videoUrl: inputUrl });
+                    }}
+                    onBlur={(e) => {
+                      // Auto-convert URL when user finishes typing
+                      const inputUrl = e.target.value;
+                      if (inputUrl && validateVideoUrl(inputUrl)) {
+                        const convertedUrl = convertToEmbedUrl(inputUrl);
+                        if (convertedUrl !== inputUrl) {
+                          setFormData({ ...formData, videoUrl: convertedUrl });
+                        }
+                      }
+                    }}
+                    placeholder="Paste any YouTube, Vimeo, or Google Drive video URL here..."
                   />
+                  <p className="text-xs text-muted-foreground">
+                    📺 You can paste regular YouTube URLs (like youtube.com/watch?v=...) - they'll be automatically converted to the correct format
+                  </p>
                   {formData.videoUrl && !validateVideoUrl(formData.videoUrl) && (
                     <p className="text-sm text-red-500 flex items-center">
                       <AlertCircle className="h-4 w-4 mr-1" />
-                      Invalid video URL format
+                      Unsupported video URL. Please use YouTube, Vimeo, or Google Drive links.
                     </p>
                   )}
                   {formData.videoUrl && validateVideoUrl(formData.videoUrl) && (
                     <p className="text-sm text-green-500 flex items-center">
                       <CheckCircle className="h-4 w-4 mr-1" />
-                      Valid video URL
+                      Valid video URL {formData.videoUrl !== convertToEmbedUrl(formData.videoUrl) ? '(will be auto-converted)' : ''}
                     </p>
                   )}
                 </div>
@@ -537,7 +630,7 @@ export default function PromotionalBanners() {
                     <iframe
                       width="100%"
                       height="100%"
-                      src={formData.videoUrl}
+                      src={convertToEmbedUrl(formData.videoUrl)}
                       title={formData.videoTitle || "Video Preview"}
                       frameBorder="0"
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
