@@ -4,16 +4,35 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Badge } from '@/components/ui/badge';
 import { Rocket, Play, ExternalLink, X } from 'lucide-react';
 
+// ===== VIDEO CONFIGURATION =====
+// You can easily change your video URL here without modifying the database
+// Supported platforms: YouTube, Vimeo, Google Drive, or any platform with iframe embedding
+// 
+// Examples:
+// YouTube: https://www.youtube.com/embed/YOUR_VIDEO_ID?autoplay=1&rel=0&modestbranding=1
+// Vimeo: https://player.vimeo.com/video/YOUR_VIDEO_ID?autoplay=1
+// Google Drive: https://drive.google.com/file/d/YOUR_FILE_ID/preview
+// 
+const DEFAULT_VIDEO_CONFIG = {
+  url: 'https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1&rel=0&modestbranding=1',
+  title: 'Instoredealz Launch Demo'
+};
+// ===== END CONFIGURATION =====
+
 interface PromotionalLaunchBannerProps {
   variant?: 'hero' | 'compact' | 'video';
   className?: string;
   showVideo?: boolean;
+  videoUrl?: string;
+  videoTitle?: string;
 }
 
 export function PromotionalLaunchBanner({ 
   variant = 'hero', 
   className = '',
-  showVideo = true 
+  showVideo = true,
+  videoUrl = DEFAULT_VIDEO_CONFIG.url,
+  videoTitle = DEFAULT_VIDEO_CONFIG.title
 }: PromotionalLaunchBannerProps) {
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
 
@@ -57,6 +76,8 @@ export function PromotionalLaunchBanner({
             isOpen={isVideoModalOpen}
             onClose={() => setIsVideoModalOpen(false)}
             onVisitWebsite={handleVisitWebsite}
+            videoUrl={videoUrl}
+            videoTitle={videoTitle}
           />
         )}
       </>
@@ -107,6 +128,8 @@ export function PromotionalLaunchBanner({
           isOpen={isVideoModalOpen}
           onClose={() => setIsVideoModalOpen(false)}
           onVisitWebsite={handleVisitWebsite}
+          videoUrl={videoUrl}
+          videoTitle={videoTitle}
         />
       </>
     );
@@ -155,6 +178,8 @@ export function PromotionalLaunchBanner({
           isOpen={isVideoModalOpen}
           onClose={() => setIsVideoModalOpen(false)}
           onVisitWebsite={handleVisitWebsite}
+          videoUrl={videoUrl}
+          videoTitle={videoTitle}
         />
       )}
     </>
@@ -165,9 +190,11 @@ interface VideoModalProps {
   isOpen: boolean;
   onClose: () => void;
   onVisitWebsite: () => void;
+  videoUrl: string;
+  videoTitle: string;
 }
 
-function VideoModal({ isOpen, onClose, onVisitWebsite }: VideoModalProps) {
+function VideoModal({ isOpen, onClose, onVisitWebsite, videoUrl, videoTitle }: VideoModalProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="responsive-modal p-0 overflow-hidden">
@@ -175,7 +202,7 @@ function VideoModal({ isOpen, onClose, onVisitWebsite }: VideoModalProps) {
           <div className="flex items-center justify-between">
             <div>
               <DialogTitle className="text-2xl font-bold text-foreground">
-                🚀 Instoredealz Launch Demo
+                🚀 {videoTitle}
               </DialogTitle>
               <p className="text-muted-foreground">
                 See how our platform will revolutionize deal discovery
@@ -198,8 +225,8 @@ function VideoModal({ isOpen, onClose, onVisitWebsite }: VideoModalProps) {
             <iframe
               width="100%"
               height="100%"
-              src="https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1&rel=0&modestbranding=1"
-              title="Instoredealz Launch Demo"
+              src={videoUrl}
+              title={videoTitle}
               frameBorder="0"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
