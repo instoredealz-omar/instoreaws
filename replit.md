@@ -115,6 +115,17 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+### July 28, 2025 - Dynamic Promotional Banner System for Vendor-Specific Content & Inline Video Display
+- **Customizable Banner Content**: Enhanced promotional banner system to display custom titles and descriptions from database instead of hardcoded "Instoredealz Launching Soon" text
+- **Inline Video Embedding**: Completely redesigned video display - banners now show embedded videos directly in the banner instead of modal popups
+- **Vendor-Specific Promotions**: System now supports vendor promotional videos and custom content, allowing businesses to create branded banners with their own messaging
+- **Dynamic Content Props**: Added title, description, and socialMediaLinks props to PromotionalLaunchBanner component for flexible content display
+- **Live Preview Feature**: Added real-time preview in admin creation dialog showing exactly how the banner will appear with custom content and videos
+- **Responsive Video Player**: All banner variants (hero, compact, video) now feature responsive embedded video players with aspect-video ratios
+- **Enhanced Admin Interface**: Updated admin promotional banners page to pass custom data to banner previews and support vendor-specific content creation
+- **Flexible Banner Variants**: All three variants (hero, compact, video) now support both traditional button-based video access and direct embedded video display
+- **Professional Video Integration**: Videos display immediately when banners load, creating more engaging promotional experiences for vendor content
+
 ### July 28, 2025 - Complete Promotional Banners System with WhatsApp Support & Analytics Testing
 - **Comprehensive Analytics System**: Successfully implemented and tested promotional banners with full analytics tracking including views, clicks, and social media interactions
 - **WhatsApp Integration**: Added WhatsApp contact numbers (+91 9876543210, +91 8765432100) with direct chat functionality for customer support and inquiries

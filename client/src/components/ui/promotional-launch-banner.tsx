@@ -25,6 +25,15 @@ interface PromotionalLaunchBannerProps {
   showVideo?: boolean;
   videoUrl?: string;
   videoTitle?: string;
+  title?: string;
+  description?: string;
+  socialMediaLinks?: {
+    facebook?: string;
+    instagram?: string;
+    twitter?: string;
+    website?: string;
+    whatsapp?: string;
+  };
 }
 
 export function PromotionalLaunchBanner({ 
@@ -32,7 +41,10 @@ export function PromotionalLaunchBanner({
   className = '',
   showVideo = true,
   videoUrl = DEFAULT_VIDEO_CONFIG.url,
-  videoTitle = DEFAULT_VIDEO_CONFIG.title
+  videoTitle = DEFAULT_VIDEO_CONFIG.title,
+  title = "🚀 Instoredealz Launching Soon!",
+  description = "Revolutionary deal discovery platform",
+  socialMediaLinks = {}
 }: PromotionalLaunchBannerProps) {
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
 
@@ -52,8 +64,8 @@ export function PromotionalLaunchBanner({
             <div className="flex items-center space-x-3 text-center sm:text-left">
               <Rocket className="h-5 w-5 sm:h-6 sm:w-6 animate-pulse" />
               <div>
-                <h3 className="responsive-text font-bold">🚀 Instoredealz Launching Soon!</h3>
-                <p className="text-xs sm:text-sm opacity-90">Revolutionary deal discovery platform</p>
+                <h3 className="responsive-text font-bold">{title}</h3>
+                <p className="text-xs sm:text-sm opacity-90">{description}</p>
               </div>
             </div>
             {showVideo && !videoUrl && (
@@ -99,10 +111,10 @@ export function PromotionalLaunchBanner({
             </Badge>
             <h2 className="responsive-heading font-bold flex flex-col sm:flex-row items-center justify-center">
               <Rocket className="h-6 w-6 sm:h-8 sm:w-8 mr-0 sm:mr-3 mb-2 sm:mb-0 animate-bounce" />
-              🚀 Instoredealz Launching Soon!
+              {title}
             </h2>
             <p className="responsive-text opacity-90">
-              The future of deal discovery is almost here
+              {description}
             </p>
           </div>
 
@@ -152,10 +164,10 @@ export function PromotionalLaunchBanner({
               </Badge>
             </div>
             <h2 className="responsive-heading font-bold">
-              🚀 Instoredealz Launching Soon!
+              {title}
             </h2>
             <p className="responsive-text opacity-90 max-w-md">
-              Revolutionary deal discovery platform connecting you with amazing local offers through advanced technology
+              {description}
             </p>
           </div>
           

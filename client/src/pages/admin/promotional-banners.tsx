@@ -756,6 +756,24 @@ export default function PromotionalBanners() {
 
           <Separator />
 
+          {/* Live Preview */}
+          {formData.title && formData.displayPages.length > 0 && hasValidContent() && (
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Live Preview ({formData.variant} variant):</Label>
+              <div className="border rounded-lg p-4 bg-gray-50 dark:bg-gray-900">
+                <PromotionalLaunchBanner
+                  variant={formData.variant}
+                  title={formData.title}
+                  description={formData.description}
+                  videoUrl={formData.videoUrl}
+                  videoTitle={formData.videoTitle}
+                  socialMediaLinks={formData.socialMediaLinks}
+                  showVideo={!!formData.videoUrl}
+                />
+              </div>
+            </div>
+          )}
+
           <div className="flex justify-end space-x-2">
             <Button variant="outline" onClick={() => {
               setIsCreateOpen(false);
@@ -810,6 +828,9 @@ export default function PromotionalBanners() {
                 variant={previewVariant}
                 videoUrl={selectedBanner.videoUrl}
                 videoTitle={selectedBanner.videoTitle}
+                title={selectedBanner.title}
+                description={selectedBanner.description}
+                socialMediaLinks={selectedBanner.socialMediaLinks}
                 showVideo={!!selectedBanner.videoUrl}
               />
             )}
