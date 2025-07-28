@@ -4560,6 +4560,141 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
+  // Promotional Banners API Routes - Admin Only
+  app.get('/api/admin/promotional-banners', requireAuth, requireRole(['admin', 'superadmin']), async (req: AuthenticatedRequest, res) => {
+    try {
+      const banners = await storage.getPromotionalBanners();
+      res.json(banners);
+    } catch (error) {
+      console.error('Get promotional banners error:', error);
+      res.status(500).json({ message: "Failed to fetch promotional banners" });
+    }
+  });
+
+  app.post('/api/admin/promotional-banners', requireAuth, requireRole(['admin', 'superadmin']), async (req: AuthenticatedRequest, res) => {
+    try {
+      const bannerData = {
+        ...req.body,
+        createdBy: req.user!.id,
+      };
+      
+      const banner = await storage.createPromotionalBanner(bannerData);
+      
+      // Log the creation
+      await storage.createSystemLog({
+        userId: req.user!.id,
+        action: "PROMOTIONAL_BANNER_CREATED",
+        details: { 
+          bannerId: banner.id, 
+          title: banner.title,
+          variant: banner.variant,
+          isActive: banner.isActive
+        },
+        ipAddress: req.ip,
+        userAgent: req.headers['user-agent'],
+      });
+      
+      res.status(201).json(banner);
+    } catch (error) {
+      console.error('Create promotional banner error:', error);
+      res.status(500).json({ message: "Failed to create promotional banner" });
+    }
+  });
+
+  app.put('/api/admin/promotional-banners/:id', requireAuth, requireRole(['admin', 'superadmin']), async (req: AuthenticatedRequest, res) => {
+    try {
+      const bannerId = parseInt(req.params.id);
+      const updates = req.body;
+      
+      const banner = await storage.updatePromotionalBanner(bannerId, updates);
+      if (!banner) {
+        return res.status(404).json({ message: "Banner not found" });
+      }
+      
+      // Log the update
+      await storage.createSystemLog({
+        userId: req.user!.id,
+        action: "PROMOTIONAL_BANNER_UPDATED",
+        details: { 
+          bannerId, 
+          title: banner.title,
+          changes: updates
+        },
+        ipAddress: req.ip,
+        userAgent: req.headers['user-agent'],
+      });
+      
+      res.json(banner);
+    } catch (error) {
+      console.error('Update promotional banner error:', error);
+      res.status(500).json({ message: "Failed to update promotional banner" });
+    }
+  });
+
+  app.delete('/api/admin/promotional-banners/:id', requireAuth, requireRole(['admin', 'superadmin']), async (req: AuthenticatedRequest, res) => {
+    try {
+      const bannerId = parseInt(req.params.id);
+      
+      // Get banner details before deletion for logging
+      const banner = await storage.getPromotionalBanner(bannerId);
+      if (!banner) {
+        return res.status(404).json({ message: "Banner not found" });
+      }
+      
+      const deleted = await storage.deletePromotionalBanner(bannerId);
+      if (!deleted) {
+        return res.status(404).json({ message: "Banner not found" });
+      }
+      
+      // Log the deletion
+      await storage.createSystemLog({
+        userId: req.user!.id,
+        action: "PROMOTIONAL_BANNER_DELETED",
+        details: { 
+          bannerId, 
+          title: banner.title,
+          variant: banner.variant
+        },
+        ipAddress: req.ip,
+        userAgent: req.headers['user-agent'],
+      });
+      
+      res.json({ message: "Banner deleted successfully" });
+    } catch (error) {
+      console.error('Delete promotional banner error:', error);
+      res.status(500).json({ message: "Failed to delete promotional banner" });
+    }
+  });
+
+  // Public endpoint to get active banners for specific pages
+  app.get('/api/promotional-banners/active/:page', async (req, res) => {
+    try {
+      const page = req.params.page;
+      const banners = await storage.getPromotionalBannersByPage(page);
+      res.json(banners);
+    } catch (error) {
+      console.error('Get active promotional banners error:', error);
+      res.status(500).json({ message: "Failed to fetch promotional banners" });
+    }
+  });
+
+  // Public endpoint to get all active banners
+  app.get('/api/promotional-banners/active', async (req, res) => {
+    try {
+      console.log('Fetching active promotional banners...');
+      const banners = await storage.getActivePromotionalBanners();
+      console.log('Found banners:', banners.length);
+      res.json(banners);
+    } catch (error) {
+      console.error('Get active promotional banners error:', error);
+      console.error('Error stack:', error instanceof Error ? error.stack : 'No stack');
+      res.status(500).json({ 
+        message: "Failed to fetch promotional banners",
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
   // Add the error handling middleware at the end
   app.use(errorHandler);
 

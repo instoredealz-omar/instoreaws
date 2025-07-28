@@ -39,6 +39,8 @@ import type {
   InsertAlertNotification,
   PinAttempt,
   InsertPinAttempt,
+  PromotionalBanner,
+  InsertPromotionalBanner,
 } from "@shared/schema";
 
 export class DatabaseStorage implements IStorage {
@@ -925,5 +927,60 @@ export class DatabaseStorage implements IStorage {
         cityBreakdown: []
       };
     }
+  }
+
+  // Promotional Banners operations
+  async createPromotionalBanner(banner: InsertPromotionalBanner): Promise<PromotionalBanner> {
+    const result = await db.insert(schema.promotionalBanners).values(banner).returning();
+    return result[0];
+  }
+
+  async getPromotionalBanner(id: number): Promise<PromotionalBanner | undefined> {
+    const result = await db.select().from(schema.promotionalBanners).where(eq(schema.promotionalBanners.id, id));
+    return result[0];
+  }
+
+  async updatePromotionalBanner(id: number, updates: Partial<PromotionalBanner>): Promise<PromotionalBanner | undefined> {
+    const result = await db.update(schema.promotionalBanners)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(schema.promotionalBanners.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deletePromotionalBanner(id: number): Promise<boolean> {
+    const result = await db.delete(schema.promotionalBanners).where(eq(schema.promotionalBanners.id, id));
+    return result.rowCount > 0;
+  }
+
+  async getAllPromotionalBanners(): Promise<PromotionalBanner[]> {
+    return await db.select().from(schema.promotionalBanners).orderBy(desc(schema.promotionalBanners.createdAt));
+  }
+
+  async getActivePromotionalBanners(): Promise<PromotionalBanner[]> {
+    return await db.select()
+      .from(schema.promotionalBanners)
+      .where(eq(schema.promotionalBanners.isActive, true))
+      .orderBy(desc(schema.promotionalBanners.createdAt));
+  }
+
+  async getPromotionalBannersByPage(page: string): Promise<PromotionalBanner[]> {
+    const banners = await db.select()
+      .from(schema.promotionalBanners)
+      .where(eq(schema.promotionalBanners.isActive, true))
+      .orderBy(desc(schema.promotionalBanners.createdAt));
+    
+    return banners.filter(banner => {
+      if (!banner.displayPages) return false;
+      
+      // Handle JSON array stored as string or actual array
+      const pages = Array.isArray(banner.displayPages) 
+        ? banner.displayPages 
+        : (typeof banner.displayPages === 'string' 
+            ? JSON.parse(banner.displayPages) 
+            : []);
+      
+      return pages.includes(page);
+    });
   }
 }

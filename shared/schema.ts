@@ -757,3 +757,32 @@ export const updateVendorProfileSchema = z.object({
 
 export type UpdateUserProfile = z.infer<typeof updateUserProfileSchema>;
 export type UpdateVendorProfile = z.infer<typeof updateVendorProfileSchema>;
+
+// Promotional Banners table for admin-managed marketing content
+export const promotionalBanners = pgTable("promotional_banners", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  description: text("description"),
+  videoUrl: text("video_url"),
+  videoTitle: text("video_title"),
+  socialMediaLinks: json("social_media_links").default({}), // {facebook, instagram, twitter, website}
+  variant: text("variant").notNull().default("hero"), // hero, compact, video
+  isActive: boolean("is_active").default(true),
+  displayPages: json("display_pages").default([]), // array of page names
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+  createdBy: integer("created_by").references(() => users.id),
+});
+
+export const promotionalBannersRelations = relations(promotionalBanners, ({ one }) => ({
+  creator: one(users, { fields: [promotionalBanners.createdBy], references: [users.id] }),
+}));
+
+export const insertPromotionalBannerSchema = createInsertSchema(promotionalBanners).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type PromotionalBanner = typeof promotionalBanners.$inferSelect;
+export type InsertPromotionalBanner = z.infer<typeof insertPromotionalBannerSchema>;

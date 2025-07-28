@@ -35,6 +35,8 @@ import {
   InsertAlertNotification,
   PinAttempt,
   InsertPinAttempt,
+  PromotionalBanner,
+  InsertPromotionalBanner,
 } from "../shared/schema";
 
 export interface IStorage {
@@ -202,6 +204,15 @@ export interface IStorage {
   recordPinAttempt(dealId: number, userId: number | null, ipAddress: string, userAgent: string | null, success: boolean): Promise<void>;
   getPinAttempts(dealId: number, userId?: number, ipAddress?: string): Promise<Array<{ attemptedAt: Date; success: boolean }>>;
   updateDealPin(dealId: number, hashedPin: string, salt: string, expiresAt?: Date): Promise<Deal | undefined>;
+
+  // Promotional Banners operations
+  createPromotionalBanner(banner: InsertPromotionalBanner): Promise<PromotionalBanner>;
+  getPromotionalBanners(): Promise<PromotionalBanner[]>;
+  getPromotionalBanner(id: number): Promise<PromotionalBanner | undefined>;
+  updatePromotionalBanner(id: number, updates: Partial<PromotionalBanner>): Promise<PromotionalBanner | undefined>;
+  deletePromotionalBanner(id: number): Promise<boolean>;
+  getActivePromotionalBanners(): Promise<PromotionalBanner[]>;
+  getPromotionalBannersByPage(page: string): Promise<PromotionalBanner[]>;
 }
 
 export class MemStorage implements IStorage {
@@ -223,6 +234,7 @@ export class MemStorage implements IStorage {
   private dealConciergeRequests: Map<number, DealConciergeRequest> = new Map();
   private alertNotifications: Map<number, AlertNotification> = new Map();
   private pinAttempts: Map<number, PinAttempt> = new Map();
+  private promotionalBanners: Map<number, PromotionalBanner> = new Map();
 
   private currentUserId = 1;
   private currentVendorId = 1;
@@ -239,6 +251,7 @@ export class MemStorage implements IStorage {
   private currentDealRatingId = 1;
   private currentVendorRatingId = 1;
   private currentPinAttemptId = 1;
+  private currentPromotionalBannerId = 1;
 
   constructor() {
     this.initializeWithSampleData();
@@ -1922,6 +1935,73 @@ export class MemStorage implements IStorage {
     this.deals.set(dealId, updatedDeal);
     return updatedDeal;
   }
+
+  // Promotional Banners operations
+  async createPromotionalBanner(banner: InsertPromotionalBanner): Promise<PromotionalBanner> {
+    const newBanner: PromotionalBanner = {
+      id: this.currentPromotionalBannerId++,
+      ...banner,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    
+    this.promotionalBanners.set(newBanner.id, newBanner);
+    return newBanner;
+  }
+
+  async getPromotionalBanners(): Promise<PromotionalBanner[]> {
+    return Array.from(this.promotionalBanners.values()).sort(
+      (a, b) => b.createdAt.getTime() - a.createdAt.getTime()
+    );
+  }
+
+  async getPromotionalBanner(id: number): Promise<PromotionalBanner | undefined> {
+    return this.promotionalBanners.get(id);
+  }
+
+  async updatePromotionalBanner(id: number, updates: Partial<PromotionalBanner>): Promise<PromotionalBanner | undefined> {
+    const banner = this.promotionalBanners.get(id);
+    if (!banner) return undefined;
+
+    const updatedBanner: PromotionalBanner = {
+      ...banner,
+      ...updates,
+      updatedAt: new Date(),
+    };
+
+    this.promotionalBanners.set(id, updatedBanner);
+    return updatedBanner;
+  }
+
+  async deletePromotionalBanner(id: number): Promise<boolean> {
+    return this.promotionalBanners.delete(id);
+  }
+
+  async getActivePromotionalBanners(): Promise<PromotionalBanner[]> {
+    return Array.from(this.promotionalBanners.values())
+      .filter(banner => banner.isActive)
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+  }
+
+  async getPromotionalBannersByPage(page: string): Promise<PromotionalBanner[]> {
+    return Array.from(this.promotionalBanners.values())
+      .filter(banner => {
+        if (!banner.isActive) return false;
+        if (!banner.displayPages) return false;
+        
+        // Handle both string arrays and JSON strings
+        const pages = Array.isArray(banner.displayPages) 
+          ? banner.displayPages 
+          : (typeof banner.displayPages === 'string' 
+              ? JSON.parse(banner.displayPages) 
+              : []);
+        
+        return pages.includes(page);
+      })
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+  }
 }
 
-export const storage = new MemStorage();
+import { DatabaseStorage } from "./db-storage";
+
+export const storage = new DatabaseStorage();
