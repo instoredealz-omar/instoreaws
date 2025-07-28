@@ -115,16 +115,16 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
-### July 28, 2025 - Single Banner with Multiple Video Support System
-- **Single Banner Display**: Modified system to display only one active promotional banner per page instead of multiple separate banners
-- **Multiple Video Upload**: Enhanced admin interface to support adding multiple video links within a single promotional banner
+### July 28, 2025 - Global Single Banner with Multiple Video Support System
+- **Global Banner System**: Created one single promotional banner that displays across all pages of the website
+- **Multiple Video Upload**: Enhanced admin interface to support adding multiple video links within the single global banner
 - **Comprehensive Video Management**: Added video form section allowing admins to add, edit, and remove multiple videos with titles, thumbnails, and duration information
 - **Videos Array Database Structure**: Updated database schema to store videos as JSON array instead of single video URL, with proper migration from existing data
-- **Enhanced Admin Form**: Created comprehensive video management interface with add/edit/delete functionality for individual videos within a banner
+- **Enhanced Admin Form**: Created comprehensive video management interface with add/edit/delete functionality for individual videos within the global banner
 - **Video Validation**: Added URL validation for YouTube, Vimeo, and Google Drive links with real-time feedback and auto-conversion
 - **Live Preview Integration**: Updated preview system to display multiple videos within the single banner format
-- **Database Query Optimization**: Limited active promotional banners query to return only one banner with LIMIT 1 clause
-- **Form State Management**: Implemented proper state management for video arrays with editing capabilities and validation
+- **Global Display Logic**: Modified API endpoints to return the same banner for all pages, eliminating page-specific filtering
+- **Simplified Admin Interface**: Removed page selection options since the banner displays globally across all pages
 - **Professional Video Interface**: Added video preview, thumbnail support, and duration tracking for enhanced content management
 
 ### July 28, 2025 - Complete Promotional Banners System with WhatsApp Support & Analytics Testing

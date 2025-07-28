@@ -4686,11 +4686,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Public endpoint to get active banners for specific pages
+  // Public endpoint to get the single global banner (same for all pages)
   app.get('/api/promotional-banners/active/:page', async (req, res) => {
     try {
-      const page = req.params.page;
-      const banners = await storage.getPromotionalBannersByPage(page);
+      const banners = await storage.getActivePromotionalBanners();
       res.json(banners);
     } catch (error) {
       console.error('Get active promotional banners error:', error);

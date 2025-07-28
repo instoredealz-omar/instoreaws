@@ -233,7 +233,7 @@ export default function PromotionalBanners() {
       },
       variant: 'hero',
       isActive: true,
-      displayPages: []
+      displayPages: ['all'] // Always set to all pages for global banner
     });
     setVideoFormData({
       url: '',
@@ -260,7 +260,7 @@ export default function PromotionalBanners() {
       },
       variant: banner.variant,
       isActive: banner.isActive,
-      displayPages: banner.displayPages
+      displayPages: ['all'] // Always set to all pages for global banner
     });
     setIsEditOpen(true);
   };
@@ -433,9 +433,9 @@ export default function PromotionalBanners() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Promotional Banners</h1>
+          <h1 className="text-3xl font-bold text-foreground">Global Promotional Banner</h1>
           <p className="text-muted-foreground mt-1">
-            Manage promotional banners, videos, and social media links
+            Manage the single promotional banner that displays across all pages with multiple videos
           </p>
         </div>
         <Button 
@@ -489,7 +489,7 @@ export default function PromotionalBanners() {
       {/* Banners List */}
       <Card>
         <CardHeader>
-          <CardTitle>Current Banners</CardTitle>
+          <CardTitle>Global Banner</CardTitle>
         </CardHeader>
         <CardContent>
           {isLoading ? (
@@ -500,13 +500,13 @@ export default function PromotionalBanners() {
           ) : banners.length === 0 ? (
             <div className="text-center py-8">
               <ImageIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-foreground mb-2">No banners yet</h3>
+              <h3 className="text-lg font-medium text-foreground mb-2">No global banner yet</h3>
               <p className="text-muted-foreground mb-4">
-                Create your first promotional banner to start engaging users
+                Create the global promotional banner that will display across all pages
               </p>
               <Button onClick={() => setIsCreateOpen(true)}>
                 <Plus className="h-4 w-4 mr-2" />
-                Create First Banner
+                Create Global Banner
               </Button>
             </div>
           ) : (
@@ -642,68 +642,12 @@ export default function PromotionalBanners() {
               </div>
 
               <div className="space-y-2">
-                <Label>Display Pages *</Label>
-                <p className="text-xs text-muted-foreground">Select at least one page where this banner will appear</p>
-                <div className="grid grid-cols-2 gap-2">
-                  {PAGE_OPTIONS.map((page) => (
-                    <label key={page.value} className="flex items-center space-x-2">
-                      <input
-                        type="checkbox"
-                        checked={formData.displayPages.includes(page.value)}
-                        onChange={(e) => {
-                          if (page.value === 'all') {
-                            // Handle "All Pages" checkbox
-                            if (e.target.checked) {
-                              // Select all pages when "All" is checked
-                              const allPageValues = PAGE_OPTIONS.map(p => p.value);
-                              setFormData({
-                                ...formData,
-                                displayPages: allPageValues
-                              });
-                            } else {
-                              // Unselect all pages when "All" is unchecked
-                              setFormData({
-                                ...formData,
-                                displayPages: []
-                              });
-                            }
-                          } else {
-                            // Handle individual page checkboxes
-                            if (e.target.checked) {
-                              const newPages = [...formData.displayPages, page.value];
-                              // If all individual pages are now selected, also select "all"
-                              const individualPages = PAGE_OPTIONS.filter(p => p.value !== 'all').map(p => p.value);
-                              const allIndividualSelected = individualPages.every(pageVal => newPages.includes(pageVal));
-                              if (allIndividualSelected && !newPages.includes('all')) {
-                                newPages.push('all');
-                              }
-                              setFormData({
-                                ...formData,
-                                displayPages: newPages
-                              });
-                            } else {
-                              const newPages = formData.displayPages.filter(p => p !== page.value);
-                              // If unchecking an individual page, also uncheck "all"
-                              const filteredPages = newPages.filter(p => p !== 'all');
-                              setFormData({
-                                ...formData,
-                                displayPages: filteredPages
-                              });
-                            }
-                          }
-                        }}
-                        className="rounded"
-                      />
-                      <span className="text-sm">{page.label}</span>
-                    </label>
-                  ))}
-                </div>
-                {formData.displayPages.length === 0 && (
-                  <p className="text-sm text-red-500 flex items-center mt-2">
-                    <AlertCircle className="h-4 w-4 mr-1" />
-                    Please select at least one page to display this banner
+                <Label>Display Location</Label>
+                <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                  <p className="text-sm text-blue-700 dark:text-blue-300">
+                    <strong>Global Banner:</strong> This banner will be displayed on all pages across the entire website automatically.
                   </p>
-                )}
+                </div>
               </div>
 
               <div className="flex items-center space-x-2">
@@ -994,7 +938,6 @@ export default function PromotionalBanners() {
               onClick={handleSubmit}
               disabled={
                 !formData.title || 
-                (!formData.displayPages.length) ||
                 (!hasValidContent()) ||
                 createBannerMutation.isPending || 
                 updateBannerMutation.isPending

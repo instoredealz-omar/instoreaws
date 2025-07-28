@@ -968,28 +968,12 @@ export class DatabaseStorage implements IStorage {
       .from(schema.promotionalBanners)
       .where(eq(schema.promotionalBanners.isActive, true))
       .orderBy(desc(schema.promotionalBanners.createdAt))
-      .limit(1); // Only return one active banner
+      .limit(1); // Only return one global banner
   }
 
   async getPromotionalBannersByPage(page: string): Promise<PromotionalBanner[]> {
-    const banners = await db.select()
-      .from(schema.promotionalBanners)
-      .where(eq(schema.promotionalBanners.isActive, true))
-      .orderBy(desc(schema.promotionalBanners.createdAt))
-      .limit(1); // Only get one banner per page
-    
-    return banners.filter(banner => {
-      if (!banner.displayPages) return false;
-      
-      // Handle JSON array stored as string or actual array
-      const pages = Array.isArray(banner.displayPages) 
-        ? banner.displayPages 
-        : (typeof banner.displayPages === 'string' 
-            ? JSON.parse(banner.displayPages) 
-            : []);
-      
-      return pages.includes(page);
-    });
+    // Return the same global banner for all pages
+    return await this.getActivePromotionalBanners();
   }
 
   // Banner Analytics operations
