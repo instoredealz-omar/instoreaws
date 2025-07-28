@@ -115,16 +115,17 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
-### July 28, 2025 - Dynamic Promotional Banner System for Vendor-Specific Content & Inline Video Display
-- **Customizable Banner Content**: Enhanced promotional banner system to display custom titles and descriptions from database instead of hardcoded "Instoredealz Launching Soon" text
-- **Inline Video Embedding**: Completely redesigned video display - banners now show embedded videos directly in the banner instead of modal popups
-- **Vendor-Specific Promotions**: System now supports vendor promotional videos and custom content, allowing businesses to create branded banners with their own messaging
-- **Dynamic Content Props**: Added title, description, and socialMediaLinks props to PromotionalLaunchBanner component for flexible content display
-- **Live Preview Feature**: Added real-time preview in admin creation dialog showing exactly how the banner will appear with custom content and videos
-- **Responsive Video Player**: All banner variants (hero, compact, video) now feature responsive embedded video players with aspect-video ratios
-- **Enhanced Admin Interface**: Updated admin promotional banners page to pass custom data to banner previews and support vendor-specific content creation
-- **Flexible Banner Variants**: All three variants (hero, compact, video) now support both traditional button-based video access and direct embedded video display
-- **Professional Video Integration**: Videos display immediately when banners load, creating more engaging promotional experiences for vendor content
+### July 28, 2025 - Single Banner with Multiple Video Support System
+- **Single Banner Display**: Modified system to display only one active promotional banner per page instead of multiple separate banners
+- **Multiple Video Upload**: Enhanced admin interface to support adding multiple video links within a single promotional banner
+- **Comprehensive Video Management**: Added video form section allowing admins to add, edit, and remove multiple videos with titles, thumbnails, and duration information
+- **Videos Array Database Structure**: Updated database schema to store videos as JSON array instead of single video URL, with proper migration from existing data
+- **Enhanced Admin Form**: Created comprehensive video management interface with add/edit/delete functionality for individual videos within a banner
+- **Video Validation**: Added URL validation for YouTube, Vimeo, and Google Drive links with real-time feedback and auto-conversion
+- **Live Preview Integration**: Updated preview system to display multiple videos within the single banner format
+- **Database Query Optimization**: Limited active promotional banners query to return only one banner with LIMIT 1 clause
+- **Form State Management**: Implemented proper state management for video arrays with editing capabilities and validation
+- **Professional Video Interface**: Added video preview, thumbnail support, and duration tracking for enhanced content management
 
 ### July 28, 2025 - Complete Promotional Banners System with WhatsApp Support & Analytics Testing
 - **Comprehensive Analytics System**: Successfully implemented and tested promotional banners with full analytics tracking including views, clicks, and social media interactions

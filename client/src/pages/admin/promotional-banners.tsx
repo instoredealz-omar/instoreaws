@@ -15,6 +15,7 @@ import { apiRequest, queryClient } from '@/lib/queryClient';
 import { 
   Plus, 
   Edit, 
+  Edit2,
   Trash2, 
   Eye, 
   EyeOff, 
@@ -32,7 +33,8 @@ import {
   Image as ImageIcon,
   Save,
   RefreshCw,
-  MessageCircle
+  MessageCircle,
+  X
 } from 'lucide-react';
 import PromotionalLaunchBanner from '@/components/ui/promotional-launch-banner';
 
@@ -221,8 +223,7 @@ export default function PromotionalBanners() {
     setFormData({
       title: '',
       description: '',
-      videoUrl: '',
-      videoTitle: '',
+      videos: [],
       socialMediaLinks: {
         facebook: '',
         instagram: '',
@@ -234,6 +235,13 @@ export default function PromotionalBanners() {
       isActive: true,
       displayPages: []
     });
+    setVideoFormData({
+      url: '',
+      title: '',
+      thumbnail: '',
+      duration: ''
+    });
+    setEditingVideoIndex(null);
     setSelectedBanner(null);
   };
 
@@ -242,8 +250,7 @@ export default function PromotionalBanners() {
     setFormData({
       title: banner.title,
       description: banner.description,
-      videoUrl: banner.videoUrl || '',
-      videoTitle: banner.videoTitle || '',
+      videos: banner.videos || [],
       socialMediaLinks: {
         facebook: banner.socialMediaLinks.facebook || '',
         instagram: banner.socialMediaLinks.instagram || '',
@@ -259,10 +266,13 @@ export default function PromotionalBanners() {
   };
 
   const handleSubmit = () => {
-    // Convert video URL to embed format before submitting
+    // Convert all video URLs to embed format before submitting
     const submissionData = {
       ...formData,
-      videoUrl: formData.videoUrl ? convertToEmbedUrl(formData.videoUrl) : formData.videoUrl
+      videos: formData.videos.map(video => ({
+        ...video,
+        url: convertToEmbedUrl(video.url)
+      }))
     };
     
     if (selectedBanner) {
@@ -270,6 +280,70 @@ export default function PromotionalBanners() {
     } else {
       createBannerMutation.mutate(submissionData);
     }
+  };
+
+  // Helper functions for managing videos
+  const addVideo = () => {
+    if (!videoFormData.url || !videoFormData.title) {
+      toast({
+        title: "Missing Information",
+        description: "Please provide both video URL and title.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const newVideo = {
+      url: videoFormData.url,
+      title: videoFormData.title,
+      thumbnail: videoFormData.thumbnail || undefined,
+      duration: videoFormData.duration || undefined
+    };
+
+    if (editingVideoIndex !== null) {
+      // Update existing video
+      const updatedVideos = [...formData.videos];
+      updatedVideos[editingVideoIndex] = newVideo;
+      setFormData({ ...formData, videos: updatedVideos });
+      setEditingVideoIndex(null);
+    } else {
+      // Add new video
+      setFormData({ ...formData, videos: [...formData.videos, newVideo] });
+    }
+
+    // Reset video form
+    setVideoFormData({
+      url: '',
+      title: '',
+      thumbnail: '',
+      duration: ''
+    });
+  };
+
+  const editVideo = (index: number) => {
+    const video = formData.videos[index];
+    setVideoFormData({
+      url: video.url,
+      title: video.title,
+      thumbnail: video.thumbnail || '',
+      duration: video.duration || ''
+    });
+    setEditingVideoIndex(index);
+  };
+
+  const removeVideo = (index: number) => {
+    const updatedVideos = formData.videos.filter((_, i) => i !== index);
+    setFormData({ ...formData, videos: updatedVideos });
+  };
+
+  const cancelVideoEdit = () => {
+    setVideoFormData({
+      url: '',
+      title: '',
+      thumbnail: '',
+      duration: ''
+    });
+    setEditingVideoIndex(null);
   };
 
   const convertToEmbedUrl = (url: string): string => {
@@ -346,21 +420,10 @@ export default function PromotionalBanners() {
   };
 
   const hasValidContent = () => {
-    const hasVideo = formData.videoUrl && formData.videoUrl.trim();
+    const hasVideos = formData.videos && formData.videos.length > 0;
     const hasSocial = hasSocialMediaContent();
     const hasDesc = formData.description && formData.description.trim();
-    const result = hasVideo || hasSocial || hasDesc;
-    
-    // Debug logging to help identify the issue
-    console.log('Validation check:', {
-      hasVideo,
-      hasSocial,
-      hasDesc,
-      result,
-      title: formData.title,
-      displayPages: formData.displayPages.length,
-      socialLinks: formData.socialMediaLinks
-    });
+    const result = hasVideos || hasSocial || hasDesc;
     
     return result;
   };
@@ -656,73 +719,157 @@ export default function PromotionalBanners() {
             </TabsContent>
 
             {/* Video & Media Tab */}
-            <TabsContent value="video" className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="videoUrl">Video URL</Label>
-                  <Input
-                    id="videoUrl"
-                    value={formData.videoUrl}
-                    onChange={(e) => {
-                      const inputUrl = e.target.value;
-                      setFormData({ ...formData, videoUrl: inputUrl });
-                    }}
-                    onBlur={(e) => {
-                      // Auto-convert URL when user finishes typing
-                      const inputUrl = e.target.value;
-                      if (inputUrl && validateVideoUrl(inputUrl)) {
-                        const convertedUrl = convertToEmbedUrl(inputUrl);
-                        if (convertedUrl !== inputUrl) {
-                          setFormData({ ...formData, videoUrl: convertedUrl });
-                        }
-                      }
-                    }}
-                    placeholder="Paste any YouTube, Vimeo, or Google Drive video URL here..."
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    📺 You can paste regular YouTube URLs (like youtube.com/watch?v=...) - they'll be automatically converted to the correct format
-                  </p>
-                  {formData.videoUrl && !validateVideoUrl(formData.videoUrl) && (
-                    <p className="text-sm text-red-500 flex items-center">
-                      <AlertCircle className="h-4 w-4 mr-1" />
-                      Unsupported video URL. Please use YouTube, Vimeo, or Google Drive links.
-                    </p>
-                  )}
-                  {formData.videoUrl && validateVideoUrl(formData.videoUrl) && (
-                    <p className="text-sm text-green-500 flex items-center">
-                      <CheckCircle className="h-4 w-4 mr-1" />
-                      Valid video URL {formData.videoUrl !== convertToEmbedUrl(formData.videoUrl) ? '(will be auto-converted)' : ''}
-                    </p>
-                  )}
+            <TabsContent value="video" className="space-y-6">
+              {/* Video Management Section */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold">Videos ({formData.videos.length})</h3>
+                  <Badge variant="outline">
+                    {formData.videos.length} video{formData.videos.length !== 1 ? 's' : ''} added
+                  </Badge>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="videoTitle">Video Title</Label>
-                  <Input
-                    id="videoTitle"
-                    value={formData.videoTitle}
-                    onChange={(e) => setFormData({ ...formData, videoTitle: e.target.value })}
-                    placeholder="e.g., Instoredealz Launch Demo"
-                  />
-                </div>
-              </div>
 
-              {formData.videoUrl && validateVideoUrl(formData.videoUrl) && (
-                <div className="border rounded-lg p-4 space-y-2">
-                  <Label>Video Preview</Label>
-                  <div className="aspect-video bg-black rounded overflow-hidden">
-                    <iframe
-                      width="100%"
-                      height="100%"
-                      src={convertToEmbedUrl(formData.videoUrl)}
-                      title={formData.videoTitle || "Video Preview"}
-                      frameBorder="0"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                      className="w-full h-full"
-                    />
-                  </div>
-                </div>
-              )}
+                {/* Add/Edit Video Form */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base">
+                      {editingVideoIndex !== null ? 'Edit Video' : 'Add New Video'}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="videoUrl">Video URL *</Label>
+                        <Input
+                          id="videoUrl"
+                          value={videoFormData.url}
+                          onChange={(e) => setVideoFormData({ ...videoFormData, url: e.target.value })}
+                          placeholder="Paste YouTube, Vimeo, or Google Drive video URL..."
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          📺 Regular YouTube URLs will be auto-converted to embed format
+                        </p>
+                        {videoFormData.url && !validateVideoUrl(videoFormData.url) && (
+                          <p className="text-sm text-red-500 flex items-center">
+                            <AlertCircle className="h-4 w-4 mr-1" />
+                            Unsupported video URL. Please use YouTube, Vimeo, or Google Drive links.
+                          </p>
+                        )}
+                        {videoFormData.url && validateVideoUrl(videoFormData.url) && (
+                          <p className="text-sm text-green-500 flex items-center">
+                            <CheckCircle className="h-4 w-4 mr-1" />
+                            Valid video URL
+                          </p>
+                        )}
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="videoTitle">Video Title *</Label>
+                        <Input
+                          id="videoTitle"
+                          value={videoFormData.title}
+                          onChange={(e) => setVideoFormData({ ...videoFormData, title: e.target.value })}
+                          placeholder="e.g., Instoredealz Launch Demo"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Optional Video Details */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="videoThumbnail">Thumbnail URL (Optional)</Label>
+                        <Input
+                          id="videoThumbnail"
+                          value={videoFormData.thumbnail}
+                          onChange={(e) => setVideoFormData({ ...videoFormData, thumbnail: e.target.value })}
+                          placeholder="Custom thumbnail image URL..."
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="videoDuration">Duration (Optional)</Label>
+                        <Input
+                          id="videoDuration"
+                          value={videoFormData.duration}
+                          onChange={(e) => setVideoFormData({ ...videoFormData, duration: e.target.value })}
+                          placeholder="e.g., 2:30 or 150 seconds"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex space-x-2">
+                      <Button 
+                        onClick={addVideo}
+                        disabled={!videoFormData.url || !videoFormData.title || !validateVideoUrl(videoFormData.url)}
+                        className="bg-green-600 hover:bg-green-700"
+                      >
+                        <Plus className="h-4 w-4 mr-2" />
+                        {editingVideoIndex !== null ? 'Update Video' : 'Add Video'}
+                      </Button>
+                      {editingVideoIndex !== null && (
+                        <Button onClick={cancelVideoEdit} variant="outline">
+                          <X className="h-4 w-4 mr-2" />
+                          Cancel Edit
+                        </Button>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Videos List */}
+                {formData.videos.length > 0 && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-base">Added Videos</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        {formData.videos.map((video, index) => (
+                          <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+                            <div className="flex-1">
+                              <h4 className="font-medium">{video.title}</h4>
+                              <p className="text-sm text-muted-foreground truncate max-w-md">{video.url}</p>
+                              {video.duration && (
+                                <p className="text-xs text-muted-foreground">Duration: {video.duration}</p>
+                              )}
+                            </div>
+                            <div className="flex space-x-2">
+                              <Button onClick={() => editVideo(index)} size="sm" variant="outline">
+                                <Edit2 className="h-4 w-4" />
+                              </Button>
+                              <Button onClick={() => removeVideo(index)} size="sm" variant="destructive">
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Video Preview */}
+                {videoFormData.url && validateVideoUrl(videoFormData.url) && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-base">Video Preview</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="aspect-video bg-black rounded overflow-hidden">
+                        <iframe
+                          width="100%"
+                          height="100%"
+                          src={convertToEmbedUrl(videoFormData.url)}
+                          title={videoFormData.title || "Video Preview"}
+                          frameBorder="0"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                          className="w-full h-full"
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
             </TabsContent>
 
             {/* Social Links Tab */}
@@ -827,10 +974,9 @@ export default function PromotionalBanners() {
                   variant={formData.variant}
                   title={formData.title}
                   description={formData.description}
-                  videoUrl={formData.videoUrl}
-                  videoTitle={formData.videoTitle}
+                  videos={formData.videos}
                   socialMediaLinks={formData.socialMediaLinks}
-                  showVideo={!!formData.videoUrl}
+                  showVideo={formData.videos.length > 0}
                 />
               </div>
             </div>
@@ -850,7 +996,6 @@ export default function PromotionalBanners() {
                 !formData.title || 
                 (!formData.displayPages.length) ||
                 (!hasValidContent()) ||
-                (formData.videoUrl && !validateVideoUrl(formData.videoUrl)) ||
                 createBannerMutation.isPending || 
                 updateBannerMutation.isPending
               }
@@ -888,12 +1033,11 @@ export default function PromotionalBanners() {
             {selectedBanner && (
               <PromotionalLaunchBanner
                 variant={previewVariant}
-                videoUrl={selectedBanner.videoUrl}
-                videoTitle={selectedBanner.videoTitle}
+                videos={selectedBanner.videos}
                 title={selectedBanner.title}
                 description={selectedBanner.description}
                 socialMediaLinks={selectedBanner.socialMediaLinks}
-                showVideo={!!selectedBanner.videoUrl}
+                showVideo={selectedBanner.videos && selectedBanner.videos.length > 0}
               />
             )}
           </div>

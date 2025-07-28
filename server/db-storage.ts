@@ -967,7 +967,8 @@ export class DatabaseStorage implements IStorage {
     return await db.select()
       .from(schema.promotionalBanners)
       .where(eq(schema.promotionalBanners.isActive, true))
-      .orderBy(desc(schema.promotionalBanners.createdAt));
+      .orderBy(desc(schema.promotionalBanners.createdAt))
+      .limit(1); // Only return one active banner
   }
 
   async getPromotionalBannersByPage(page: string): Promise<PromotionalBanner[]> {
