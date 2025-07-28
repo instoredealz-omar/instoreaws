@@ -57,6 +57,7 @@ export default function PromotionalBanners() {
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [previewVariant, setPreviewVariant] = useState<'hero' | 'compact' | 'video'>('hero');
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   // Form state
   const [formData, setFormData] = useState({
@@ -75,11 +76,22 @@ export default function PromotionalBanners() {
     displayPages: ['all'] as string[]
   });
 
-  const queryClient = useQueryClient();
-
   // Fetch banners
   const { data: banners = [], isLoading, error } = useQuery<PromotionalBanner[]>({
     queryKey: ['/api/admin/promotional-banners'],
+    retry: false,
+  });
+
+  // Fetch analytics stats
+  const { data: allBannerStats = [], isLoading: isStatsLoading } = useQuery({
+    queryKey: ['/api/admin/banners/stats'],
+    retry: false,
+  });
+
+  // Fetch individual banner analytics
+  const { data: bannerAnalytics = null, isLoading: isAnalyticsLoading } = useQuery({
+    queryKey: ['/api/admin/banners/analytics', selectedBanner?.id],
+    enabled: !!selectedBanner?.id,
     retry: false,
   });
 
@@ -269,44 +281,169 @@ export default function PromotionalBanners() {
         </div>
       </div>
 
-      {/* Analytics Overview */}
+      {/* Enhanced Analytics Dashboard */}
       {banners.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <BarChart3 className="h-5 w-5 mr-2" />
-              Performance Overview
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {banners.map(banner => (
-                <div key={banner.id} className="p-4 bg-muted/50 rounded-lg">
-                  <div className="flex items-center justify-between mb-2">
-                    <h4 className="font-medium truncate">{banner.title}</h4>
-                    <Badge className={banner.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>
-                      {banner.isActive ? 'Active' : 'Inactive'}
-                    </Badge>
+        <div className="space-y-6">
+          {/* Overall Stats Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            {allBannerStats.map((stats: any) => {
+              const totalClicks = stats.clicks + stats.socialClicks;
+              return (
+                <Card key={stats.bannerId} className="relative overflow-hidden">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="space-y-1">
+                        <p className="text-sm font-medium text-muted-foreground">Views</p>
+                        <p className="text-2xl font-bold text-blue-600">{stats.views}</p>
+                      </div>
+                      <div className="p-2 bg-blue-100 rounded-lg">
+                        <Eye className="h-4 w-4 text-blue-600" />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Total Clicks:</span>
+                        <span className="font-medium">{totalClicks}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">CTR:</span>
+                        <span className="font-medium text-green-600">{stats.ctr}%</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Social Clicks:</span>
+                        <span className="font-medium text-purple-600">{stats.socialClicks}</span>
+                      </div>
+                    </div>
+                    <div className="mt-3">
+                      <Badge variant={banners.find(b => b.id === stats.bannerId)?.isActive ? "default" : "secondary"}>
+                        {banners.find(b => b.id === stats.bannerId)?.isActive ? 'Active' : 'Inactive'}
+                      </Badge>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+
+          {/* Analytics Summary Card */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <BarChart3 className="h-5 w-5 mr-2" />
+                Analytics Summary
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {isStatsLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                </div>
+              ) : allBannerStats.length > 0 ? (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                        <span className="text-sm font-medium">Total Views</span>
+                      </div>
+                      <p className="text-2xl font-bold text-blue-600">
+                        {allBannerStats.reduce((sum: number, stat: any) => sum + stat.views, 0)}
+                      </p>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                        <span className="text-sm font-medium">Total Clicks</span>
+                      </div>
+                      <p className="text-2xl font-bold text-green-600">
+                        {allBannerStats.reduce((sum: number, stat: any) => sum + stat.clicks + stat.socialClicks, 0)}
+                      </p>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
+                        <span className="text-sm font-medium">Average CTR</span>
+                      </div>
+                      <p className="text-2xl font-bold text-purple-600">
+                        {allBannerStats.length > 0 
+                          ? (allBannerStats.reduce((sum: number, stat: any) => sum + stat.ctr, 0) / allBannerStats.length).toFixed(2)
+                          : 0}%
+                      </p>
+                    </div>
                   </div>
-                  <div className="space-y-1 text-sm text-muted-foreground">
-                    <div className="flex justify-between">
-                      <span>Views:</span>
-                      <span>{banner.viewCount || 0}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Clicks:</span>
-                      <span>{banner.clickCount || 0}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Social Clicks:</span>
-                      <span>{banner.socialClickCount || 0}</span>
+
+                  {/* Performance Breakdown */}
+                  <div className="mt-6">
+                    <h4 className="text-lg font-semibold mb-4">Performance Breakdown</h4>
+                    <div className="space-y-3">
+                      {allBannerStats.map((stats: any) => {
+                        const banner = banners.find(b => b.id === stats.bannerId);
+                        const totalClicks = stats.clicks + stats.socialClicks;
+                        const viewsPercent = Math.max((stats.views / Math.max(...allBannerStats.map((s: any) => s.views))) * 100, 5);
+                        const clicksPercent = totalClicks > 0 ? Math.max((totalClicks / Math.max(...allBannerStats.map((s: any) => s.clicks + s.socialClicks))) * 100, 5) : 0;
+                        
+                        return (
+                          <div key={stats.bannerId} className="p-4 border rounded-lg space-y-3">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center space-x-3">
+                                <h5 className="font-medium">{banner?.title || `Banner ${stats.bannerId}`}</h5>
+                                <Badge variant={banner?.isActive ? "default" : "secondary"}>
+                                  {banner?.variant || 'Unknown'}
+                                </Badge>
+                              </div>
+                              <div className="text-sm text-muted-foreground">
+                                CTR: {stats.ctr}%
+                              </div>
+                            </div>
+                            
+                            <div className="space-y-2">
+                              <div className="flex items-center justify-between text-sm">
+                                <span>Views: {stats.views}</span>
+                                <div className="flex-1 mx-3">
+                                  <div className="w-full bg-gray-200 rounded-full h-2">
+                                    <div 
+                                      className="bg-blue-500 h-2 rounded-full" 
+                                      style={{ width: `${viewsPercent}%` }}
+                                    ></div>
+                                  </div>
+                                </div>
+                              </div>
+                              
+                              <div className="flex items-center justify-between text-sm">
+                                <span>Clicks: {totalClicks}</span>
+                                <div className="flex-1 mx-3">
+                                  <div className="w-full bg-gray-200 rounded-full h-2">
+                                    <div 
+                                      className="bg-green-500 h-2 rounded-full" 
+                                      style={{ width: `${clicksPercent}%` }}
+                                    ></div>
+                                  </div>
+                                </div>
+                              </div>
+                              
+                              <div className="grid grid-cols-2 gap-4 mt-2 text-xs text-muted-foreground">
+                                <span>Direct Clicks: {stats.clicks}</span>
+                                <span>Social Clicks: {stats.socialClicks}</span>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+              ) : (
+                <div className="text-center py-8">
+                  <BarChart3 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-muted-foreground">No analytics data available yet</p>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Analytics will appear once users interact with your banners
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       )}
 
       {/* Banners List */}
