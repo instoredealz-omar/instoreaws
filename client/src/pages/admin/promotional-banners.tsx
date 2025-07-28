@@ -239,30 +239,29 @@ export default function PromotionalBanners() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Global Promotional Banner</h1>
+          <h1 className="text-3xl font-bold text-foreground">Promotional Banners</h1>
           <p className="text-muted-foreground mt-1">
-            Manage the single promotional banner that displays across all pages with video support
+            Create and manage promotional banners that display across your website with video and social media support
           </p>
         </div>
         <div className="flex space-x-2">
-          {banners.length > 0 ? (
+          <Button 
+            onClick={() => {
+              resetForm();
+              setIsCreateOpen(true);
+            }}
+            className="bg-gradient-to-r from-green-600 to-blue-600 text-white"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Create New Banner
+          </Button>
+          {banners.length > 0 && (
             <Button 
               onClick={() => openEditDialog(banners[0])}
-              className="bg-gradient-to-r from-blue-600 to-purple-600 text-white"
+              variant="outline"
             >
               <Edit className="h-4 w-4 mr-2" />
-              Edit Global Banner
-            </Button>
-          ) : (
-            <Button 
-              onClick={() => {
-                resetForm();
-                setIsCreateOpen(true);
-              }}
-              className="bg-gradient-to-r from-blue-600 to-purple-600 text-white"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Create Global Banner
+              Edit Existing Banner
             </Button>
           )}
         </div>
@@ -311,7 +310,7 @@ export default function PromotionalBanners() {
       {/* Banners List */}
       <Card>
         <CardHeader>
-          <CardTitle>Global Banner</CardTitle>
+          <CardTitle>Active Banners</CardTitle>
         </CardHeader>
         <CardContent>
           {isLoading ? (
