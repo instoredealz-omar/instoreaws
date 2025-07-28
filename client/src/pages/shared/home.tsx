@@ -195,6 +195,13 @@ export default function Home() {
     <div className="min-h-screen bg-background">
       <Navbar selectedCity={selectedCity} onCityChange={setSelectedCity} />
       
+      {/* Promotional Launch Banner */}
+      <section className="py-4 bg-background">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <PromotionalLaunchBanner variant="hero" className="animate-fade-in" />
+        </div>
+      </section>
+      
       {/* Hero Section */}
       <section className="py-16 relative overflow-hidden">
         {/* Clean background without images */}
@@ -244,13 +251,6 @@ export default function Home() {
               </Card>
             </div>
           </div>
-        </div>
-      </section>
-
-      {/* Promotional Launch Banner */}
-      <section className="py-8 bg-background">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <PromotionalLaunchBanner variant="hero" className="animate-fade-in" />
         </div>
       </section>
 
