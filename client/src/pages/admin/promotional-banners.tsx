@@ -501,8 +501,11 @@ export default function PromotionalBanners() {
                   id="videoUrl"
                   value={formData.videoUrl}
                   onChange={(e) => setFormData({ ...formData, videoUrl: e.target.value })}
-                  placeholder="YouTube, Vimeo, or direct video URL"
+                  placeholder="https://www.youtube.com/watch?v=VIDEO_ID or https://vimeo.com/VIDEO_ID"
                 />
+                <p className="text-xs text-muted-foreground">
+                  YouTube and Vimeo URLs are automatically converted to embed format for proper display
+                </p>
               </div>
 
               <div className="space-y-4">
@@ -605,13 +608,6 @@ export default function PromotionalBanners() {
           </Tabs>
 
           <div className="flex justify-end space-x-2 pt-4 border-t">
-            {/* Debug Info - Remove after fixing */}
-            <div className="text-xs text-muted-foreground mr-4">
-              <div>Title: {formData.title ? '✓' : '✗'}</div>
-              <div>Content: {hasValidContent() ? '✓' : '✗'}</div>
-              <div>Pending: {createBannerMutation.isPending || updateBannerMutation.isPending ? '✓' : '✗'}</div>
-            </div>
-            
             <Button variant="outline" onClick={() => {
               setIsCreateOpen(false);
               setIsEditOpen(false);

@@ -31,6 +31,30 @@ export function PromotionalLaunchBanner({
 }: PromotionalLaunchBannerProps) {
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
 
+  // Function to convert YouTube URL to embed format
+  const getEmbedUrl = (url: string): string => {
+    if (!url) return url;
+    
+    // YouTube URL patterns
+    const youtubeRegex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
+    const match = url.match(youtubeRegex);
+    
+    if (match) {
+      return `https://www.youtube.com/embed/${match[1]}`;
+    }
+    
+    // Vimeo URL patterns
+    const vimeoRegex = /(?:vimeo\.com\/)(\d+)/;
+    const vimeoMatch = url.match(vimeoRegex);
+    
+    if (vimeoMatch) {
+      return `https://player.vimeo.com/video/${vimeoMatch[1]}`;
+    }
+    
+    // Return original URL if it's already an embed URL or other format
+    return url;
+  };
+
   const handleWatchVideo = () => {
     setIsVideoModalOpen(true);
   };
@@ -42,12 +66,14 @@ export function PromotionalLaunchBanner({
   // Single Video Component
   const VideoPlayer = ({ embedded = false }: { embedded?: boolean }) => {
     if (!videoUrl) return null;
+    
+    const embedUrl = getEmbedUrl(videoUrl);
 
     return (
       <div className={`${embedded ? 'bg-black/20 rounded-lg overflow-hidden' : ''}`}>
         <div className="aspect-video w-full">
           <iframe
-            src={videoUrl}
+            src={embedUrl}
             title={title}
             className="w-full h-full rounded-lg"
             frameBorder="0"
@@ -241,7 +267,7 @@ export function PromotionalLaunchBanner({
             
             <div className="aspect-video w-full">
               <iframe
-                src={videoUrl}
+                src={getEmbedUrl(videoUrl)}
                 title={title}
                 className="w-full h-full rounded-lg"
                 frameBorder="0"
