@@ -23,7 +23,8 @@ import {
   CheckCircle,
   Clock,
   BarChart3,
-  ArrowLeft
+  ArrowLeft,
+  Calendar
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { PromotionalLaunchBanner } from '@/components/ui/promotional-launch-banner';
@@ -82,7 +83,9 @@ export default function PromotionalBanners() {
     },
     variant: 'hero' as 'hero' | 'compact' | 'video',
     isActive: true,
-    displayPages: ['all'] as string[]
+    displayPages: ['all'] as string[],
+    startDate: new Date().toISOString().slice(0, 16), // Format for datetime-local input
+    endDate: ''
   });
 
   // Fetch banners
@@ -92,7 +95,7 @@ export default function PromotionalBanners() {
   });
 
   // Fetch analytics stats
-  const { data: allBannerStats = [], isLoading: isStatsLoading } = useQuery({
+  const { data: allBannerStats = [], isLoading: isStatsLoading } = useQuery<Array<{ bannerId: number; title: string; views: number; clicks: number; socialClicks: number; ctr: number }>>({
     queryKey: ['/api/admin/banners/stats'],
     retry: false,
   });
@@ -203,7 +206,9 @@ export default function PromotionalBanners() {
       },
       variant: 'hero',
       isActive: true,
-      displayPages: ['all']
+      displayPages: ['all'],
+      startDate: new Date().toISOString().slice(0, 16),
+      endDate: ''
     });
     setSelectedBanner(null);
   };
@@ -221,9 +226,11 @@ export default function PromotionalBanners() {
         website: banner.socialMediaLinks.website || '',
         whatsapp: banner.socialMediaLinks.whatsapp || ''
       },
-      variant: banner.variant,
+      variant: banner.variant === 'carousel' ? 'hero' : banner.variant,
       isActive: banner.isActive,
-      displayPages: ['all']
+      displayPages: ['all'],
+      startDate: banner.startDate ? new Date(banner.startDate).toISOString().slice(0, 16) : new Date().toISOString().slice(0, 16),
+      endDate: banner.endDate ? new Date(banner.endDate).toISOString().slice(0, 16) : ''
     });
     setIsEditOpen(true);
   };
@@ -237,13 +244,30 @@ export default function PromotionalBanners() {
   };
 
   const handleSubmit = () => {
+    // Validate dates
+    if (formData.endDate && formData.startDate && new Date(formData.endDate) <= new Date(formData.startDate)) {
+      toast({
+        title: "Invalid Date Range",
+        description: "End date must be after start date",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Prepare data with properly formatted dates
+    const submitData = {
+      ...formData,
+      startDate: new Date(formData.startDate).toISOString(),
+      endDate: formData.endDate ? new Date(formData.endDate).toISOString() : null
+    };
+
     if (selectedBanner) {
       updateBannerMutation.mutate({
         id: selectedBanner.id,
-        data: formData
+        data: submitData
       });
     } else {
-      createBannerMutation.mutate(formData);
+      createBannerMutation.mutate(submitData);
     }
   };
 
@@ -255,6 +279,21 @@ export default function PromotionalBanners() {
 
   const handleToggleActive = (banner: PromotionalBanner) => {
     toggleActiveMutation.mutate(banner);
+  };
+
+  const formatDateTime = (dateString: string) => {
+    if (!dateString) return 'Not set';
+    try {
+      return new Date(dateString).toLocaleString('en-IN', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch {
+      return 'Invalid date';
+    }
   };
 
   return (
@@ -518,6 +557,26 @@ export default function PromotionalBanners() {
                           </>
                         )}
                       </div>
+                      <div className="flex items-center space-x-2 text-xs text-muted-foreground mt-2">
+                        <Calendar className="h-3 w-3" />
+                        <span>
+                          <strong>Start:</strong> {formatDateTime(banner.startDate)}
+                        </span>
+                        {banner.endDate && (
+                          <>
+                            <span>•</span>
+                            <span>
+                              <strong>End:</strong> {formatDateTime(banner.endDate)}
+                            </span>
+                          </>
+                        )}
+                        {!banner.endDate && (
+                          <>
+                            <span>•</span>
+                            <span className="text-green-600">No expiry</span>
+                          </>
+                        )}
+                      </div>
                     </div>
                     <div className="flex items-center space-x-2">
                       <Button
@@ -525,7 +584,7 @@ export default function PromotionalBanners() {
                         size="sm"
                         onClick={() => {
                           setSelectedBanner(banner);
-                          setPreviewVariant(banner.variant);
+                          setPreviewVariant(banner.variant === 'carousel' ? 'hero' : banner.variant);
                           setIsPreviewOpen(true);
                         }}
                       >
@@ -633,6 +692,36 @@ export default function PromotionalBanners() {
                     <SelectItem value="video">Video (Video-focused)</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="startDate">Start Date *</Label>
+                  <Input
+                    id="startDate"
+                    type="datetime-local"
+                    value={formData.startDate}
+                    onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                    className="w-full"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    When the banner becomes visible to users
+                  </p>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="endDate">End Date (Optional)</Label>
+                  <Input
+                    id="endDate"
+                    type="datetime-local"
+                    value={formData.endDate}
+                    onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+                    className="w-full"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    When the banner expires (leave empty for no expiry)
+                  </p>
+                </div>
               </div>
 
               <div className="flex items-center space-x-2">
@@ -772,6 +861,7 @@ export default function PromotionalBanners() {
               onClick={handleSubmit}
               disabled={
                 !formData.title || 
+                !formData.startDate ||
                 (!hasValidContent()) ||
                 createBannerMutation.isPending || 
                 updateBannerMutation.isPending
