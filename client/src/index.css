@@ -998,32 +998,29 @@ body[data-non-blocking-modal-open] {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
 }
 
-/* Video color matching backgrounds using app theme */
+/* Video backgrounds always match app theme */
 .banner-video-container.video-default {
-  background: hsl(var(--card)) !important; /* Use app's card background */
+  background: hsl(var(--background)) !important; /* Always use app's main background */
 }
 
 .banner-video-container.video-colorful {
-  background: var(--gradient-primary) !important; /* Use app's primary gradient */
+  background: hsl(var(--background)) !important; /* Always use app's main background */
 }
 
 .banner-video-container.video-bright {
-  background: hsl(var(--background)) !important; /* Use app's main background */
+  background: hsl(var(--background)) !important; /* Always use app's main background */
 }
 
-/* Dark mode automatically handled by CSS variables - no overrides needed */
-
-/* Enhanced video color matching with brand colors */
 .banner-video-container.video-brand {
-  background: var(--gradient-primary) !important; /* Use app's primary brand gradient */
+  background: hsl(var(--background)) !important; /* Always use app's main background */
 }
 
 .banner-video-container.video-corporate {
-  background: hsl(var(--secondary)) !important; /* Use app's secondary color for corporate */
+  background: hsl(var(--background)) !important; /* Always use app's main background */
 }
 
 .banner-video-container.video-warm {
-  background: var(--gradient-warning) !important; /* Use app's warning gradient for warm content */
+  background: hsl(var(--background)) !important; /* Always use app's main background */
 }
 
 .dark .banner-video-container:hover {

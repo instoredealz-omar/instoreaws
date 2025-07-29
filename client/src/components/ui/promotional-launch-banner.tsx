@@ -97,46 +97,9 @@ export function PromotionalLaunchBanner({
       }
     };
 
-    // Detect video background type based on URL, title, and content hints
+    // Always use default background to match app theme
     const detectVideoBackgroundType = (url: string): 'default' | 'bright' | 'colorful' | 'brand' | 'corporate' | 'warm' => {
-      if (!url) return 'default';
-      
-      // Check URL and title for hints about video content
-      const lowerUrl = url.toLowerCase();
-      const lowerTitle = title.toLowerCase();
-      const lowerDescription = description.toLowerCase();
-      
-      // Brand/company promotional videos
-      if (lowerUrl.includes('brand') || lowerUrl.includes('promo') || lowerTitle.includes('instoredealz') || lowerTitle.includes('brand')) {
-        return 'brand';
-      }
-      
-      // Corporate/professional content
-      if (lowerUrl.includes('corporate') || lowerUrl.includes('business') || lowerUrl.includes('professional') || lowerTitle.includes('corporate')) {
-        return 'corporate';
-      }
-      
-      // Warm/sales content (matches current "peaceful" -> love theme)
-      if (lowerUrl.includes('sale') || lowerUrl.includes('offer') || lowerUrl.includes('deal') || 
-          lowerTitle.includes('deal') || lowerTitle.includes('discount') ||
-          lowerTitle.includes('love') || lowerTitle.includes('peaceful') || lowerDescription.includes('love')) {
-        return 'warm';
-      }
-      
-      // Bright/light background indicators
-      if (lowerUrl.includes('white') || lowerUrl.includes('light') || lowerUrl.includes('bright') ||
-          lowerTitle.includes('bright') || lowerTitle.includes('sunny')) {
-        return 'bright';
-      }
-      
-      // Colorful/vibrant content indicators
-      if (lowerUrl.includes('color') || lowerUrl.includes('vibrant') || lowerUrl.includes('rainbow') || 
-          lowerUrl.includes('creative') || lowerTitle.includes('creative') || lowerTitle.includes('fun')) {
-        return 'colorful';
-      }
-      
-      // For any video content, use warm background as it's more appealing than pure black
-      return 'warm';
+      return 'default';
     };
 
     const handleVideoLoad = () => {
