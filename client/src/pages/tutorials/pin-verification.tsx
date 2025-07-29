@@ -19,7 +19,13 @@ import {
   Star,
   Calculator,
   Receipt,
-  MousePointer2
+  MousePointer2,
+  QrCode,
+  Scan,
+  Smartphone,
+  Camera,
+  Upload,
+  Target
 } from "lucide-react";
 
 export default function PinVerificationTutorial() {
@@ -37,20 +43,24 @@ export default function PinVerificationTutorial() {
             </div>
           </div>
           <h1 className="text-4xl font-bold text-foreground mb-4">
-            Advanced PIN Verification Guide
+            QR Code & PIN Verification Guide
           </h1>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            Learn how our multi-layer PIN system with rotating PINs makes deal redemption ultra-secure, simple, and works anywhere
+            Learn how our advanced QR code system with PIN backup makes deal redemption instant, secure, and works anywhere
           </p>
           
           <div className="flex justify-center gap-4 mt-6">
+            <Badge variant="secondary" className="flex items-center gap-2">
+              <QrCode className="w-4 h-4" />
+              QR Code Scanning
+            </Badge>
             <Badge variant="secondary" className="flex items-center gap-2">
               <WifiOff className="w-4 h-4" />
               Works Offline
             </Badge>
             <Badge variant="secondary" className="flex items-center gap-2">
               <Lock className="w-4 h-4" />
-              Secure
+              24hr Security
             </Badge>
             <Badge variant="secondary" className="flex items-center gap-2">
               <Clock className="w-4 h-4" />
@@ -72,11 +82,94 @@ export default function PinVerificationTutorial() {
           </TabsList>
 
           <TabsContent value="customer" className="space-y-8">
+            {/* QR Code System Section */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Users className="w-5 h-5 text-blue-600" />
-                  How to Redeem Deals with PIN Verification
+                  <QrCode className="w-5 h-5 text-blue-600" />
+                  QR Code Verification System (Recommended)
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid md:grid-cols-3 gap-6">
+                  <div className="text-center">
+                    <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <QrCode className="w-8 h-8 text-blue-600" />
+                    </div>
+                    <h3 className="font-semibold text-lg mb-2">1. Generate Your QR Code</h3>
+                    <p className="text-muted-foreground text-sm">
+                      Access your membership card from the dashboard to generate your personal QR code with complete customer data and 24-hour security tokens.
+                    </p>
+                  </div>
+
+                  <div className="text-center">
+                    <div className="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <Scan className="w-8 h-8 text-green-600" />
+                    </div>
+                    <h3 className="font-semibold text-lg mb-2">2. Show QR at Store</h3>
+                    <p className="text-muted-foreground text-sm">
+                      Visit the vendor's store and present your QR code at checkout. The vendor scans it for instant customer verification and deal processing.
+                    </p>
+                  </div>
+
+                  <div className="text-center">
+                    <div className="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <CheckCircle className="w-8 h-8 text-purple-600" />
+                    </div>
+                    <h3 className="font-semibold text-lg mb-2">3. Instant Verification</h3>
+                    <p className="text-muted-foreground text-sm">
+                      Your membership details, savings history, and deal claims appear instantly on the vendor's POS system for seamless transaction processing.
+                    </p>
+                  </div>
+                </div>
+
+                <Separator className="my-6" />
+
+                <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-lg p-6">
+                  <h4 className="font-semibold text-lg mb-3 flex items-center gap-2">
+                    <Star className="w-5 h-5 text-green-500" />
+                    QR Code Benefits
+                  </h4>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div className="flex items-start gap-3">
+                      <CheckCircle className="w-5 h-5 text-green-500 mt-0.5" />
+                      <div>
+                        <p className="font-medium">Instant Verification</p>
+                        <p className="text-sm text-muted-foreground">No waiting for PINs - immediate customer identification</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <CheckCircle className="w-5 h-5 text-green-500 mt-0.5" />
+                      <div>
+                        <p className="font-medium">24-Hour Security</p>
+                        <p className="text-sm text-muted-foreground">QR codes include timestamps and security tokens to prevent misuse</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <CheckCircle className="w-5 h-5 text-green-500 mt-0.5" />
+                      <div>
+                        <p className="font-medium">Complete Customer Data</p>
+                        <p className="text-sm text-muted-foreground">Membership level, contact details, and savings history included</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <CheckCircle className="w-5 h-5 text-green-500 mt-0.5" />
+                      <div>
+                        <p className="font-medium">Personalized Service</p>
+                        <p className="text-sm text-muted-foreground">Vendors can provide better service with your full profile</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* PIN Verification Backup Section */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="w-5 h-5 text-orange-600" />
+                  PIN Verification Backup (When QR Not Available)
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -169,11 +262,94 @@ export default function PinVerificationTutorial() {
           </TabsContent>
 
           <TabsContent value="vendor" className="space-y-8">
+            {/* QR Code Scanner Section */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Store className="w-5 h-5 text-green-600" />
-                  How to Set Up and Use PIN Verification
+                  <Scan className="w-5 h-5 text-blue-600" />
+                  QR Code Scanner System (Recommended)
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid md:grid-cols-3 gap-6">
+                  <div className="text-center">
+                    <div className="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <Target className="w-8 h-8 text-blue-600" />
+                    </div>
+                    <h3 className="font-semibold text-lg mb-2">1. Access POS Dashboard</h3>
+                    <p className="text-muted-foreground text-sm">
+                      Navigate to your POS dashboard and access the customer verification section with built-in QR scanner functionality.
+                    </p>
+                  </div>
+
+                  <div className="text-center">
+                    <div className="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <Camera className="w-8 h-8 text-green-600" />
+                    </div>
+                    <h3 className="font-semibold text-lg mb-2">2. Scan Customer QR Code</h3>
+                    <p className="text-muted-foreground text-sm">
+                      Use camera scanning, image upload, or manual input to process customer membership QR codes. Multiple input methods ensure flexibility.
+                    </p>
+                  </div>
+
+                  <div className="text-center">
+                    <div className="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <CheckCircle className="w-8 h-8 text-purple-600" />
+                    </div>
+                    <h3 className="font-semibold text-lg mb-2">3. View Customer Details</h3>
+                    <p className="text-muted-foreground text-sm">
+                      Customer profile appears instantly with membership level, contact details, savings history, and verification status for personalized service.
+                    </p>
+                  </div>
+                </div>
+
+                <Separator className="my-6" />
+
+                <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-lg p-6">
+                  <h4 className="font-semibold text-lg mb-3 flex items-center gap-2">
+                    <Star className="w-5 h-5 text-green-500" />
+                    QR Scanner Features
+                  </h4>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div className="flex items-start gap-3">
+                      <CheckCircle className="w-5 h-5 text-green-500 mt-0.5" />
+                      <div>
+                        <p className="font-medium">Multi-Modal Scanning</p>
+                        <p className="text-sm text-muted-foreground">Camera, image upload, or manual QR data entry options</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <CheckCircle className="w-5 h-5 text-green-500 mt-0.5" />
+                      <div>
+                        <p className="font-medium">Instant Verification</p>
+                        <p className="text-sm text-muted-foreground">Customer data appears immediately after successful scan</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <CheckCircle className="w-5 h-5 text-green-500 mt-0.5" />
+                      <div>
+                        <p className="font-medium">Complete Customer Profile</p>
+                        <p className="text-sm text-muted-foreground">Name, email, phone, membership level, and total savings</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <CheckCircle className="w-5 h-5 text-green-500 mt-0.5" />
+                      <div>
+                        <p className="font-medium">Security Validation</p>
+                        <p className="text-sm text-muted-foreground">24-hour token validation prevents QR code misuse</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* PIN Verification Backup Section */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Store className="w-5 h-5 text-orange-600" />
+                  PIN Verification Backup (When QR Not Available)
                 </CardTitle>
               </CardHeader>
               <CardContent>

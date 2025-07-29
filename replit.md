@@ -140,6 +140,18 @@ Preferred communication style: Simple, everyday language.
 - **Multi-Modal QR Scanning**: Supports camera scanning, image upload, and manual QR data entry for maximum vendor flexibility
 - **Database Constraint Fix**: Resolved foreign key constraint issues in promotional banner analytics for smooth banner management
 
+### July 29, 2025 - Comprehensive Tutorial Updates with QR Code System Integration
+- **Updated Tutorial Components**: Enhanced main tutorial component with comprehensive QR code functionality for both customer and vendor users
+- **Customer Tutorial Enhancement**: Added detailed QR code generation and usage steps to customer tutorial with security token explanations
+- **Vendor Tutorial Enhancement**: Updated vendor tutorial with complete QR scanner system instructions including POS dashboard integration
+- **PIN Verification Tutorial Overhaul**: Completely updated PIN verification tutorial to prioritize QR code system with PIN as backup method
+- **QR Code Benefits Documentation**: Added comprehensive benefits sections explaining instant verification, 24-hour security, and complete customer data
+- **Multi-Modal Scanner Instructions**: Documented camera scanning, image upload, and manual QR data entry options for vendors
+- **Security Documentation**: Enhanced tutorials with QR code security validation, token expiry, and fraud prevention explanations
+- **Tutorial Restructuring**: Reorganized tutorials to present QR code system as primary method with PIN verification as backup option
+- **Enhanced User Education**: Improved tutorial flow to educate users on modern QR-based verification while maintaining PIN compatibility
+- **Complete Workflow Documentation**: Added end-to-end QR code workflow from customer generation to vendor scanning and transaction processing
+
 ### July 29, 2025 - Theme-Aware Banner Background System
 - **Complete Background Integration**: Banner backgrounds now perfectly match the app's theme using CSS variables (--background, --foreground)
 - **Automatic Light/Dark Mode**: Background colors automatically adapt to light and dark themes without manual overrides

@@ -28,7 +28,11 @@ import {
   Gift,
   CreditCard,
   Bell,
-  Shield
+  Shield,
+  QrCode,
+  Scan,
+  Camera,
+  Lock
 } from "lucide-react";
 
 interface TutorialStep {
@@ -93,30 +97,46 @@ export default function Tutorial({ type, onComplete }: TutorialProps) {
     },
     {
       id: 6,
-      title: "Visit Store & Verify PIN",
-      description: "Complete your deal redemption in-store",
-      icon: Shield,
-      content: "Take your claimed deal to the vendor's store. Ask the vendor for their 4-digit verification PIN, then enter it in the app to verify your purchase. This works even without internet!",
-      action: "Learn PIN Process"
+      title: "Generate Your QR Code",
+      description: "Get your digital membership QR code",
+      icon: Target,
+      content: "Access your membership card from the dashboard to generate your personal QR code. This QR code contains your complete customer data including membership level, savings history, and verification tokens with 24-hour validity.",
+      action: "View Membership Card"
     },
     {
       id: 7,
-      title: "Add Your Bill Amount",
-      description: "Calculate exact savings from your purchase",
-      icon: Calculator,
-      content: "After PIN verification, you can enter your actual bill amount to see your precise savings. This helps track your real spending and gives you accurate insights into your deal benefits.",
-      action: "Try Bill Entry"
+      title: "Visit Store & Show QR Code",
+      description: "Present your QR code for instant verification",
+      icon: Shield,
+      content: "Visit the vendor's store and show your membership QR code at checkout. The vendor can scan it with their POS system for instant customer verification and deal redemption. No internet needed for basic PIN verification!",
+      action: "Learn QR Process"
     },
     {
       id: 8,
-      title: "Track Your Savings",
-      description: "Monitor your deals and savings dashboard",
-      icon: BarChart3,
-      content: "View your claimed deals, total savings, and deal history in your dashboard. Track which deals are pending, completed, and see your overall savings progress.",
-      action: "View Dashboard"
+      title: "PIN Verification Backup",
+      description: "Alternative verification without QR code",
+      icon: Lock,
+      content: "If QR scanning isn't available, you can still use PIN verification. Ask the vendor for their 4-digit verification PIN, then enter it in the app to verify your purchase. This works even without internet!",
+      action: "Learn PIN Process"
     },
     {
       id: 9,
+      title: "Add Your Bill Amount",
+      description: "Calculate exact savings from your purchase",
+      icon: Calculator,
+      content: "After verification (QR or PIN), you can enter your actual bill amount to see your precise savings. This helps track your real spending and gives you accurate insights into your deal benefits.",
+      action: "Try Bill Entry"
+    },
+    {
+      id: 10,
+      title: "Track Your Savings",
+      description: "Monitor your deals and savings dashboard",
+      icon: BarChart3,
+      content: "View your claimed deals, total savings, and deal history in your dashboard. Track which deals are pending, completed, and see your overall savings progress with QR code usage analytics.",
+      action: "View Dashboard"
+    },
+    {
+      id: 11,
       title: "Save Favorites",
       description: "Heart icon to save deals for later",
       icon: Heart,
@@ -124,7 +144,7 @@ export default function Tutorial({ type, onComplete }: TutorialProps) {
       action: "Save a Deal"
     },
     {
-      id: 8,
+      id: 12,
       title: "Location-Based Deals",
       description: "Find deals near you",
       icon: MapPin,
@@ -132,7 +152,7 @@ export default function Tutorial({ type, onComplete }: TutorialProps) {
       action: "Set Location"
     },
     {
-      id: 9,
+      id: 13,
       title: "Get Support",
       description: "Help is always available",
       icon: HelpCircle,
@@ -176,38 +196,62 @@ export default function Tutorial({ type, onComplete }: TutorialProps) {
     },
     {
       id: 5,
-      title: "PIN Verification Process",
-      description: "Help customers complete deal redemption",
+      title: "POS System Integration",
+      description: "Use the Point of Sale system for transactions",
+      icon: Target,
+      content: "Access your POS dashboard to manage in-store transactions. Start a POS session, scan customer QR codes, and process deal redemptions directly through the integrated system.",
+      action: "Learn POS System"
+    },
+    {
+      id: 6,
+      title: "QR Code Scanner",
+      description: "Scan customer membership QR codes",
+      icon: Eye,
+      content: "Use the built-in QR scanner to instantly verify customers. Scan their membership QR codes using camera, upload images, or enter data manually. Customer details appear immediately with membership status and savings history.",
+      action: "Try QR Scanner"
+    },
+    {
+      id: 7,
+      title: "Customer Verification",
+      description: "Verify customers and process transactions",
       icon: Shield,
-      content: "When customers visit your store with claimed deals, they'll ask for the 4-digit PIN. Give them the PIN so they can verify their purchase in the app. This confirms the sale and updates both your analytics and their savings.",
+      content: "When customers show their QR codes, scan them to see complete customer profiles including membership level, contact details, and total savings. This enables personalized service and secure deal redemption.",
+      action: "Learn Verification"
+    },
+    {
+      id: 8,
+      title: "PIN Verification Backup",
+      description: "Alternative verification without QR scanner",
+      icon: Lock,
+      content: "If QR scanning isn't available, use PIN verification as backup. Give customers the 4-digit PIN so they can verify their purchase in the app. This confirms the sale and works offline.",
       action: "Learn PIN Process"
     },
     {
-      id: 6,
-      title: "Bill Amount Tracking",
-      description: "Customers can add actual purchase amounts",
+      id: 9,
+      title: "Transaction Processing",
+      description: "Complete deals through POS system",
       icon: Calculator,
-      content: "After PIN verification, customers can enter their actual bill amount to calculate precise savings. This gives them better insights and helps track real spending patterns versus estimated savings.",
-      action: "Learn Bill Tracking"
+      content: "Process verified customer transactions through the POS system. Track bill amounts, payment methods, and automatic savings calculations with receipt generation and inventory management.",
+      action: "Learn Transactions"
     },
     {
-      id: 7,
+      id: 10,
       title: "Deal Management",
       description: "Edit, activate, and monitor your deals",
-      icon: Target,
-      content: "Manage all your deals from the dashboard. Edit details, activate/deactivate deals, set redemption limits, and monitor which offers perform best.",
+      icon: Plus,
+      content: "Manage all your deals from the dashboard. Edit details, activate/deactivate deals, set redemption limits, and monitor which offers perform best with QR code usage analytics.",
       action: "Manage Deals"
     },
     {
-      id: 6,
+      id: 11,
       title: "Analytics Dashboard",
-      description: "Track performance and insights",
+      description: "Track performance and QR code insights",
       icon: BarChart3,
-      content: "View detailed analytics about your deals including views, claims, conversion rates, and revenue. Use these insights to optimize future offers.",
+      content: "View detailed analytics about your deals including views, claims, QR code scans, conversion rates, and revenue. Track customer verification methods and optimize future offers.",
       action: "View Analytics"
     },
     {
-      id: 7,
+      id: 12,
       title: "Approval Process",
       description: "Admin review ensures quality",
       icon: CheckCircle,
@@ -215,7 +259,7 @@ export default function Tutorial({ type, onComplete }: TutorialProps) {
       action: "Check Status"
     },
     {
-      id: 8,
+      id: 13,
       title: "Customer Notifications",
       description: "Reach customers with promotions",
       icon: Bell,
