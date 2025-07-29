@@ -66,6 +66,8 @@ interface ClaimResponse {
   userId: number;
   savingsAmount: string;
   claimedAt: string;
+  claimCode: string;
+  codeExpiresAt: string;
 }
 
 const DealList = () => {
@@ -80,6 +82,7 @@ const DealList = () => {
   const [selectedCity, setSelectedCity] = useState<string>('all');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [sortBy, setSortBy] = useState<string>('newest');
+  const [claimCodes, setClaimCodes] = useState<Record<number, string>>({});
   const [location, setLocation] = useLocation();
   const { toast } = useToast();
   const { isAuthenticated } = useAuth();
@@ -123,7 +126,7 @@ const DealList = () => {
   });
 
   // Fetch user claims to check which deals have been claimed (only for authenticated users)
-  const { data: userClaims = [], isLoading: isLoadingClaims } = useQuery<Array<{id: number, dealId: number, status: string}>>({
+  const { data: userClaims = [], isLoading: isLoadingClaims } = useQuery<Array<{id: number, dealId: number, status: string, claimCode?: string, vendorVerified?: boolean}>>({
     queryKey: ['/api/users/claims'],
     enabled: isAuthenticated, // Only fetch when user is authenticated
     staleTime: 0, // Always fetch fresh data for claims
@@ -138,6 +141,36 @@ const DealList = () => {
     if (isNaN(amount) || amount <= 0) return 0;
     return (amount * discountPercentage) / 100;
   };
+
+  // New claim deal with code mutation (corrected system)
+  const claimDealMutation = useMutation({
+    mutationFn: async (dealId: number): Promise<ClaimResponse> => {
+      return apiRequest(`/api/deals/${dealId}/claim-with-code`, 'POST', {});
+    },
+    onSuccess: (data, dealId) => {
+      // Store the claim code for this deal
+      setClaimCodes(prev => ({
+        ...prev,
+        [dealId]: data.claimCode
+      }));
+
+      toast({
+        title: "Deal Claimed Successfully! 🎉",
+        description: `Your claim code is ${data.claimCode}. Show this code at the store.`,
+        variant: "default",
+      });
+      
+      // Refresh user claims to update UI
+      queryClient.invalidateQueries({ queryKey: ["/api/users/claims"] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Claim Failed",
+        description: "Failed to claim deal. Please try again.",
+        variant: "destructive",
+      });
+    }
+  });
 
   // Update bill amount mutation
   const updateBillMutation = useMutation({
@@ -448,24 +481,26 @@ const DealList = () => {
                         <Button
                           onClick={(e) => {
                             e.stopPropagation();
-                            setPinDialogDeal({
-                              ...deal,
-                              id: deal.originalDealId || deal.id // Use original deal ID for PIN verification
-                            });
-                            setShowPinDialog(true);
+                            const dealIdForClaim = deal.originalDealId || deal.id;
+                            claimDealMutation.mutate(dealIdForClaim);
                           }}
-                          disabled={!canClaim}
+                          disabled={!canClaim || claimDealMutation.isPending}
                           className="w-full bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white font-semibold py-2 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 text-sm"
                           size="sm"
                         >
-                          {!canClaim ? (
+                          {claimDealMutation.isPending ? (
+                            <>
+                              <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                              Claiming...
+                            </>
+                          ) : !canClaim ? (
                             isExpired ? "⏰ Expired" : 
                             isLimitReached ? "🚫 Limit Reached" : 
                             "❌ Unavailable"
                           ) : (
                             <>
-                              <Shield className="h-3 w-3 mr-1" />
-                              Verify with PIN
+                              <Gift className="h-3 w-3 mr-1" />
+                              Claim Deal
                             </>
                           )}
                         </Button>
@@ -475,11 +510,30 @@ const DealList = () => {
                         <div className="text-center text-sm text-green-600 dark:text-green-400 font-medium bg-green-50 dark:bg-green-900/30 rounded-lg py-2">
                           ✅ Deal Claimed
                         </div>
-                        {userClaim?.status === 'pending' && (
-                          <div className="text-center text-sm text-amber-600 dark:text-amber-400 font-medium bg-amber-50 dark:bg-amber-900/30 rounded-lg py-2">
-                            📍 Visit store to verify PIN
+                        
+                        {/* Show claim code if available */}
+                        {(claimCodes[deal.originalDealId || deal.id] || userClaim?.claimCode) && (
+                          <div className="bg-blue-50 dark:bg-blue-900/30 rounded-lg p-3 border border-blue-200 dark:border-blue-800">
+                            <div className="text-center">
+                              <div className="text-xs text-blue-600 dark:text-blue-400 font-medium mb-1">
+                                Your Claim Code
+                              </div>
+                              <div className="text-lg font-bold text-blue-800 dark:text-blue-300 tracking-wider">
+                                {claimCodes[deal.originalDealId || deal.id] || userClaim?.claimCode}
+                              </div>
+                              <div className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+                                Show this code at the store
+                              </div>
+                            </div>
                           </div>
                         )}
+                        
+                        {userClaim?.status === 'claimed' && !userClaim?.vendorVerified && (
+                          <div className="text-center text-sm text-amber-600 dark:text-amber-400 font-medium bg-amber-50 dark:bg-amber-900/30 rounded-lg py-2">
+                            📍 Visit store with your claim code
+                          </div>
+                        )}
+                        
                         {showBillAmountButton && (
                           <Button
                             onClick={(e) => {
