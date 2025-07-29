@@ -30,6 +30,8 @@ export function PromotionalLaunchBanner({
   socialMediaLinks = {}
 }: PromotionalLaunchBannerProps) {
   const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
+  const [isVideoLoading, setIsVideoLoading] = useState(true);
+  const [videoError, setVideoError] = useState(false);
 
   // Function to convert YouTube URL to embed format with autoplay
   const getEmbedUrl = (url: string): string => {
@@ -63,7 +65,7 @@ export function PromotionalLaunchBanner({
     window.open('https://instoredealz.com', '_blank');
   };
 
-  // Single Video Component with variant-specific sizing
+  // Professional Video Component with loading states and error handling
   const VideoPlayer = ({ embedded = false, variant: videoVariant = variant }: { embedded?: boolean; variant?: 'hero' | 'compact' | 'video' }) => {
     if (!videoUrl) return null;
     
@@ -71,16 +73,44 @@ export function PromotionalLaunchBanner({
     
     // Define video container classes based on banner variant
     const getVideoContainerClass = () => {
+      const baseClass = 'banner-video-container';
+      const loadingClass = isVideoLoading ? 'loading' : '';
+      
       switch (videoVariant) {
         case 'compact':
-          return 'banner-video-container banner-video-compact';
+          return `${baseClass} banner-video-compact ${loadingClass}`;
         case 'video':
-          return 'banner-video-container banner-video-video';
+          return `${baseClass} banner-video-video ${loadingClass}`;
         case 'hero':
         default:
-          return 'banner-video-container banner-video-hero';
+          return `${baseClass} banner-video-hero ${loadingClass}`;
       }
     };
+
+    const handleVideoLoad = () => {
+      setIsVideoLoading(false);
+      setVideoError(false);
+    };
+
+    const handleVideoError = () => {
+      setIsVideoLoading(false);
+      setVideoError(true);
+    };
+
+    if (videoError) {
+      return (
+        <div className={`${embedded ? 'bg-black/20 rounded-lg overflow-hidden' : ''}`}>
+          <div className="banner-video-container banner-video-hero bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+            <div className="text-center space-y-2">
+              <div className="text-gray-500 dark:text-gray-400">
+                <Play className="h-12 w-12 mx-auto mb-2" />
+                <p className="text-sm">Video temporarily unavailable</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
 
     return (
       <div className={`${embedded ? 'bg-black/20 rounded-lg overflow-hidden' : ''}`}>
@@ -91,6 +121,9 @@ export function PromotionalLaunchBanner({
             frameBorder="0"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowFullScreen
+            onLoad={handleVideoLoad}
+            onError={handleVideoError}
+            style={{ opacity: isVideoLoading ? 0 : 1, transition: 'opacity 0.3s ease' }}
           />
         </div>
       </div>

@@ -886,12 +886,15 @@ body[data-non-blocking-modal-open] {
   border-radius: 0;
 }
 
-/* Banner video responsiveness - Full screen width */
+/* Professional Advertisement Video Display */
 .banner-video-container {
   position: relative;
   width: 100%;
   height: 0;
   overflow: hidden;
+  background: rgba(0, 0, 0, 0.1); /* Professional backdrop */
+  border-radius: 8px; /* Subtle rounding for professionalism */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); /* Professional shadow */
 }
 
 .banner-video-container iframe {
@@ -900,83 +903,129 @@ body[data-non-blocking-modal-open] {
   left: 0;
   width: 100%;
   height: 100%;
-  border-radius: 0;
+  border-radius: 8px; /* Match container rounding */
+  border: none;
+  background: #000; /* Prevent white flash during load */
 }
 
-/* Full-width variant-specific video sizing */
+/* Professional AD Display - Optimized for vendor advertisements */
 .banner-video-compact {
-  padding-bottom: 30%; /* Better aspect ratio for full width */
-  min-height: 200px;
-  max-height: 300px;
+  padding-bottom: 25%; /* Professional compact ad ratio */
+  min-height: 180px;
+  max-height: 280px;
 }
 
 .banner-video-hero {
-  padding-bottom: 40%; /* Hero banner takes more vertical space */
-  min-height: 300px;
-  max-height: 450px;
+  padding-bottom: 35%; /* Professional hero ad ratio */
+  min-height: 280px;
+  max-height: 420px;
 }
 
 .banner-video-video {
-  padding-bottom: 50%; /* Video-focused banner */
-  min-height: 400px;
-  max-height: 600px;
+  padding-bottom: 45%; /* Professional video ad ratio */
+  min-height: 380px;
+  max-height: 560px;
 }
 
 @media (min-width: 640px) {
   .banner-video-compact {
-    padding-bottom: 25%;
-    min-height: 250px;
-    max-height: 350px;
+    padding-bottom: 22%; /* Tablet optimized for ads */
+    min-height: 220px;
+    max-height: 320px;
   }
   
   .banner-video-hero {
-    padding-bottom: 35%;
-    min-height: 350px;
-    max-height: 500px;
+    padding-bottom: 30%; /* Tablet hero ad display */
+    min-height: 320px;
+    max-height: 450px;
   }
   
   .banner-video-video {
-    padding-bottom: 45%;
-    min-height: 450px;
-    max-height: 650px;
+    padding-bottom: 40%; /* Tablet video ad focus */
+    min-height: 420px;
+    max-height: 580px;
   }
 }
 
 @media (min-width: 1024px) {
   .banner-video-compact {
-    padding-bottom: 20%;
-    min-height: 300px;
-    max-height: 400px;
+    padding-bottom: 18%; /* Desktop compact ad ratio */
+    min-height: 280px;
+    max-height: 380px;
   }
   
   .banner-video-hero {
-    padding-bottom: 30%;
-    min-height: 400px;
-    max-height: 550px;
+    padding-bottom: 25%; /* Desktop hero ad optimal */
+    min-height: 380px;
+    max-height: 520px;
   }
   
   .banner-video-video {
-    padding-bottom: 40%;
-    min-height: 500px;
-    max-height: 700px;
+    padding-bottom: 35%; /* Desktop video ad professional */
+    min-height: 480px;
+    max-height: 650px;
   }
 }
 
 @media (min-width: 1440px) {
   .banner-video-compact {
-    padding-bottom: 18%;
-    max-height: 450px;
+    padding-bottom: 16%; /* Large screen compact ad */
+    max-height: 420px;
   }
   
   .banner-video-hero {
-    padding-bottom: 25%;
-    max-height: 600px;
+    padding-bottom: 22%; /* Large screen hero ad */
+    max-height: 550px;
   }
   
   .banner-video-video {
-    padding-bottom: 35%;
-    max-height: 750px;
+    padding-bottom: 30%; /* Large screen video ad */
+    max-height: 680px;
   }
+}
+
+/* Professional Ad Display Enhancements */
+.banner-video-container:hover {
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+  transform: translateY(-1px);
+  transition: all 0.3s ease;
+}
+
+/* Dark mode professional video styling */
+.dark .banner-video-container {
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.dark .banner-video-container:hover {
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+}
+
+/* Professional loading state for ads */
+.banner-video-container::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-top: 3px solid #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  z-index: 1;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.banner-video-container.loading::before {
+  opacity: 1;
+}
+
+@keyframes spin {
+  0% { transform: translate(-50%, -50%) rotate(0deg); }
+  100% { transform: translate(-50%, -50%) rotate(360deg); }
 }
 
 /* Membership card gradient */
