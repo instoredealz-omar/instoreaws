@@ -112,6 +112,10 @@ export const dealClaims = pgTable("deal_claims", {
   status: text("status").default("claimed"), // claimed, used, expired, pending, completed
   billAmount: decimal("bill_amount", { precision: 10, scale: 2 }), // Total bill amount entered by customer
   actualSavings: decimal("actual_savings", { precision: 10, scale: 2 }), // Calculated savings based on bill amount
+  claimCode: text("claim_code").notNull(), // Unique 6-digit code generated when customer claims
+  codeExpiresAt: timestamp("code_expires_at"), // Claim code expiration (24 hours)
+  vendorVerified: boolean("vendor_verified").default(false), // Whether vendor verified the claim
+  verifiedAt: timestamp("verified_at"), // When vendor verified the claim
 });
 
 // Help tickets

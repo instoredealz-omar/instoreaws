@@ -4802,6 +4802,323 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ===============================
+  // CORRECTED CUSTOMER CLAIM CODE SYSTEM
+  // ===============================
+
+  // Generate unique claim code for customer
+  function generateClaimCode(): string {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let code = '';
+    for (let i = 0; i < 6; i++) {
+      code += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return code;
+  }
+
+  // Customer claims deal and gets unique claim code
+  app.post('/api/deals/:id/claim-with-code', requireAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const dealId = parseInt(req.params.id);
+      const userId = req.user!.id;
+
+      // Get deal details
+      const deal = await storage.getDeal(dealId);
+      if (!deal) {
+        return res.status(404).json({ 
+          success: false, 
+          error: "Deal not found" 
+        });
+      }
+
+      if (!deal.isActive || !deal.isApproved) {
+        return res.status(400).json({ 
+          success: false, 
+          error: "Deal is not active or approved" 
+        });
+      }
+
+      // Check if deal is expired
+      if (new Date() > new Date(deal.validUntil)) {
+        return res.status(400).json({ 
+          success: false, 
+          error: "Deal has expired" 
+        });
+      }
+
+      // Check redemption limits
+      if (deal.maxRedemptions && (deal.currentRedemptions || 0) >= deal.maxRedemptions) {
+        return res.status(400).json({
+          success: false,
+          error: "Deal has reached its redemption limit"
+        });
+      }
+
+      // Generate unique claim code
+      let claimCode: string;
+      let isUnique = false;
+      let attempts = 0;
+      
+      do {
+        claimCode = generateClaimCode();
+        // Check if code already exists (simplified check for demo)
+        const existingClaims = await storage.getUserClaims(userId);
+        isUnique = !existingClaims.some(claim => claim.claimCode === claimCode);
+        attempts++;
+      } while (!isUnique && attempts < 10);
+
+      if (!isUnique) {
+        return res.status(500).json({
+          success: false,
+          error: "Failed to generate unique claim code"
+        });
+      }
+
+      // Set expiration to 24 hours from now
+      const expiresAt = new Date();
+      expiresAt.setHours(expiresAt.getHours() + 24);
+
+      // Create claim with code
+      const claim = await storage.claimDeal({
+        dealId,
+        userId,
+        status: "claimed",
+        savingsAmount: "0",
+        claimCode,
+        codeExpiresAt: expiresAt,
+        vendorVerified: false
+      });
+
+      // Log the claim creation
+      await storage.createSystemLog({
+        userId,
+        action: "DEAL_CLAIMED_WITH_CODE",
+        details: {
+          dealId,
+          claimId: claim.id,
+          claimCode,
+          dealTitle: deal.title,
+          expiresAt: expiresAt.toISOString()
+        },
+        ipAddress: req.ip,
+        userAgent: req.headers['user-agent']
+      });
+
+      res.json({
+        success: true,
+        claimId: claim.id,
+        claimCode: claimCode,
+        dealTitle: deal.title,
+        discountPercentage: deal.discountPercentage,
+        expiresAt: expiresAt.toISOString(),
+        instructions: `Show this code at the store: ${claimCode}`,
+        message: "Deal claimed successfully! Show your claim code at the store to redeem."
+      });
+
+    } catch (error) {
+      Logger.error('Error claiming deal with code', error);
+      res.status(500).json({ 
+        success: false, 
+        error: 'Failed to claim deal' 
+      });
+    }
+  });
+
+  // Vendor verifies customer claim code
+  app.post('/api/pos/verify-claim-code', requireAuth, requireRole(['vendor']), async (req: AuthenticatedRequest, res) => {
+    try {
+      const { claimCode } = req.body;
+
+      if (!claimCode) {
+        return res.status(400).json({ 
+          success: false, 
+          error: "Claim code is required" 
+        });
+      }
+
+      // Get vendor info
+      const vendor = await storage.getVendorByUserId(req.user!.id);
+      if (!vendor) {
+        return res.status(404).json({ 
+          success: false, 
+          error: "Vendor not found" 
+        });
+      }
+
+      // Find claim by code
+      const allClaims = await storage.getAllDealClaims();
+      const claim = allClaims.find(c => c.claimCode === claimCode);
+
+      if (!claim) {
+        return res.status(404).json({ 
+          success: false, 
+          error: "Invalid claim code" 
+        });
+      }
+
+      // Check if code is expired
+      if (claim.codeExpiresAt && new Date() > new Date(claim.codeExpiresAt)) {
+        return res.status(400).json({ 
+          success: false, 
+          error: "Claim code has expired" 
+        });
+      }
+
+      // Check if already used
+      if (claim.vendorVerified) {
+        return res.status(400).json({ 
+          success: false, 
+          error: "Claim code has already been used" 
+        });
+      }
+
+      // Get deal and customer details
+      const deal = await storage.getDeal(claim.dealId);
+      const customer = await storage.getUser(claim.userId);
+
+      if (!deal || !customer) {
+        return res.status(404).json({ 
+          success: false, 
+          error: "Deal or customer not found" 
+        });
+      }
+
+      // Verify deal belongs to this vendor
+      if (deal.vendorId !== vendor.id) {
+        return res.status(403).json({ 
+          success: false, 
+          error: "This deal does not belong to your store" 
+        });
+      }
+
+      // Calculate potential savings
+      let maxDiscount = 0;
+      if (deal.originalPrice) {
+        const originalPrice = parseFloat(deal.originalPrice);
+        maxDiscount = Math.round((originalPrice * deal.discountPercentage) / 100);
+      }
+
+      res.json({
+        success: true,
+        valid: true,
+        claimId: claim.id,
+        customer: {
+          name: customer.name,
+          email: customer.email,
+          membershipPlan: customer.membershipPlan
+        },
+        deal: {
+          id: deal.id,
+          title: deal.title,
+          discountPercentage: deal.discountPercentage,
+          originalPrice: deal.originalPrice,
+          discountedPrice: deal.discountedPrice,
+          maxDiscount
+        },
+        claimCode,
+        claimedAt: claim.claimedAt,
+        expiresAt: claim.codeExpiresAt
+      });
+
+    } catch (error) {
+      Logger.error('Error verifying claim code', error);
+      res.status(500).json({ 
+        success: false, 
+        error: 'Failed to verify claim code' 
+      });
+    }
+  });
+
+  // Complete transaction with claim code
+  app.post('/api/pos/complete-claim-transaction', requireAuth, requireRole(['vendor']), async (req: AuthenticatedRequest, res) => {
+    try {
+      const { claimCode, billAmount, actualDiscount } = req.body;
+
+      if (!claimCode || !billAmount || !actualDiscount) {
+        return res.status(400).json({ 
+          success: false, 
+          error: "Claim code, bill amount, and actual discount are required" 
+        });
+      }
+
+      // Find and verify claim
+      const allClaims = await storage.getAllDealClaims();
+      const claim = allClaims.find(c => c.claimCode === claimCode);
+
+      if (!claim || claim.vendorVerified) {
+        return res.status(400).json({ 
+          success: false, 
+          error: "Invalid or already used claim code" 
+        });
+      }
+
+      // Get deal details
+      const deal = await storage.getDeal(claim.dealId);
+      if (!deal) {
+        return res.status(404).json({ 
+          success: false, 
+          error: "Deal not found" 
+        });
+      }
+
+      // Update claim as verified and used
+      await storage.updateDealClaim(claim.id, {
+        status: "used",
+        vendorVerified: true,
+        verifiedAt: new Date(),
+        usedAt: new Date(),
+        billAmount: billAmount.toString(),
+        actualSavings: actualDiscount.toString(),
+        savingsAmount: actualDiscount.toString()
+      });
+
+      // Update user's total savings
+      const customer = await storage.getUser(claim.userId);
+      if (customer) {
+        const newTotalSavings = parseFloat(customer.totalSavings || '0') + parseFloat(actualDiscount);
+        await storage.updateUserProfile(claim.userId, {
+          totalSavings: newTotalSavings.toString(),
+          dealsClaimed: (customer.dealsClaimed || 0) + 1
+        });
+      }
+
+      // Increment deal redemption count
+      await storage.incrementDealRedemptions(claim.dealId);
+
+      // Log the transaction completion
+      await storage.createSystemLog({
+        userId: req.user!.id,
+        action: "CLAIM_TRANSACTION_COMPLETED",
+        details: {
+          claimCode,
+          claimId: claim.id,
+          dealId: claim.dealId,
+          billAmount,
+          actualDiscount,
+          customerId: claim.userId
+        },
+        ipAddress: req.ip,
+        userAgent: req.headers['user-agent']
+      });
+
+      res.json({
+        success: true,
+        message: "Transaction completed successfully",
+        claimId: claim.id,
+        actualDiscount,
+        billAmount,
+        customerSavings: actualDiscount
+      });
+
+    } catch (error) {
+      Logger.error('Error completing claim transaction', error);
+      res.status(500).json({ 
+        success: false, 
+        error: 'Failed to complete transaction' 
+      });
+    }
+  });
+
+  // ===============================
   // VENDOR API INTEGRATION TEST ENDPOINTS
   // ===============================
 
