@@ -39,9 +39,12 @@ export const useAuth = create<AuthState>()(
 
       login: async (credential: string, password: string) => {
         try {
-          const response = await apiRequest('/api/auth/login', 'POST', {
-            credential,
-            password,
+          const response = await apiRequest('/api/auth/login', {
+            method: 'POST',
+            body: {
+              credential,
+              password,
+            },
           });
           
           const data = await response.json();
@@ -63,7 +66,10 @@ export const useAuth = create<AuthState>()(
 
       signup: async (userData: any) => {
         try {
-          const response = await apiRequest('/api/auth/signup', 'POST', userData);
+          const response = await apiRequest('/api/auth/signup', {
+            method: 'POST',
+            body: userData,
+          });
           
           const data = await response.json();
           
