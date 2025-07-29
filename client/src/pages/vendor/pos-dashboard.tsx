@@ -22,7 +22,8 @@ import {
   Scan,
   Calculator,
   UserCheck,
-  QrCode
+  QrCode,
+  Loader2
 } from "lucide-react";
 interface Deal {
   id: number;
@@ -206,7 +207,11 @@ export default function PosDashboard() {
     },
     onSuccess: (data, variables) => {
       if (data.valid) {
-        addDealToCart(deals.find(d => d.id === variables.dealId)!, variables.pin);
+        const dealsArray = Array.isArray(deals) ? deals : [];
+        const foundDeal = dealsArray.find(d => d.id === variables.dealId);
+        if (foundDeal) {
+          addDealToCart(foundDeal, variables.pin);
+        }
         setPinInput('');
         toast({
           title: "PIN Verified",
@@ -219,6 +224,55 @@ export default function PosDashboard() {
           variant: "destructive",
         });
       }
+    },
+  });
+
+  // Verify Claim Code mutation
+  const verifyClaimCodeMutation = useMutation({
+    mutationFn: async (claimCode: string) => {
+      const response = await apiRequest('/api/pos/verify-claim-code', {
+        method: 'POST',
+        body: { claimCode },
+      });
+      return await response.json();
+    },
+    onSuccess: (data) => {
+      if (data.success && data.valid) {
+        // Create a temporary deal object from the claim data
+        const claimDeal = {
+          id: data.deal.id,
+          title: data.deal.title,
+          description: `Claimed deal - ${data.deal.title}`,
+          category: 'claimed',
+          discountPercentage: data.deal.discountPercentage,
+          originalPrice: data.deal.originalPrice,
+          discountedPrice: data.deal.discountedPrice,
+          verificationPin: pinInput,
+          isActive: true,
+          isApproved: true,
+        };
+        
+        addDealToCart(claimDeal, pinInput);
+        setPinInput('');
+        
+        toast({
+          title: "Claim Code Verified",
+          description: `${data.customer.name}'s claim for "${data.deal.title}" verified`,
+        });
+      } else {
+        toast({
+          title: "Invalid Claim Code",
+          description: data.error || "Please check the claim code and try again",
+          variant: "destructive",
+        });
+      }
+    },
+    onError: (error) => {
+      toast({
+        title: "Verification Failed",
+        description: "Failed to verify claim code. Please try again.",
+        variant: "destructive",
+      });
     },
   });
 
@@ -467,52 +521,45 @@ export default function PosDashboard() {
           </CardContent>
         </Card>
 
-        {/* PIN Scanner */}
+        {/* Claim Code Scanner */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Scan className="h-5 w-5" />
-              PIN Scanner
+              Claim Code Scanner
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <Label htmlFor="pinInput">Enter Deal PIN</Label>
+              <Label htmlFor="pinInput">Enter Customer Claim Code</Label>
               <Input
                 id="pinInput"
                 value={pinInput}
-                onChange={(e) => setPinInput(e.target.value)}
+                onChange={(e) => setPinInput(e.target.value.toUpperCase())}
                 disabled={!posState.activeSession}
-                placeholder="6-character code"
+                placeholder="6-character code (e.g., ABC123)"
                 maxLength={6}
                 pattern="[A-Za-z0-9]*"
                 inputMode="text"
-                style={{ textTransform: 'uppercase' }}
               />
             </div>
             
             <Button 
               onClick={() => {
-                if (pinInput.length === 4) {
-                  // Find deal by PIN and add to cart
-                  const deal = deals.find(d => d.verificationPin === pinInput);
-                  if (deal) {
-                    addDealToCart(deal, pinInput);
-                    setPinInput('');
-                  } else {
-                    toast({
-                      title: "Invalid PIN",
-                      description: "No deal found with this PIN",
-                      variant: "destructive",
-                    });
-                  }
+                if (pinInput.length === 6) {
+                  // Verify customer claim code
+                  verifyClaimCodeMutation.mutate(pinInput);
                 }
               }}
-              disabled={!posState.activeSession || pinInput.length !== 4}
+              disabled={!posState.activeSession || pinInput.length !== 6 || verifyClaimCodeMutation.isPending}
               className="w-full"
             >
-              <Scan className="h-4 w-4 mr-2" />
-              Scan PIN
+              {verifyClaimCodeMutation.isPending ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Scan className="h-4 w-4 mr-2" />
+              )}
+              Verify Claim Code
             </Button>
           </CardContent>
         </Card>
