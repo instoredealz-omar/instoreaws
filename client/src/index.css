@@ -892,10 +892,10 @@ body[data-non-blocking-modal-open] {
   width: 100%;
   height: 0;
   overflow: hidden;
-  background: #000; /* Black background to match video letterboxing */
+  background: #000; /* Default black background */
   border-radius: 8px; /* Subtle rounding for professionalism */
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); /* Professional shadow */
-  transition: background-color 0.3s ease; /* Smooth background transitions */
+  transition: background 0.3s ease; /* Smooth background transitions */
 }
 
 .banner-video-container iframe {
@@ -1001,15 +1001,15 @@ body[data-non-blocking-modal-open] {
 
 /* Video color matching backgrounds */
 .banner-video-container.video-default {
-  background: #000; /* Standard video black for seamless letterboxing */
+  background: #000 !important; /* Standard video black for seamless letterboxing */
 }
 
 .banner-video-container.video-colorful {
-  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%); /* For colorful/vibrant ads */
+  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%) !important; /* For colorful/vibrant ads */
 }
 
 .banner-video-container.video-bright {
-  background: #f8f9fa; /* For bright/white background videos */
+  background: #f8f9fa !important; /* For bright/white background videos */
 }
 
 /* Dark mode video background adjustments */
@@ -1027,19 +1027,19 @@ body[data-non-blocking-modal-open] {
 
 /* Enhanced video color matching with brand colors */
 .banner-video-container.video-brand {
-  background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--royal)) 100%);
+  background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--royal)) 100%) !important;
 }
 
 .banner-video-container.video-corporate {
-  background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%); /* Professional corporate look */
+  background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%) !important; /* Professional corporate look */
 }
 
 .banner-video-container.video-warm {
-  background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%); /* Warm advertising colors */
+  background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%) !important; /* Warm advertising colors */
 }
 
 .dark .banner-video-container.video-warm {
-  background: linear-gradient(135deg, #cc4a1a 0%, #d4761a 100%); /* Darker warm colors for dark mode */
+  background: linear-gradient(135deg, #cc4a1a 0%, #d4761a 100%) !important; /* Darker warm colors for dark mode */
 }
 
 .dark .banner-video-container:hover {

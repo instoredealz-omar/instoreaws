@@ -78,13 +78,13 @@ export function PromotionalLaunchBanner({
         const bgType = detectVideoBackgroundType(videoUrl);
         setVideoBackgroundType(bgType);
       }
-    }, [videoUrl]);
+    }, [videoUrl, title]);
     
     // Define video container classes based on banner variant and background type
     const getVideoContainerClass = () => {
       const baseClass = 'banner-video-container';
       const loadingClass = isVideoLoading ? 'loading' : '';
-      const backgroundClass = !isVideoLoading ? `video-${videoBackgroundType}` : '';
+      const backgroundClass = `video-${videoBackgroundType}`;
       
       switch (videoVariant) {
         case 'compact':
