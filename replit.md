@@ -115,7 +115,11 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
-### July 28, 2025 - Enhanced Admin Analytics Dashboard & Navigation Improvements
+### July 28, 2025 - Full-Width Banner System & Enhanced Admin Analytics
+- **Full-Width Border-to-Border Banners**: Redesigned promotional banners to display edge-to-edge across the entire screen width for maximum visual impact
+- **Enhanced Video Display**: Videos now scale to fit the complete screen width with responsive aspect ratios optimized for different device sizes
+- **Responsive Video Sizing**: Implemented variant-specific video dimensions (compact: 30%, hero: 40%, video: 50% aspect ratios) with device breakpoints
+- **Container-Based Layout**: Added proper container constraints within full-width banners to maintain content readability while maximizing visual presence
 - **Comprehensive Analytics Dashboard**: Implemented detailed promotional banner analytics with real-time performance metrics, colorful stat cards, and visual progress indicators
 - **Performance Overview**: Added total views, clicks, and average CTR calculations with color-coded metrics for better data visualization
 - **Detailed Performance Breakdown**: Created visual progress bars showing relative performance between banners with direct and social click breakdowns

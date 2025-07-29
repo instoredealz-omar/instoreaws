@@ -874,7 +874,19 @@ body[data-non-blocking-modal-open] {
   animation: flash-peacock 2s ease-in-out infinite;
 }
 
-/* Banner video responsiveness */
+/* Full-width border-to-border banner styles */
+.banner-full-width {
+  width: 100vw;
+  position: relative;
+  left: 50%;
+  right: 50%;
+  margin-left: -50vw;
+  margin-right: -50vw;
+  padding: 0;
+  border-radius: 0;
+}
+
+/* Banner video responsiveness - Full screen width */
 .banner-video-container {
   position: relative;
   width: 100%;
@@ -888,52 +900,82 @@ body[data-non-blocking-modal-open] {
   left: 0;
   width: 100%;
   height: 100%;
-  border-radius: 0.5rem;
+  border-radius: 0;
 }
 
-/* Variant-specific video sizing */
+/* Full-width variant-specific video sizing */
 .banner-video-compact {
-  padding-bottom: 25%; /* 4:1 aspect ratio for compact */
-  max-height: 160px;
+  padding-bottom: 30%; /* Better aspect ratio for full width */
+  min-height: 200px;
+  max-height: 300px;
 }
 
 .banner-video-hero {
-  padding-bottom: 35%; /* More balanced ratio for hero */
-  max-height: 240px;
+  padding-bottom: 40%; /* Hero banner takes more vertical space */
+  min-height: 300px;
+  max-height: 450px;
 }
 
 .banner-video-video {
-  padding-bottom: 45%; /* Larger video focus */
-  max-height: 320px;
+  padding-bottom: 50%; /* Video-focused banner */
+  min-height: 400px;
+  max-height: 600px;
 }
 
 @media (min-width: 640px) {
   .banner-video-compact {
-    max-height: 180px;
+    padding-bottom: 25%;
+    min-height: 250px;
+    max-height: 350px;
   }
   
   .banner-video-hero {
-    max-height: 280px;
+    padding-bottom: 35%;
+    min-height: 350px;
+    max-height: 500px;
   }
   
   .banner-video-video {
-    max-height: 360px;
+    padding-bottom: 45%;
+    min-height: 450px;
+    max-height: 650px;
   }
 }
 
 @media (min-width: 1024px) {
   .banner-video-compact {
-    max-height: 200px;
+    padding-bottom: 20%;
+    min-height: 300px;
+    max-height: 400px;
   }
   
   .banner-video-hero {
-    padding-bottom: 40%;
-    max-height: 320px;
+    padding-bottom: 30%;
+    min-height: 400px;
+    max-height: 550px;
   }
   
   .banner-video-video {
-    padding-bottom: 50%;
-    max-height: 400px;
+    padding-bottom: 40%;
+    min-height: 500px;
+    max-height: 700px;
+  }
+}
+
+@media (min-width: 1440px) {
+  .banner-video-compact {
+    padding-bottom: 18%;
+    max-height: 450px;
+  }
+  
+  .banner-video-hero {
+    padding-bottom: 25%;
+    max-height: 600px;
+  }
+  
+  .banner-video-video {
+    padding-bottom: 35%;
+    max-height: 750px;
   }
 }
 

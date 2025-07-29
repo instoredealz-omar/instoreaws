@@ -99,8 +99,8 @@ export function PromotionalLaunchBanner({
 
   if (variant === 'compact') {
     return (
-      <div className={`bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg banner-responsive text-white shadow-lg ${className}`}>
-        <div className="space-y-4">
+      <div className={`bg-gradient-to-r from-blue-600 to-purple-600 banner-full-width text-white shadow-lg ${className}`}>
+        <div className="px-4 py-6 space-y-4 container mx-auto">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
             <div className="flex items-center space-x-3 text-center sm:text-left">
               <Rocket className="h-5 w-5 sm:h-6 sm:w-6 animate-pulse" />
@@ -109,7 +109,6 @@ export function PromotionalLaunchBanner({
                 <p className="text-xs sm:text-sm opacity-90">{description}</p>
               </div>
             </div>
-
           </div>
           
           {/* Single embedded video for compact variant */}
@@ -123,8 +122,8 @@ export function PromotionalLaunchBanner({
 
   if (variant === 'video') {
     return (
-      <div className={`bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg banner-responsive text-white shadow-lg ${className}`}>
-        <div className="text-center space-y-4">
+      <div className={`bg-gradient-to-r from-blue-600 to-purple-600 banner-full-width text-white shadow-lg ${className}`}>
+        <div className="px-4 py-8 text-center space-y-4 container mx-auto">
           <div className="flex items-center justify-center space-x-2">
             <Rocket className="h-6 w-6 animate-pulse" />
             <h2 className="text-xl sm:text-2xl font-bold">{title}</h2>
@@ -155,8 +154,8 @@ export function PromotionalLaunchBanner({
 
   // Hero variant (default)
   return (
-    <div className={`bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg banner-responsive text-white shadow-lg ${className}`}>
-      <div className="text-center space-y-6">
+    <div className={`bg-gradient-to-r from-blue-600 to-purple-600 banner-full-width text-white shadow-lg ${className}`}>
+      <div className="px-4 py-12 text-center space-y-6 container mx-auto">
         <div className="space-y-4">
           <div className="flex items-center justify-center space-x-3">
             <Rocket className="h-8 w-8 sm:h-10 sm:w-10 animate-pulse" />
