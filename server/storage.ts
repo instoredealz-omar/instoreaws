@@ -975,9 +975,17 @@ export class MemStorage implements IStorage {
       claimedAt: new Date(),
       billAmount: insertClaim.billAmount ?? null,
       actualSavings: insertClaim.actualSavings ?? null,
+      claimCode: insertClaim.claimCode || '',
+      codeExpiresAt: insertClaim.codeExpiresAt || null,
+      vendorVerified: insertClaim.vendorVerified || false,
+      verifiedAt: insertClaim.verifiedAt || null,
     };
     this.dealClaims.set(claim.id, claim);
     return claim;
+  }
+
+  async getAllDealClaims(): Promise<DealClaim[]> {
+    return Array.from(this.dealClaims.values());
   }
 
   async incrementDealRedemptions(dealId: number): Promise<void> {
