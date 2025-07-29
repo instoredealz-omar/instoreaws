@@ -892,7 +892,7 @@ body[data-non-blocking-modal-open] {
   width: 100%;
   height: 0;
   overflow: hidden;
-  background: #000; /* Default black background */
+  background: hsl(var(--muted)); /* Match app's muted background */
   border-radius: 8px; /* Subtle rounding for professionalism */
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); /* Professional shadow */
   transition: background 0.3s ease; /* Smooth background transitions */
@@ -995,51 +995,35 @@ body[data-non-blocking-modal-open] {
 
 /* Dark mode professional video styling */
 .dark .banner-video-container {
-  background: #0a0a0a; /* Darker background for dark mode */
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
 }
 
-/* Video color matching backgrounds */
+/* Video color matching backgrounds using app theme */
 .banner-video-container.video-default {
-  background: #000 !important; /* Standard video black for seamless letterboxing */
+  background: hsl(var(--card)) !important; /* Use app's card background */
 }
 
 .banner-video-container.video-colorful {
-  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%) !important; /* For colorful/vibrant ads */
+  background: var(--gradient-primary) !important; /* Use app's primary gradient */
 }
 
 .banner-video-container.video-bright {
-  background: #f8f9fa !important; /* For bright/white background videos */
+  background: hsl(var(--background)) !important; /* Use app's main background */
 }
 
-/* Dark mode video background adjustments */
-.dark .banner-video-container.video-default {
-  background: #0a0a0a; /* Deeper black for dark mode */
-}
-
-.dark .banner-video-container.video-colorful {
-  background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%); /* Darker gradient for dark mode */
-}
-
-.dark .banner-video-container.video-bright {
-  background: #1a1a1a; /* Dark mode override for bright videos */
-}
+/* Dark mode automatically handled by CSS variables - no overrides needed */
 
 /* Enhanced video color matching with brand colors */
 .banner-video-container.video-brand {
-  background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--royal)) 100%) !important;
+  background: var(--gradient-primary) !important; /* Use app's primary brand gradient */
 }
 
 .banner-video-container.video-corporate {
-  background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%) !important; /* Professional corporate look */
+  background: hsl(var(--secondary)) !important; /* Use app's secondary color for corporate */
 }
 
 .banner-video-container.video-warm {
-  background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%) !important; /* Warm advertising colors */
-}
-
-.dark .banner-video-container.video-warm {
-  background: linear-gradient(135deg, #cc4a1a 0%, #d4761a 100%) !important; /* Darker warm colors for dark mode */
+  background: var(--gradient-warning) !important; /* Use app's warning gradient for warm content */
 }
 
 .dark .banner-video-container:hover {
