@@ -190,7 +190,7 @@ export default function PinVerificationTutorial() {
                     </div>
                     <h3 className="font-semibold text-lg mb-2">2. Visit Store & Get Current PIN</h3>
                     <p className="text-muted-foreground text-sm">
-                      Go to the vendor's store and make your purchase. Ask them for their current 4-digit PIN (changes every 30 minutes) to complete the deal redemption.
+                      Go to the vendor's store and make your purchase. Ask them for their current 6-character verification code (changes every 30 minutes) to complete the deal redemption.
                     </p>
                   </div>
 
@@ -200,7 +200,7 @@ export default function PinVerificationTutorial() {
                     </div>
                     <h3 className="font-semibold text-lg mb-2">3. Enter PIN & Bill Amount</h3>
                     <p className="text-muted-foreground text-sm">
-                      Enter the 4-digit PIN in the dialog to claim your deal, then add your actual bill amount to track precise savings and update your dashboard.
+                      Enter the 6-character verification code in the dialog to claim your deal, then add your actual bill amount to track precise savings and update your dashboard.
                     </p>
                   </div>
                 </div>
@@ -360,7 +360,7 @@ export default function PinVerificationTutorial() {
                     </div>
                     <h3 className="font-semibold text-lg mb-2">1. Set Your Deal PIN</h3>
                     <p className="text-muted-foreground text-sm">
-                      When creating a deal, set a unique 4-digit PIN. The system also automatically generates rotating PINs (changes every 30 minutes) for enhanced security.
+                      When creating a deal, set a unique 6-character alphanumeric code. The system also automatically generates rotating codes (changes every 30 minutes) for enhanced security.
                     </p>
                   </div>
 

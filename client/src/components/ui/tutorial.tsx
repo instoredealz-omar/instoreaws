@@ -108,15 +108,15 @@ export default function Tutorial({ type, onComplete }: TutorialProps) {
       title: "Visit Store & Show QR Code",
       description: "Present your QR code for instant verification",
       icon: Shield,
-      content: "Visit the vendor's store and show your membership QR code at checkout. The vendor can scan it with their POS system for instant customer verification and deal redemption. No internet needed for basic PIN verification!",
+      content: "Visit the vendor's store and show your membership QR code at checkout. The vendor can scan it with their POS system for instant customer verification and deal redemption. No internet needed for basic verification code backup!",
       action: "Learn QR Process"
     },
     {
       id: 8,
-      title: "PIN Verification Backup",
+      title: "Code Verification Backup", 
       description: "Alternative verification without QR code",
       icon: Lock,
-      content: "If QR scanning isn't available, you can still use PIN verification. Ask the vendor for their 4-digit verification PIN, then enter it in the app to verify your purchase. This works even without internet!",
+      content: "If QR scanning isn't available, you can still use verification code backup. Ask the vendor for their 6-character alphanumeric verification code, then enter it in the app to verify your purchase. This works even without internet!",
       action: "Learn PIN Process"
     },
     {
@@ -183,7 +183,7 @@ export default function Tutorial({ type, onComplete }: TutorialProps) {
       title: "Create Your First Deal",
       description: "Add deals with secure PIN verification",
       icon: Plus,
-      content: "Click 'Create New Deal' to add your first offer. Include attractive images, clear descriptions, discount percentages, validity periods, and a unique 4-digit PIN for secure customer verification at your store.",
+      content: "Click 'Create New Deal' to add your first offer. Include attractive images, clear descriptions, discount percentages, validity periods, and a unique 6-character alphanumeric code for secure customer verification at your store.",
       action: "Create Deal"
     },
     {
@@ -220,10 +220,10 @@ export default function Tutorial({ type, onComplete }: TutorialProps) {
     },
     {
       id: 8,
-      title: "PIN Verification Backup",
-      description: "Alternative verification without QR scanner",
+      title: "Code Verification Backup",
+      description: "Alternative verification without QR scanner", 
       icon: Lock,
-      content: "If QR scanning isn't available, use PIN verification as backup. Give customers the 4-digit PIN so they can verify their purchase in the app. This confirms the sale and works offline.",
+      content: "If QR scanning isn't available, use verification code backup. Give customers the 6-character alphanumeric code so they can verify their purchase in the app. This confirms the sale and works offline.",
       action: "Learn PIN Process"
     },
     {
