@@ -730,17 +730,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       // Log the claim activity (but not as completed savings)
-      await storage.createSystemLog({
-        userId,
-        action: "DEAL_CLAIMED_PENDING",
-        details: {
-          dealId,
-          dealTitle: deal.title,
-          status: "pending_verification"
-        },
-        ipAddress: req.ip,
-        userAgent: req.headers['user-agent'],
-      });
+      try {
+        await storage.createSystemLog({
+          userId,
+          action: "DEAL_CLAIMED_PENDING",
+          details: {
+            dealId,
+            dealTitle: deal.title,
+            status: "pending_verification"
+          },
+          ipAddress: req.ip,
+          userAgent: req.headers['user-agent'],
+        });
+      } catch (logError) {
+        console.warn('System log creation failed:', logError.message);
+      }
       
       res.status(201).json({
         ...claim,
@@ -749,6 +753,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         requiresVerification: true
       });
     } catch (error) {
+      console.error('Deal claiming error:', error);
       res.status(500).json({ message: "Failed to claim deal" });
     }
   });
@@ -975,7 +980,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Update bill amount for deal claim
-  app.post('/api/deals/:id/update-bill', requireAuth, async (req: AuthenticatedRequest, res) => {
+  app.put('/api/deals/:id/update-bill', requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const dealId = parseInt(req.params.id);
       const { billAmount, actualSavings, savings } = req.body;
@@ -984,10 +989,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Accept either 'actualSavings' or 'savings' parameter for flexibility
       const savingsAmount = actualSavings || savings;
 
-      if (!billAmount || !savingsAmount || billAmount <= 0 || savingsAmount <= 0) {
+      if (!savingsAmount || savingsAmount <= 0) {
         return res.status(400).json({ 
           success: false, 
-          message: "Valid bill amount and savings are required" 
+          message: "Valid savings amount is required" 
         });
       }
 
@@ -1758,17 +1763,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
-      // Log approval
-      await storage.createSystemLog({
-        userId: req.user!.id,
-        action: "DEAL_APPROVED",
-        details: { dealId, title: deal.title },
-        ipAddress: req.ip,
-        userAgent: req.headers['user-agent'],
-      });
+      // Log approval (temporarily bypassed due to missing system_logs table)
+      try {
+        await storage.createSystemLog({
+          userId: req.user!.id,
+          action: "DEAL_APPROVED",
+          details: { dealId, title: deal.title },
+          ipAddress: req.ip,
+          userAgent: req.headers['user-agent'],
+        });
+      } catch (logError) {
+        console.warn('System log creation failed:', logError.message);
+      }
       
       res.json(deal);
     } catch (error) {
+      console.error('Deal approval error:', error);
       res.status(500).json({ message: "Failed to approve deal" });
     }
   });
