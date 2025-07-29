@@ -63,6 +63,7 @@ import SystemLogs from "@/pages/superadmin/logs";
 import NotFound from "@/pages/not-found";
 import AccessDenied from "@/pages/access-denied";
 import TestFlows from "@/pages/test-flows";
+import QRTest from "@/pages/qr-test";
 import DealList from "@/components/DealList";
 import SubscriptionButton from "@/components/Subscription";
 import VendorPortal from "@/components/VendorPortal";
@@ -132,6 +133,7 @@ function Router() {
   const [matchHelp] = useRoute("/help");
   const [matchResponsiveTest] = useRoute("/responsive-test");
   const [matchTest] = useRoute("/test");
+  const [matchQRTest] = useRoute("/qr-test");
   const [matchDeals] = useRoute("/deals");
   const [matchDealDetail, dealParams] = useRoute("/deals/:id");
   const [matchBanners] = useRoute("/banners");
@@ -200,6 +202,7 @@ function Router() {
   if (matchHelp) return <Help />;
   if (matchResponsiveTest) return <ResponsiveTest />;
   if (matchTest) return <TestFlows />;
+  if (matchQRTest) return <QRTest />;
   if (matchDeals) return <DealList />;
   if (matchBanners) return <BannerList />;
 

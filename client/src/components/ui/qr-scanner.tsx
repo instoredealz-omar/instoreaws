@@ -139,19 +139,45 @@ export default function QRScanner({ onScanSuccess, onScanError, onClose, classNa
     try {
       stopCamera(); // Stop any existing stream
       
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          facingMode: 'environment', // Prefer back camera on mobile
-          width: { ideal: 640 },
-          height: { ideal: 480 }
-        }
-      });
+      // Check if getUserMedia is supported
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error('Camera not supported in this browser');
+      }
+
+      // Try different camera constraints for better mobile compatibility
+      let stream;
+      try {
+        // First try with back camera (environment)
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: { exact: 'environment' },
+            width: { ideal: 640, max: 1280 },
+            height: { ideal: 480, max: 720 }
+          }
+        });
+      } catch (backCameraError) {
+        console.log('Back camera not available, trying any camera:', backCameraError);
+        // Fallback to any available camera
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            width: { ideal: 640, max: 1280 },
+            height: { ideal: 480, max: 720 }
+          }
+        });
+      }
 
       streamRef.current = stream;
       
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
-        videoRef.current.play();
+        
+        // Wait for video to be ready
+        await new Promise((resolve) => {
+          videoRef.current!.onloadedmetadata = () => {
+            videoRef.current!.play().then(resolve).catch(resolve);
+          };
+        });
+        
         setIsCameraActive(true);
         
         toast({
@@ -159,50 +185,67 @@ export default function QRScanner({ onScanSuccess, onScanError, onClose, classNa
           description: "Point your camera at the QR code to scan it.",
         });
 
-        // Start scanning loop
-        scanQRCode();
+        // Start scanning loop after a short delay
+        setTimeout(scanQRCode, 500);
       }
     } catch (error) {
       console.error('Camera access error:', error);
       toast({
-        title: "Camera Access Denied",
-        description: "Please allow camera access or use manual input to scan QR codes.",
+        title: "Camera Access Denied", 
+        description: "Please allow camera access in your browser settings, or use manual input to scan QR codes.",
         variant: "destructive",
       });
     }
   };
 
   const scanQRCode = () => {
-    if (!isCameraActive || !videoRef.current || !canvasRef.current) return;
+    if (!isCameraActive || !videoRef.current || !canvasRef.current) {
+      return;
+    }
 
     const video = videoRef.current;
     const canvas = canvasRef.current;
     const context = canvas.getContext('2d');
 
     if (!context || video.readyState !== video.HAVE_ENOUGH_DATA) {
-      requestAnimationFrame(scanQRCode);
+      setTimeout(scanQRCode, 100); // Use timeout instead of requestAnimationFrame for more reliable scanning
       return;
     }
 
-    // Set canvas size to match video
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
+    try {
+      // Set canvas size to match video
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
 
-    // Draw video frame to canvas
-    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+      if (canvas.width === 0 || canvas.height === 0) {
+        setTimeout(scanQRCode, 100);
+        return;
+      }
 
-    // Get image data from canvas
-    const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+      // Draw video frame to canvas
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-    // Scan for QR codes using jsQR
-    const qrCode = jsQR(imageData.data, imageData.width, imageData.height);
+      // Get image data from canvas
+      const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
 
-    if (qrCode) {
-      stopCamera();
-      processQRData(qrCode.data);
-    } else {
-      // Continue scanning
-      requestAnimationFrame(scanQRCode);
+      // Scan for QR codes using jsQR with options for better detection
+      const qrCode = jsQR(imageData.data, imageData.width, imageData.height, {
+        inversionAttempts: "dontInvert",
+      });
+
+      if (qrCode) {
+        console.log('QR Code detected:', qrCode.data);
+        stopCamera();
+        processQRData(qrCode.data);
+        return;
+      }
+    } catch (error) {
+      console.error('Error during QR scanning:', error);
+    }
+
+    // Continue scanning if no QR code found
+    if (isCameraActive) {
+      setTimeout(scanQRCode, 100);
     }
   };
 
@@ -359,13 +402,35 @@ export default function QRScanner({ onScanSuccess, onScanError, onClose, classNa
                   className="mt-1"
                 />
               </div>
-              <Button 
-                onClick={handleManualSubmit}
-                disabled={isProcessing || !manualInput.trim()}
-                className="w-full"
-              >
-                {isProcessing ? 'Processing...' : 'Verify Customer'}
-              </Button>
+              <div className="flex gap-2">
+                <Button 
+                  onClick={handleManualSubmit}
+                  disabled={isProcessing || !manualInput.trim()}
+                  className="flex-1"
+                >
+                  {isProcessing ? 'Processing...' : 'Verify Customer'}
+                </Button>
+                <Button 
+                  onClick={() => {
+                    const testData = JSON.stringify({
+                      userId: 4,
+                      userName: "Test Customer",
+                      email: "demo@demo.com",
+                      membershipPlan: "premium",
+                      membershipId: "ISD-00000004",
+                      timestamp: Date.now(),
+                      type: "customer_claim",
+                      version: "2.0",
+                      securityToken: "test123"
+                    });
+                    setManualInput(testData);
+                  }}
+                  variant="outline"
+                  size="sm"
+                >
+                  Test
+                </Button>
+              </div>
             </div>
           )}
 
