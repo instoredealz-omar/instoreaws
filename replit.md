@@ -179,6 +179,13 @@ Preferred communication style: Simple, everyday language.
 - **Enhanced Error Handling**: Improved error messages and user guidance for common mobile camera issues and QR scanning problems
 - **POS Integration**: Updated POS dashboard and QR test page to use new mobile scanner with enhanced camera capabilities
 
+### July 29, 2025 - Promotional Banner UI Cleanup & Transparent Button Design
+- **Website Button Removal**: Removed website button from promotional banners to simplify the user interface and focus on deal promotion
+- **Transparent Button Design**: Updated "View Deal" button with transparent background (bg-transparent) for cleaner integration with banner designs
+- **Enhanced Button Styling**: Added subtle white border and hover effects (hover:bg-white/10) while maintaining excellent visibility
+- **Streamlined Banner Actions**: Simplified banner interface to show only essential deal-related actions for better user experience
+- **Clean Visual Design**: Transparent button design blends seamlessly with banner backgrounds while maintaining accessibility
+
 ### July 28, 2025 - Direct Inline Video Display Enhancement with Autoplay
 - **Inline Video Display**: Videos now display directly on promotional banners once uploaded, eliminating the need for modal popups
 - **Automatic Video Playback**: Videos start playing automatically when banner loads, no play button clicking required
