@@ -55,7 +55,7 @@ interface Deal {
   imageUrl?: string;
   requiredMembership?: string;
   // New fields for multistore expansion
-  originalDealId?: number;
+  originalDealId?: number | string;
   locationIndex?: number;
   singleLocation?: DealLocation;
 }
@@ -145,7 +145,8 @@ const DealList = () => {
   // New claim deal with code mutation (corrected system)
   const claimDealMutation = useMutation({
     mutationFn: async (dealId: number): Promise<ClaimResponse> => {
-      return apiRequest(`/api/deals/${dealId}/claim-with-code`, 'POST', {});
+      const response = await apiRequest(`/api/deals/${dealId}/claim-with-code`, 'POST', {});
+      return response as unknown as ClaimResponse;
     },
     onSuccess: (data, dealId) => {
       // Store the claim code for this deal
@@ -269,7 +270,7 @@ const DealList = () => {
   });
 
   // Sort deals based on selected criteria
-  const sortedDeals = [...expandedDeals].sort((a, b) => {
+  const sortedDeals = [...expandedDeals].sort((a: Deal, b: Deal) => {
     switch (sortBy) {
       case 'discount':
         return b.discountPercentage - a.discountPercentage;
@@ -279,7 +280,9 @@ const DealList = () => {
         return new Date(a.validUntil).getTime() - new Date(b.validUntil).getTime();
       case 'newest':
       default:
-        return (b.originalDealId || b.id) - (a.originalDealId || a.id);
+        const aId = typeof a.originalDealId === 'number' ? a.originalDealId : typeof a.id === 'number' ? a.id : parseInt(a.id as string);
+        const bId = typeof b.originalDealId === 'number' ? b.originalDealId : typeof b.id === 'number' ? b.id : parseInt(b.id as string);
+        return bId - aId;
     }
   });
 
@@ -384,7 +387,9 @@ const DealList = () => {
             const canClaim = deal.isActive && !isExpired && !isLimitReached;
             
             // Check if user has claimed this deal (use original deal ID for multistore deals)
-            const dealIdToCheck = deal.originalDealId || deal.id;
+            const dealIdToCheck = typeof (deal.originalDealId || deal.id) === 'string' 
+              ? parseInt((deal.originalDealId || deal.id) as string) 
+              : (deal.originalDealId || deal.id) as number;
             const userClaim = userClaims.find(claim => claim.dealId === dealIdToCheck);
             const hasClaimedDeal = !!userClaim;
             
@@ -481,8 +486,7 @@ const DealList = () => {
                         <Button
                           onClick={(e) => {
                             e.stopPropagation();
-                            const dealIdForClaim = deal.originalDealId || deal.id;
-                            claimDealMutation.mutate(dealIdForClaim);
+                            claimDealMutation.mutate(dealIdToCheck);
                           }}
                           disabled={!canClaim || claimDealMutation.isPending}
                           className="w-full bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white font-semibold py-2 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 text-sm"
@@ -512,14 +516,14 @@ const DealList = () => {
                         </div>
                         
                         {/* Show claim code if available */}
-                        {(claimCodes[deal.originalDealId || deal.id] || userClaim?.claimCode) && (
+                        {(claimCodes[dealIdToCheck] || userClaim?.claimCode) && (
                           <div className="bg-blue-50 dark:bg-blue-900/30 rounded-lg p-3 border border-blue-200 dark:border-blue-800">
                             <div className="text-center">
                               <div className="text-xs text-blue-600 dark:text-blue-400 font-medium mb-1">
                                 Your Claim Code
                               </div>
                               <div className="text-lg font-bold text-blue-800 dark:text-blue-300 tracking-wider">
-                                {claimCodes[deal.originalDealId || deal.id] || userClaim?.claimCode}
+                                {claimCodes[dealIdToCheck] || userClaim?.claimCode}
                               </div>
                               <div className="text-xs text-blue-600 dark:text-blue-400 mt-1">
                                 Show this code at the store
@@ -725,7 +729,7 @@ const DealList = () => {
                   onClick={() => {
                     if (calculatedSavings > 0) {
                       updateBillMutation.mutate({
-                        dealId: billingDeal.id,
+                        dealId: typeof billingDeal.id === 'string' ? parseInt(billingDeal.id) : billingDeal.id,
                         billAmount: parseFloat(billAmount),
                         savings: calculatedSavings
                       });
@@ -756,7 +760,7 @@ const DealList = () => {
       <PinVerificationDialog
         open={showPinDialog}
         onOpenChange={setShowPinDialog}
-        dealId={pinDialogDeal?.id || 0}
+        dealId={typeof pinDialogDeal?.id === 'string' ? parseInt(pinDialogDeal.id) : (pinDialogDeal?.id || 0)}
         dealTitle={pinDialogDeal?.title || ''}
         dealDiscountPercentage={pinDialogDeal?.discountPercentage || 0}
         onSuccess={async () => {
