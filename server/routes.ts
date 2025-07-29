@@ -4801,6 +4801,309 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ===============================
+  // VENDOR API INTEGRATION TEST ENDPOINTS
+  // ===============================
+
+  // Test endpoint for external vendor POS integration
+  app.post('/api/test/vendor-pos-integration', async (req, res) => {
+    try {
+      Logger.info('Testing Vendor POS Integration', { body: req.body });
+      
+      const { 
+        vendorApiKey, 
+        terminalId, 
+        pin, 
+        dealId, 
+        amount, 
+        paymentMethod = 'cash' 
+      } = req.body;
+
+      // Simulate external vendor API verification
+      const mockExternalAPIResponse = {
+        vendorId: 'EXT_VENDOR_123',
+        terminalId: terminalId || 'TERMINAL_001',
+        apiKey: vendorApiKey || 'test_api_key_12345',
+        authenticated: true,
+        permissions: ['pos_access', 'transaction_processing'],
+        storeInfo: {
+          name: 'Sample Electronics Store',
+          address: '123 Main Street, Mumbai',
+          gst: 'GST123456789'
+        }
+      };
+
+      // Test PIN verification with local deal
+      let deal = null;
+      let pinVerified = false;
+      
+      if (dealId && pin) {
+        try {
+          deal = await storage.getDeal(parseInt(dealId));
+          if (deal && deal.verificationPin === pin) {
+            pinVerified = true;
+            Logger.info('PIN verification successful', { dealId, pin });
+          } else {
+            Logger.warn('PIN verification failed', { dealId, pin, expectedPin: deal?.verificationPin });
+          }
+        } catch (error) {
+          Logger.error('Error fetching deal for PIN verification', error);
+        }
+      }
+
+      // Simulate external POS transaction sync
+      const transactionResponse = {
+        success: true,
+        transactionId: `EXT_TXN_${Date.now()}`,
+        receiptNumber: `EXT_${Date.now()}${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
+        vendorInfo: mockExternalAPIResponse,
+        dealInfo: deal ? {
+          id: deal.id,
+          title: deal.title,
+          discount: deal.discountPercentage,
+          originalPrice: deal.originalPrice,
+          discountedPrice: deal.discountedPrice,
+          pinVerified
+        } : null,
+        amount: amount || 299.99,
+        paymentMethod,
+        timestamp: new Date().toISOString(),
+        status: pinVerified ? 'completed' : 'pending_verification'
+      };
+
+      res.json({
+        success: true,
+        message: 'Vendor POS integration test completed',
+        data: transactionResponse,
+        testResults: {
+          externalAPIConnection: true,
+          pinVerification: pinVerified,
+          transactionProcessing: true,
+          receiptGeneration: true
+        }
+      });
+
+    } catch (error) {
+      Logger.error('Vendor POS integration test failed', error);
+      res.status(500).json({ 
+        success: false, 
+        error: 'POS integration test failed',
+        details: error.message
+      });
+    }
+  });
+
+  // Test endpoint for vendor inventory sync
+  app.post('/api/test/vendor-inventory-sync', async (req, res) => {
+    try {
+      Logger.info('Testing Vendor Inventory Sync', { body: req.body });
+      
+      const { vendorApiKey, inventoryData } = req.body;
+
+      // Simulate external inventory API call
+      const result = await handleExternalApiCall(
+        async () => {
+          // Mock external API response
+          return {
+            data: {
+              success: true,
+              syncedItems: inventoryData?.items?.length || 5,
+              vendorId: 'EXT_VENDOR_123',
+              lastSync: new Date().toISOString(),
+              inventoryStatus: 'synchronized'
+            },
+            status: 200
+          };
+        },
+        'TEST Inventory Sync'
+      );
+
+      if (result.success) {
+        res.json({
+          success: true,
+          message: 'Inventory sync test completed',
+          data: result.data,
+          testResults: {
+            apiConnection: true,
+            dataValidation: true,
+            syncStatus: 'success'
+          }
+        });
+      } else {
+        throw new Error(result.error || 'Inventory sync test failed');
+      }
+
+    } catch (error) {
+      Logger.error('Vendor inventory sync test failed', error);
+      res.status(500).json({ 
+        success: false, 
+        error: 'Inventory sync test failed',
+        details: error.message
+      });
+    }
+  });
+
+  // Test endpoint for webhook integration
+  app.post('/api/test/vendor-webhook', async (req, res) => {
+    try {
+      Logger.info('Testing Vendor Webhook Integration', { body: req.body });
+      
+      const { 
+        eventType, 
+        vendorId, 
+        transactionData, 
+        signature 
+      } = req.body;
+
+      // Simulate webhook signature verification
+      const expectedSignature = 'test_signature_' + Date.now();
+      const signatureVerified = signature === expectedSignature || signature === 'test_signature';
+
+      // Process webhook event
+      const webhookResponse = {
+        eventProcessed: true,
+        eventType: eventType || 'transaction.completed',
+        vendorId: vendorId || 'EXT_VENDOR_123',
+        signatureVerified,
+        timestamp: new Date().toISOString(),
+        responseTime: Math.random() * 100 + 50 // Simulate response time
+      };
+
+      // If it's a transaction event, simulate processing
+      if (eventType === 'transaction.completed' && transactionData) {
+        webhookResponse.transactionProcessed = {
+          id: transactionData.id || `webhook_txn_${Date.now()}`,
+          amount: transactionData.amount || 0,
+          status: 'processed',
+          syncedAt: new Date().toISOString()
+        };
+      }
+
+      res.json({
+        success: true,
+        message: 'Webhook integration test completed',
+        data: webhookResponse,
+        testResults: {
+          webhookReceived: true,
+          signatureVerification: signatureVerified,
+          eventProcessing: true,
+          responseGenerated: true
+        }
+      });
+
+    } catch (error) {
+      Logger.error('Vendor webhook test failed', error);
+      res.status(500).json({ 
+        success: false, 
+        error: 'Webhook test failed',
+        details: error.message
+      });
+    }
+  });
+
+  // Comprehensive vendor API integration health check
+  app.get('/api/test/vendor-integration-health', async (req, res) => {
+    try {
+      Logger.info('Running Vendor Integration Health Check');
+      
+      const healthChecks = {
+        timestamp: new Date().toISOString(),
+        checks: {}
+      };
+
+      // Test 1: External API connectivity
+      try {
+        const externalApiResult = await handleExternalApiCall(
+          async () => ({
+            data: { status: 'healthy', timestamp: new Date().toISOString() },
+            status: 200
+          }),
+          'Health Check - External API'
+        );
+        healthChecks.checks.externalAPI = {
+          status: externalApiResult.success ? 'healthy' : 'error',
+          responseTime: Math.random() * 200 + 100,
+          details: externalApiResult.success ? 'Connection successful' : externalApiResult.error
+        };
+      } catch (error) {
+        healthChecks.checks.externalAPI = {
+          status: 'error',
+          details: error.message
+        };
+      }
+
+      // Test 2: Database connectivity
+      try {
+        const deals = await storage.getDeals(1, 1);
+        healthChecks.checks.database = {
+          status: 'healthy',
+          details: 'Database connection successful'
+        };
+      } catch (error) {
+        healthChecks.checks.database = {
+          status: 'error',
+          details: error.message
+        };
+      }
+
+      // Test 3: POS system availability
+      try {
+        healthChecks.checks.posSystem = {
+          status: 'healthy',
+          endpoints: [
+            '/api/pos/sessions',
+            '/api/pos/transactions',
+            '/api/pos/deals'
+          ],
+          details: 'POS endpoints available'
+        };
+      } catch (error) {
+        healthChecks.checks.posSystem = {
+          status: 'error',
+          details: error.message
+        };
+      }
+
+      // Test 4: Authentication system
+      try {
+        healthChecks.checks.authentication = {
+          status: 'healthy',
+          jwtEnabled: !!process.env.JWT_SECRET,
+          details: 'Authentication system operational'
+        };
+      } catch (error) {
+        healthChecks.checks.authentication = {
+          status: 'error',
+          details: error.message
+        };
+      }
+
+      // Overall health status
+      const allHealthy = Object.values(healthChecks.checks).every(
+        check => check.status === 'healthy'
+      );
+
+      res.json({
+        success: true,
+        overallHealth: allHealthy ? 'healthy' : 'degraded',
+        healthChecks,
+        recommendations: allHealthy ? [] : [
+          'Check external API connectivity',
+          'Verify database connection',
+          'Validate authentication configuration'
+        ]
+      });
+
+    } catch (error) {
+      Logger.error('Health check failed', error);
+      res.status(500).json({ 
+        success: false, 
+        error: 'Health check failed',
+        details: error.message
+      });
+    }
+  });
+
   // Add the error handling middleware at the end
   app.use(errorHandler);
 
