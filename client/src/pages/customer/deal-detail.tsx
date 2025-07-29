@@ -190,8 +190,12 @@ export default function DealDetail({ params }: DealDetailProps) {
   // New claim deal with code mutation (corrected system)
   const claimDealMutation = useMutation({
     mutationFn: async (dealId: number): Promise<ClaimResponse> => {
-      const response = await apiRequest(`/api/deals/${dealId}/claim-with-code`, 'POST', {});
-      return response as unknown as ClaimResponse;
+      const response = await apiRequest(`/api/deals/${dealId}/claim-with-code`, {
+        method: 'POST',
+        body: {},
+      });
+      const data = await response.json();
+      return data;
     },
     onSuccess: (data) => {
       // Store the claim code for display
