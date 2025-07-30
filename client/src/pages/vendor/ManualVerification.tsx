@@ -10,7 +10,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Phone, User, QrCode, CheckCircle, Clock, AlertCircle, Store, Receipt } from 'lucide-react';
+import { Link } from 'wouter';
+import { Phone, User, QrCode, CheckCircle, Clock, AlertCircle, Store, Receipt, ArrowLeft } from 'lucide-react';
 
 interface Claim {
   claimId: number;
@@ -210,6 +211,14 @@ const ManualVerification = () => {
   return (
     <div className="container mx-auto px-4 py-8 max-w-6xl">
       <div className="mb-8">
+        <div className="flex items-center gap-4 mb-4">
+          <Button variant="outline" size="sm" asChild>
+            <Link to="/vendor/dashboard">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Dashboard
+            </Link>
+          </Button>
+        </div>
         <h1 className="text-3xl font-bold text-foreground">Manual Verification</h1>
         <p className="text-muted-foreground mt-2">
           For vendors without POS systems - verify customer claims manually
