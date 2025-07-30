@@ -325,10 +325,10 @@ export default function POSPinVerification() {
     <div className="container mx-auto p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Link href="/vendor">
+          <Link href="/vendor/dashboard">
             <Button variant="outline" size="sm">
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Home
+              Back to Dashboard
             </Button>
           </Link>
           <div>
