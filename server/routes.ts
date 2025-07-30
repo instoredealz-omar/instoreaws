@@ -2789,11 +2789,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/admin/deals/:id/approve', requireAuth, requireRole(['admin', 'superadmin']), async (req: AuthenticatedRequest, res) => {
     try {
       const dealId = parseInt(req.params.id);
+      console.log(`[APPROVAL DEBUG] Attempting to approve deal ${dealId} by admin ${req.user!.id}`);
+      
       const deal = await storage.approveDeal(dealId, req.user!.id);
+      console.log(`[APPROVAL DEBUG] Result from approveDeal:`, {
+        found: !!deal,
+        id: deal?.id,
+        isApproved: deal?.isApproved,
+        approvedBy: deal?.approvedBy
+      });
       
       if (!deal) {
+        console.log(`[APPROVAL DEBUG] Deal ${dealId} not found`);
         return res.status(404).json({ message: "Deal not found" });
       }
+      
+      // Verify the deal is actually approved by checking again
+      const verifyDeal = await storage.getDeal(dealId);
+      console.log(`[APPROVAL DEBUG] Verification check after approval:`, {
+        id: verifyDeal?.id,
+        isApproved: verifyDeal?.isApproved,
+        approvedBy: verifyDeal?.approvedBy
+      });
+      
+      // Check pending deals to see if this deal is still there
+      const pendingDeals = await storage.getPendingDeals();
+      const stillPending = pendingDeals.find(d => d.id === dealId);
+      console.log(`[APPROVAL DEBUG] Deal ${dealId} still in pending list:`, !!stillPending);
       
       // Get vendor information for email
       const vendor = await storage.getVendor(deal.vendorId);
