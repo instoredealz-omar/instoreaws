@@ -40,10 +40,26 @@ export default function AdminDeals() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: pendingDeals, isLoading } = useQuery({
+  const { data: pendingDeals, isLoading, refetch } = useQuery({
     queryKey: ["/api/admin/deals/pending", refreshTrigger],
+    queryFn: async () => {
+      // Force fresh request with cache-busting parameter
+      const timestamp = Date.now();
+      const response = await fetch(`/api/admin/deals/pending?_=${timestamp}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Cache-Control': 'no-cache',
+        },
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch pending deals');
+      }
+      return response.json();
+    },
     staleTime: 0,
     cacheTime: 0,
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: false,
   });
 
   const { data: categories } = useQuery({
@@ -59,8 +75,9 @@ export default function AdminDeals() {
         title: "Deal approved successfully!",
         description: "The deal is now live and available to customers.",
       });
-      // Force refresh by updating the trigger
+      // Force immediate refresh by both updating trigger and calling refetch
       setRefreshTrigger(prev => prev + 1);
+      await refetch();
     },
     onError: (error: any) => {
       toast({
@@ -80,8 +97,9 @@ export default function AdminDeals() {
         title: "Deal rejected successfully!",
         description: "The vendor has been notified about the rejection.",
       });
-      // Force refresh by updating the trigger
+      // Force immediate refresh by both updating trigger and calling refetch
       setRefreshTrigger(prev => prev + 1);
+      await refetch();
       setRejectDialogOpen(false);
       setRejectionReason("");
       setSelectedDeal(null);

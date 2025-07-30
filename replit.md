@@ -202,6 +202,8 @@ Preferred communication style: Simple, everyday language.
 - **Backend Verification Complete**: Confirmed backend approval API correctly updates database (isApproved: true, approvedBy: adminId) and removes deals from pending list
 - **Simplified Cache Strategy**: Replaced complex cache invalidation with direct state trigger that forces React Query to treat each refresh as a new query
 - **Zero Cache Time**: Added staleTime: 0 and cacheTime: 0 to pending deals query ensuring fresh data on every request
+- **Advanced Cache-Busting Solution**: Implemented custom query function with timestamp cache-busting parameters and no-cache headers to force fresh server requests
+- **Direct Fetch Implementation**: Bypassed React Query's default fetcher with custom fetch function including Authorization headers and cache control
 - **Production Ready**: Admin deal approval buttons now disappear immediately after approval with proper UI state synchronization
 
 ### July 30, 2025 - Complete POS Dashboard System Integration & Authentication Fix
