@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import MobileQRScanner from "@/components/ui/mobile-qr-scanner";
@@ -120,6 +121,32 @@ export default function PosDashboard() {
   const [newInventoryItem, setNewInventoryItem] = useState({
     name: '', sku: '', stock: 0, price: 0, lowStockAlert: 5
   });
+
+  // Add inventory item handler
+  const handleAddInventory = () => {
+    if (!newInventoryItem.name || !newInventoryItem.sku || newInventoryItem.stock <= 0 || newInventoryItem.price <= 0) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in all required fields with valid values",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const newItem = {
+      id: Date.now(),
+      ...newInventoryItem
+    };
+
+    setInventoryItems(prev => [...prev, newItem]);
+    setShowAddInventory(false);
+    setNewInventoryItem({ name: '', sku: '', stock: 0, price: 0, lowStockAlert: 5 });
+    
+    toast({
+      title: "Success",
+      description: "Inventory item added successfully",
+    });
+  };
   const [gdsBookings, setGdsBookings] = useState([
     { id: 1, type: 'Flight', pnr: 'AI2024', passenger: 'John Doe', route: 'DEL-BOM', date: '2025-08-15', status: 'Confirmed', amount: 12500 },
     { id: 2, type: 'Hotel', pnr: 'TAJ001', passenger: 'Jane Smith', route: 'Mumbai Taj', date: '2025-08-20', status: 'Pending', amount: 8500 },
@@ -1191,6 +1218,72 @@ export default function PosDashboard() {
         </div>
       )}
       
+      {/* Add Inventory Dialog */}
+      <Dialog open={showAddInventory} onOpenChange={setShowAddInventory}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Add New Inventory Item</DialogTitle>
+            <DialogDescription>Add a new product to your inventory</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="itemName">Product Name</Label>
+              <Input
+                id="itemName"
+                value={newInventoryItem.name}
+                onChange={(e) => setNewInventoryItem({...newInventoryItem, name: e.target.value})}
+                placeholder="e.g., Samsung Galaxy S24"
+              />
+            </div>
+            <div>
+              <Label htmlFor="itemSku">SKU</Label>
+              <Input
+                id="itemSku"
+                value={newInventoryItem.sku}
+                onChange={(e) => setNewInventoryItem({...newInventoryItem, sku: e.target.value})}
+                placeholder="e.g., SAMSUNG-S24"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="itemStock">Stock Quantity</Label>
+                <Input
+                  id="itemStock"
+                  type="number"
+                  value={newInventoryItem.stock}
+                  onChange={(e) => setNewInventoryItem({...newInventoryItem, stock: parseInt(e.target.value) || 0})}
+                  placeholder="0"
+                />
+              </div>
+              <div>
+                <Label htmlFor="itemPrice">Price (₹)</Label>
+                <Input
+                  id="itemPrice"
+                  type="number"
+                  value={newInventoryItem.price}
+                  onChange={(e) => setNewInventoryItem({...newInventoryItem, price: parseInt(e.target.value) || 0})}
+                  placeholder="0"
+                />
+              </div>
+            </div>
+            <div>
+              <Label htmlFor="lowStockAlert">Low Stock Alert Level</Label>
+              <Input
+                id="lowStockAlert"
+                type="number"
+                value={newInventoryItem.lowStockAlert}
+                onChange={(e) => setNewInventoryItem({...newInventoryItem, lowStockAlert: parseInt(e.target.value) || 5})}
+                placeholder="5"
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setShowAddInventory(false)}>Cancel</Button>
+              <Button onClick={handleAddInventory}>Add Item</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* QR Scanner Modal */}
       {showQRScanner && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
