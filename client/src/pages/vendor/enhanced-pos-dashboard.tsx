@@ -246,18 +246,24 @@ export default function EnhancedPOSDashboard() {
   };
 
   const handleOpenInventoryDialog = () => {
-    console.log('Opening inventory dialog');
+    console.log('Opening inventory dialog, current state:', showAddInventory);
+    alert('Inventory button clicked! Check console for logs.');
     setShowAddInventory(true);
+    console.log('After setting state:', true);
   };
 
   const handleOpenBillDialog = () => {
-    console.log('Opening bill dialog');  
+    console.log('Opening bill dialog, current state:', showCreateBill);
+    alert('Bill button clicked! Check console for logs.');
     setShowCreateBill(true);
+    console.log('After setting state:', true);
   };
 
   const handleOpenGDSDialog = () => {
-    console.log('Opening GDS dialog');
+    console.log('Opening GDS dialog, current state:', showAddGDS);
+    alert('GDS button clicked! Check console for logs.');
     setShowAddGDS(true);
+    console.log('After setting state:', true);
   };
 
   return (
