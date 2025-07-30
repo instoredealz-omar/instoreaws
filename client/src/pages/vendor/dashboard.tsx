@@ -24,7 +24,8 @@ import {
   Clock,
   Target,
   BookOpen,
-  MapPin
+  MapPin,
+  Smartphone
 } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, LineChart, Line, PieChart, Pie, Cell, ResponsiveContainer, AreaChart, Area, Tooltip, Legend } from "recharts";
 
@@ -177,6 +178,13 @@ export default function VendorDashboard() {
             </div>
             <div className="flex items-center space-x-2 sm:space-x-3">
               <Tutorial type="vendor" />
+              <Button variant="outline" size="sm" asChild>
+                <Link to="/vendor/manual-verification">
+                  <Smartphone className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                  <span className="hidden xs:inline">Manual Verification</span>
+                  <span className="xs:hidden">Verify</span>
+                </Link>
+              </Button>
               <Button variant="outline" size="sm" asChild>
                 <Link to="/vendor/deals">
                   <BarChart3 className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
@@ -516,6 +524,12 @@ export default function VendorDashboard() {
                     <Link to="/vendor/deals">
                       <Plus className="h-4 w-4 mr-2" />
                       Create New Deal
+                    </Link>
+                  </Button>
+                  <Button variant="outline" className="w-full" asChild>
+                    <Link to="/vendor/manual-verification">
+                      <Smartphone className="h-4 w-4 mr-2" />
+                      Manual Verification
                     </Link>
                   </Button>
                   <Button variant="outline" className="w-full" asChild>
