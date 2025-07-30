@@ -231,36 +231,27 @@ export default function EnhancedPOSDashboard() {
   });
 
   const handleAddInventory = () => {
-    console.log('Add inventory button clicked, current state:', showAddInventory);
     addInventoryMutation.mutate(newInventoryItem);
   };
 
   const handleCreateBill = () => {
-    console.log('Create bill button clicked, current state:', showCreateBill);
     createBillMutation.mutate(newBill);
   };
 
   const handleAddGDS = () => {
-    console.log('Add GDS button clicked, current state:', showAddGDS);
     addGDSMutation.mutate(newGDSConnection);
   };
 
   const handleOpenInventoryDialog = () => {
-    console.log('Opening inventory dialog, current state:', showAddInventory);
     setShowAddInventory(true);
-    console.log('After setting state:', true);
   };
 
   const handleOpenBillDialog = () => {
-    console.log('Opening bill dialog, current state:', showCreateBill);
     setShowCreateBill(true);
-    console.log('After setting state:', true);
   };
 
   const handleOpenGDSDialog = () => {
-    console.log('Opening GDS dialog, current state:', showAddGDS);
     setShowAddGDS(true);
-    console.log('After setting state:', true);
   };
 
   return (
@@ -271,16 +262,11 @@ export default function EnhancedPOSDashboard() {
           <p className="text-muted-foreground">Comprehensive Point of Sale Management System</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={() => alert('Settings clicked')}>
+          <Button variant="outline" size="sm">
             <Settings className="h-4 w-4 mr-2" />
             Settings
           </Button>
-          <Button onClick={() => alert('Test button works!')}>
-            Test Button
-          </Button>
-          <div className="text-xs text-muted-foreground">
-            Dialog States: Inv:{showAddInventory.toString()} | Bill:{showCreateBill.toString()} | GDS:{showAddGDS.toString()}
-          </div>
+
         </div>
       </div>
 
