@@ -81,6 +81,7 @@ export default function EnhancedPOSDashboard() {
   const [showAddInventory, setShowAddInventory] = useState(false);
   const [showCreateBill, setShowCreateBill] = useState(false);
   const [showAddGDS, setShowAddGDS] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
 
   // New inventory item form state
   const [newInventoryItem, setNewInventoryItem] = useState({
@@ -108,6 +109,17 @@ export default function EnhancedPOSDashboard() {
     username: '',
     password: '',
     isTestMode: true
+  });
+
+  // Settings form state
+  const [settings, setSettings] = useState({
+    terminalName: 'POS Terminal 1',
+    currency: 'INR',
+    taxRate: 18,
+    receiptFooter: 'Thank you for your business!',
+    autoBackup: true,
+    soundEnabled: true,
+    theme: 'system'
   });
 
   // Fetch inventory data
@@ -254,6 +266,12 @@ export default function EnhancedPOSDashboard() {
     setShowAddGDS(true);
   };
 
+  const handleSaveSettings = () => {
+    // Save settings (this would typically call an API)
+    toast({ title: "Success", description: "Settings saved successfully" });
+    setShowSettings(false);
+  };
+
   return (
     <div className="container mx-auto px-4 py-6 space-y-6">
       <div className="flex justify-between items-center">
@@ -262,11 +280,10 @@ export default function EnhancedPOSDashboard() {
           <p className="text-muted-foreground">Comprehensive Point of Sale Management System</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" onClick={() => setShowSettings(true)}>
             <Settings className="h-4 w-4 mr-2" />
             Settings
           </Button>
-
         </div>
       </div>
 
@@ -791,6 +808,108 @@ export default function EnhancedPOSDashboard() {
               >
                 {addGDSMutation.isPending ? "Adding..." : "Add Connection"}
               </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Settings Dialog */}
+      <Dialog open={showSettings} onOpenChange={setShowSettings}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>POS Settings</DialogTitle>
+            <DialogDescription>Configure your Point of Sale system settings</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="terminalName">Terminal Name</Label>
+              <Input
+                id="terminalName"
+                value={settings.terminalName}
+                onChange={(e) => setSettings({...settings, terminalName: e.target.value})}
+                placeholder="POS Terminal 1"
+              />
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="currency">Currency</Label>
+                <Select value={settings.currency} onValueChange={(value) => setSettings({...settings, currency: value})}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select currency" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="INR">Indian Rupee (₹)</SelectItem>
+                    <SelectItem value="USD">US Dollar ($)</SelectItem>
+                    <SelectItem value="EUR">Euro (€)</SelectItem>
+                    <SelectItem value="GBP">British Pound (£)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div>
+                <Label htmlFor="taxRate">Tax Rate (%)</Label>
+                <Input
+                  id="taxRate"
+                  type="number"
+                  value={settings.taxRate}
+                  onChange={(e) => setSettings({...settings, taxRate: parseInt(e.target.value) || 0})}
+                  placeholder="18"
+                />
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="receiptFooter">Receipt Footer Message</Label>
+              <Input
+                id="receiptFooter"
+                value={settings.receiptFooter}
+                onChange={(e) => setSettings({...settings, receiptFooter: e.target.value})}
+                placeholder="Thank you for your business!"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="theme">Theme</Label>
+              <Select value={settings.theme} onValueChange={(value) => setSettings({...settings, theme: value})}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select theme" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="system">System</SelectItem>
+                  <SelectItem value="light">Light</SelectItem>
+                  <SelectItem value="dark">Dark</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="autoBackup">Auto Backup</Label>
+                <input
+                  id="autoBackup"
+                  type="checkbox"
+                  checked={settings.autoBackup}
+                  onChange={(e) => setSettings({...settings, autoBackup: e.target.checked})}
+                  className="h-4 w-4"
+                />
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <Label htmlFor="soundEnabled">Sound Notifications</Label>
+                <input
+                  id="soundEnabled"
+                  type="checkbox"
+                  checked={settings.soundEnabled}
+                  onChange={(e) => setSettings({...settings, soundEnabled: e.target.checked})}
+                  className="h-4 w-4"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setShowSettings(false)}>Cancel</Button>
+              <Button onClick={handleSaveSettings}>Save Settings</Button>
             </div>
           </div>
         </DialogContent>
