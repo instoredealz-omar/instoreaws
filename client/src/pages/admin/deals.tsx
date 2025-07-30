@@ -51,17 +51,20 @@ export default function AdminDeals() {
     mutationFn: async (dealId: number) => {
       return apiRequest(`/api/admin/deals/${dealId}/approve`, 'POST');
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       toast({
         title: "Deal approved successfully!",
         description: "The deal is now live and available to customers.",
       });
       // Invalidate multiple related queries
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/deals/pending"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/analytics"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/deals"] });
-      // Force refetch to ensure UI updates immediately
-      queryClient.refetchQueries({ queryKey: ["/api/admin/deals/pending"] });
+      await queryClient.invalidateQueries({ queryKey: ["/api/admin/deals/pending"] });
+      await queryClient.invalidateQueries({ queryKey: ["/api/admin/analytics"] });
+      await queryClient.invalidateQueries({ queryKey: ["/api/deals"] });
+      // Force immediate refetch with exact timing
+      await queryClient.refetchQueries({ 
+        queryKey: ["/api/admin/deals/pending"],
+        exact: true 
+      });
     },
     onError: (error: any) => {
       toast({
@@ -76,17 +79,20 @@ export default function AdminDeals() {
     mutationFn: async ({ dealId, reason }: { dealId: number; reason: string }) => {
       return apiRequest(`/api/admin/deals/${dealId}/reject`, 'POST', { reason });
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       toast({
         title: "Deal rejected successfully!",
         description: "The vendor has been notified about the rejection.",
       });
       // Invalidate multiple related queries
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/deals/pending"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/analytics"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/deals"] });
-      // Force refetch to ensure UI updates immediately
-      queryClient.refetchQueries({ queryKey: ["/api/admin/deals/pending"] });
+      await queryClient.invalidateQueries({ queryKey: ["/api/admin/deals/pending"] });
+      await queryClient.invalidateQueries({ queryKey: ["/api/admin/analytics"] });
+      await queryClient.invalidateQueries({ queryKey: ["/api/deals"] });
+      // Force immediate refetch with exact timing
+      await queryClient.refetchQueries({ 
+        queryKey: ["/api/admin/deals/pending"],
+        exact: true 
+      });
       setRejectDialogOpen(false);
       setRejectionReason("");
       setSelectedDeal(null);
