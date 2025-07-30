@@ -48,8 +48,10 @@ import {
   Clock,
   Search,
   Filter,
-  RefreshCw
+  RefreshCw,
+  ArrowLeft
 } from "lucide-react";
+import { Link } from 'wouter';
 
 interface Deal {
   id: number;
@@ -322,9 +324,17 @@ export default function POSPinVerification() {
   return (
     <div className="container mx-auto p-6 space-y-6">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">POS PIN Verification System</h1>
-          <p className="text-muted-foreground">6-Character Alphanumeric Deal Verification</p>
+        <div className="flex items-center gap-4">
+          <Link href="/vendor/pos">
+            <Button variant="outline" size="sm">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to POS
+            </Button>
+          </Link>
+          <div>
+            <h1 className="text-3xl font-bold">POS PIN Verification System</h1>
+            <p className="text-muted-foreground">6-Character Alphanumeric Deal Verification</p>
+          </div>
         </div>
         
         <div className="flex items-center gap-4">
