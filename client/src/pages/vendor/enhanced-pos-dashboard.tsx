@@ -274,9 +274,12 @@ export default function EnhancedPOSDashboard() {
           <p className="text-muted-foreground">Comprehensive Point of Sale Management System</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" onClick={() => alert('Settings clicked')}>
             <Settings className="h-4 w-4 mr-2" />
             Settings
+          </Button>
+          <Button onClick={() => alert('Test button works!')}>
+            Test Button
           </Button>
         </div>
       </div>
