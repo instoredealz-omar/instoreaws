@@ -231,15 +231,33 @@ export default function EnhancedPOSDashboard() {
   });
 
   const handleAddInventory = () => {
+    console.log('Add inventory button clicked, current state:', showAddInventory);
     addInventoryMutation.mutate(newInventoryItem);
   };
 
   const handleCreateBill = () => {
+    console.log('Create bill button clicked, current state:', showCreateBill);
     createBillMutation.mutate(newBill);
   };
 
   const handleAddGDS = () => {
+    console.log('Add GDS button clicked, current state:', showAddGDS);
     addGDSMutation.mutate(newGDSConnection);
+  };
+
+  const handleOpenInventoryDialog = () => {
+    console.log('Opening inventory dialog');
+    setShowAddInventory(true);
+  };
+
+  const handleOpenBillDialog = () => {
+    console.log('Opening bill dialog');  
+    setShowCreateBill(true);
+  };
+
+  const handleOpenGDSDialog = () => {
+    console.log('Opening GDS dialog');
+    setShowAddGDS(true);
   };
 
   return (
@@ -324,15 +342,15 @@ export default function EnhancedPOSDashboard() {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <Button onClick={() => setShowAddInventory(true)} className="h-20 flex-col">
+                <Button onClick={handleOpenInventoryDialog} className="h-20 flex-col">
                   <Package className="h-6 w-6 mb-2" />
                   Add Product
                 </Button>
-                <Button onClick={() => setShowCreateBill(true)} className="h-20 flex-col">
+                <Button onClick={handleOpenBillDialog} className="h-20 flex-col">
                   <Receipt className="h-6 w-6 mb-2" />
                   Create Bill
                 </Button>
-                <Button onClick={() => setShowAddGDS(true)} className="h-20 flex-col">
+                <Button onClick={handleOpenGDSDialog} className="h-20 flex-col">
                   <Globe className="h-6 w-6 mb-2" />
                   Add GDS
                 </Button>
@@ -352,7 +370,7 @@ export default function EnhancedPOSDashboard() {
               <h2 className="text-2xl font-bold">Inventory Management</h2>
               <p className="text-muted-foreground">Manage your product inventory</p>
             </div>
-            <Button onClick={() => setShowAddInventory(true)}>
+            <Button onClick={handleOpenInventoryDialog}>
               <Plus className="h-4 w-4 mr-2" />
               Add Product
             </Button>
@@ -404,7 +422,7 @@ export default function EnhancedPOSDashboard() {
               <h2 className="text-2xl font-bold">Billing Management</h2>
               <p className="text-muted-foreground">Create and manage customer bills</p>
             </div>
-            <Button onClick={() => setShowCreateBill(true)}>
+            <Button onClick={handleOpenBillDialog}>
               <Plus className="h-4 w-4 mr-2" />
               Create Bill
             </Button>
@@ -458,7 +476,7 @@ export default function EnhancedPOSDashboard() {
               <h2 className="text-2xl font-bold">Global Distribution System</h2>
               <p className="text-muted-foreground">Manage travel booking integrations</p>
             </div>
-            <Button onClick={() => setShowAddGDS(true)}>
+            <Button onClick={handleOpenGDSDialog}>
               <Plus className="h-4 w-4 mr-2" />
               Add Connection
             </Button>
