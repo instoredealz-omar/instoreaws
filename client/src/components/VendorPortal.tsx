@@ -19,16 +19,16 @@ const vendorRegistrationSchema = z.object({
   businessName: z.string().min(2, 'Business name must be at least 2 characters'),
   ownerName: z.string().min(2, 'Owner name must be at least 2 characters'),
   email: z.string().email('Please enter a valid email address'),
-  phone: z.string().min(10, 'Phone number must be at least 10 digits'),
+  phone: z.string().regex(/^[0-9]{10}$/, 'Phone number must be exactly 10 digits'),
   businessType: z.string().min(1, 'Please select a business type'),
   address: z.string().min(10, 'Address must be at least 10 characters'),
   city: z.string().min(2, 'City is required'),
   state: z.string().min(2, 'State is required'),
-  pincode: z.string().min(6, 'Pincode must be 6 digits'),
+  pincode: z.string().regex(/^[0-9]{6}$/, 'Pincode must be exactly 6 digits'),
   website: z.string().url('Please enter a valid website URL').optional().or(z.literal('')),
   description: z.string().min(20, 'Description must be at least 20 characters'),
   gstNumber: z.string().optional(),
-  panNumber: z.string().optional(),
+  panNumber: z.string().regex(/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/, 'PAN number must be in format ABCDE1234F').optional(),
 });
 
 // Deal creation schema

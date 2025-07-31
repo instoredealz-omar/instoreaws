@@ -442,15 +442,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userData = signupSchema.parse(req.body);
       
-      // Check if user already exists
+      // Check if user already exists by email
       const existingUser = await storage.getUserByEmail(userData.email);
       if (existingUser) {
-        return res.status(400).json({ message: "User already exists" });
+        return res.status(400).json({ message: "Email address is already registered" });
       }
       
+      // Check if username already exists
       const existingUsername = await storage.getUserByUsername(userData.username);
       if (existingUsername) {
-        return res.status(400).json({ message: "Username already taken" });
+        return res.status(400).json({ message: "Username is already taken" });
+      }
+
+      // Check if phone number already exists
+      const existingPhone = await storage.getUserByPhone(userData.phone);
+      if (existingPhone) {
+        return res.status(400).json({ message: "Mobile number is already registered" });
       }
       
       // Create user
@@ -637,6 +644,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const profileData = updateUserProfileSchema.parse(req.body);
       const userId = req.user!.id;
+      
+      // Check if phone number is being updated and if it already exists
+      if (profileData.phone) {
+        const existingPhone = await storage.getUserByPhone(profileData.phone);
+        if (existingPhone && existingPhone.id !== userId) {
+          return res.status(400).json({ message: "Mobile number is already registered by another user" });
+        }
+      }
       
       const updatedUser = await storage.updateUser(userId, profileData);
       if (!updatedUser) {

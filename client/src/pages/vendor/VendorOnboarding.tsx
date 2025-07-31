@@ -50,7 +50,7 @@ const businessInfoSchema = z.object({
 
 const contactInfoSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
-  phone: z.string().regex(/^[0-9]{10}$/, 'Please enter a valid 10-digit phone number'),
+  phone: z.string().regex(/^[0-9]{10}$/, 'Phone number must be exactly 10 digits'),
   website: z.string().url('Please enter a valid website URL').optional().or(z.literal('')),
 });
 
@@ -58,7 +58,7 @@ const addressInfoSchema = z.object({
   address: z.string().min(10, 'Address must be at least 10 characters'),
   city: z.string().min(2, 'City must be at least 2 characters'),
   state: z.string().min(2, 'State must be at least 2 characters'),
-  pincode: z.string().regex(/^[0-9]{6}$/, 'Please enter a valid 6-digit pincode'),
+  pincode: z.string().regex(/^[0-9]{6}$/, 'Pincode must be exactly 6 digits'),
 });
 
 const legalInfoSchema = z.object({
