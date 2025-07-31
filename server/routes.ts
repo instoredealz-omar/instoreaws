@@ -1287,6 +1287,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const vendor = await storage.createVendor(vendorData);
       
+      // Update user's location data with vendor business location
+      if (vendor.city && vendor.state) {
+        await storage.updateUser(user.id, {
+          city: vendor.city,
+          state: vendor.state,
+        });
+      }
+      
       // Log vendor registration
       await storage.createSystemLog({
         userId: user.id,
