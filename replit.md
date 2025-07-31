@@ -301,16 +301,25 @@ Preferred communication style: Simple, everyday language.
 - **Complete Test Coverage**: Verified entire flow from registration → admin approval → status updates works correctly
 - **Backward Compatibility**: Maintained existing `isApproved` boolean field alongside new status system
 
-### July 31, 2025 - Critical Vendor Registration Data Flow Fix
+### July 31, 2025 - Critical Vendor Registration Data Flow Fix & Duplicate Forms Cleanup
 - **Fixed Duplicate User Creation Bug**: Resolved critical issue where vendor registration was creating duplicate user accounts instead of linking to existing vendor users
 - **Corrected Data Flow**: Vendor registrations now properly populate Vendor Management section instead of appearing incorrectly in User Management
 - **Authentication Required**: Modified `/api/vendors/register` endpoint to require authentication and use existing logged-in vendor user instead of creating new user account
 - **Eliminated Data Duplication**: Vendors who sign up and complete business registration now appear only once in the system under proper vendor management
 - **Clean Separation**: User Management displays customers and system users, Vendor Management displays business vendors as intended
+- **Location Data Capture Fix**: Updated vendor registration endpoint to sync business location data (city, state) to user record for proper admin dashboard display
+- **Comprehensive Duplicate Registration Forms Cleanup**: Removed 4 duplicate vendor registration forms totaling 2,989 lines of code:
+  - Removed VendorPortal.tsx (915 lines) - Component with duplicate registration + deal creation
+  - Removed register.tsx (602 lines) - Basic registration page duplicate
+  - Removed VendorOnboarding.tsx (749 lines) - Multi-step onboarding form duplicate
+  - Kept register-enhanced.tsx (723 lines) - Primary comprehensive registration form
+- **Consolidated Registration System**: All vendor registration now uses single enhanced form with comprehensive validation and file upload support
+- **Updated All Navigation Links**: Fixed all /vendor/portal and /vendor/onboarding references to use unified /vendor/register route
+- **Eliminated Route Conflicts**: Removed duplicate routing that caused system confusion and potential data conflicts
 - **Fixed Registration Flow**: 
   1. User signs up with "vendor" role → creates user record in users table
-  2. User completes vendor business registration → creates vendor record in vendors table linked to existing user
-  3. Vendor appears in Vendor Management for approval, not User Management
+  2. User completes vendor business registration → creates vendor record in vendors table linked to existing user with location sync
+  3. Vendor appears in Vendor Management for approval with proper location data displayed
 
 ### July 29, 2025 - Complete API System Fixes & 95% Success Rate Achievement
 - **Admin System Resolution**: Fixed all admin endpoints to use proper `/api/admin/` URL patterns achieving 100% admin functionality

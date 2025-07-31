@@ -162,7 +162,7 @@ const VendorDealCreation = () => {
                 You need to complete your vendor registration before creating deals.
               </p>
               <Button asChild>
-                <Link to="/vendor/onboarding">Complete Registration</Link>
+                <Link to="/vendor/register">Complete Registration</Link>
               </Button>
             </CardContent>
           </Card>

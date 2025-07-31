@@ -43,7 +43,7 @@ import POSPinVerification from "@/pages/vendor/pos-pin-verification";
 import PosTransactions from "@/pages/vendor/pos-transactions";
 import VendorProfile from "@/pages/vendor/profile";
 import VendorProcess from "@/pages/vendor/VendorProcess";
-import VendorOnboarding from "@/pages/vendor/VendorOnboarding";
+
 import VendorDealCreation from "@/pages/vendor/VendorDealCreation";
 import VendorLocationAnalytics from "@/pages/vendor/location-analytics";
 import ManualVerification from "@/pages/vendor/ManualVerification";
@@ -69,7 +69,7 @@ import TestFlows from "@/pages/test-flows";
 import QRTest from "@/pages/qr-test";
 import DealList from "@/components/DealList";
 import SubscriptionButton from "@/components/Subscription";
-import VendorPortal from "@/components/VendorPortal";
+
 import MagicAdminDashboard from "@/components/AdminDashboard";
 import BannerList from "@/components/BannerList";
 
@@ -158,10 +158,9 @@ function Router() {
 
   // Vendor routes
   const [matchVendor] = useRoute("/vendor");
-  const [matchVendorPortal] = useRoute("/vendor/portal");
   const [matchVendorBenefits] = useRoute("/vendor/benefits");
   const [matchVendorRegister] = useRoute("/vendor/register");
-  const [matchVendorOnboarding] = useRoute("/vendor/onboarding");
+
   const [matchVendorProcess] = useRoute("/vendor/process");
   const [matchVendorDashboard] = useRoute("/vendor/dashboard");
   const [matchVendorDeals] = useRoute("/vendor/deals");
@@ -301,12 +300,11 @@ function Router() {
   // Vendor routes with role protection
   if (matchVendor) {
     return (
-      <RoleProtectedRoute allowedRoles={['vendor', 'customer']} fallbackPath="/vendor/portal">
-        <VendorPortal />
+      <RoleProtectedRoute allowedRoles={['vendor', 'customer']} fallbackPath="/vendor/register">
+        <VendorRegister />
       </RoleProtectedRoute>
     );
   }
-  if (matchVendorPortal) return <VendorPortal />;
   if (matchVendorBenefits) return <VendorBenefits />;
   if (matchVendorRegister) {
     return (
