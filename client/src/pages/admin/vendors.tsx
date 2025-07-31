@@ -36,10 +36,16 @@ export default function AdminVendors() {
 
   const { data: vendors, isLoading } = useQuery({
     queryKey: ["/api/admin/vendors"],
+    staleTime: 0,
+    cacheTime: 0,
+    refetchOnMount: 'always',
   });
 
   const { data: pendingVendors } = useQuery({
     queryKey: ["/api/admin/vendors/pending"],
+    staleTime: 0,
+    cacheTime: 0,
+    refetchOnMount: 'always',
   });
 
   const approveVendorMutation = useMutation({

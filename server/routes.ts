@@ -2761,6 +2761,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get all deals for admin management
+  app.get('/api/admin/deals', requireAuth, requireRole(['admin', 'superadmin']), async (req: AuthenticatedRequest, res) => {
+    try {
+      const deals = await storage.getAllDeals();
+      
+      // Include vendor info and location data
+      const vendors = await storage.getAllVendors();
+      const vendorMap = new Map(vendors.map(v => [v.id, v]));
+      
+      const dealsWithVendorsAndLocations = await Promise.all(deals.map(async deal => {
+        const locations = await storage.getDealLocations(deal.id);
+        return {
+          ...deal,
+          vendor: vendorMap.get(deal.vendorId),
+          locations: locations,
+          locationCount: locations.length,
+          hasMultipleLocations: locations.length > 1,
+        };
+      }));
+      
+      res.json(dealsWithVendorsAndLocations);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch all deals" });
+    }
+  });
+
   app.get('/api/admin/deals/pending', requireAuth, requireRole(['admin', 'superadmin']), async (req: AuthenticatedRequest, res) => {
     try {
       const deals = await storage.getPendingDeals();

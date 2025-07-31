@@ -31,7 +31,7 @@ import {
 
 export default function AdminDeals() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("pending");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [selectedDeal, setSelectedDeal] = useState<any>(null);
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
@@ -40,7 +40,30 @@ export default function AdminDeals() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: pendingDeals, isLoading, refetch } = useQuery({
+  // Fetch all deals
+  const { data: allDeals, isLoading: allDealsLoading } = useQuery({
+    queryKey: ["/api/admin/deals", refreshTrigger],
+    queryFn: async () => {
+      const timestamp = Date.now();
+      const response = await fetch(`/api/admin/deals?_=${timestamp}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Cache-Control': 'no-cache',
+        },
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch all deals');
+      }
+      return response.json();
+    },
+    staleTime: 0,
+    cacheTime: 0,
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: false,
+  });
+
+  // Fetch pending deals
+  const { data: pendingDeals, isLoading: pendingDealsLoading, refetch } = useQuery({
     queryKey: ["/api/admin/deals/pending", refreshTrigger],
     queryFn: async () => {
       // Force fresh request with cache-busting parameter
@@ -61,6 +84,8 @@ export default function AdminDeals() {
     refetchOnMount: 'always',
     refetchOnWindowFocus: false,
   });
+
+  const isLoading = allDealsLoading || pendingDealsLoading;
 
   const { data: categories } = useQuery({
     queryKey: ["/api/categories"],
@@ -149,8 +174,22 @@ export default function AdminDeals() {
     },
   });
 
+  // Get the correct dataset based on status filter
+  const getDealsToFilter = () => {
+    if (statusFilter === "pending") {
+      return pendingDeals || [];
+    } else if (statusFilter === "all") {
+      return allDeals || [];
+    } else if (statusFilter === "approved") {
+      return (allDeals || []).filter((deal: any) => deal.isApproved);
+    } else if (statusFilter === "active") {
+      return (allDeals || []).filter((deal: any) => deal.isApproved && deal.isActive);
+    }
+    return [];
+  };
+
   // Filter deals based on search and filters
-  const filteredDeals = pendingDeals?.filter((deal: any) => {
+  const filteredDeals = getDealsToFilter().filter((deal: any) => {
     const matchesSearch = searchQuery === "" || 
       deal.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       deal.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -159,7 +198,7 @@ export default function AdminDeals() {
     const matchesCategory = categoryFilter === "all" || deal.category === categoryFilter;
     
     return matchesSearch && matchesCategory;
-  }) || [];
+  });
 
   const getStatusBadge = (deal: any) => {
     if (!deal.isApproved) {
@@ -278,6 +317,19 @@ export default function AdminDeals() {
                 </div>
               </div>
               
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger>
+                  <Filter className="h-4 w-4 mr-2" />
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="pending">Pending Approval</SelectItem>
+                  <SelectItem value="approved">Approved</SelectItem>
+                  <SelectItem value="active">Active Deals</SelectItem>
+                  <SelectItem value="all">All Deals</SelectItem>
+                </SelectContent>
+              </Select>
+
               <Select value={categoryFilter} onValueChange={setCategoryFilter}>
                 <SelectTrigger>
                   <Filter className="h-4 w-4 mr-2" />
@@ -293,12 +345,11 @@ export default function AdminDeals() {
                 </SelectContent>
               </Select>
 
-              <div></div>
-
               <Button
                 variant="outline"
                 onClick={() => {
                   setSearchQuery("");
+                  setStatusFilter("pending");
                   setCategoryFilter("all");
                 }}
               >
@@ -311,7 +362,11 @@ export default function AdminDeals() {
         {/* Deals Table */}
         <Card>
           <CardHeader>
-            <CardTitle>Pending Deals ({filteredDeals.length})</CardTitle>
+            <CardTitle>
+              {statusFilter === "pending" ? "Pending Deals" : 
+               statusFilter === "approved" ? "Approved Deals" :
+               statusFilter === "active" ? "Active Deals" : "All Deals"} ({filteredDeals.length})
+            </CardTitle>
           </CardHeader>
           <CardContent>
             {isLoading ? (

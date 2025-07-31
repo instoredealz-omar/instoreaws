@@ -65,10 +65,16 @@ export default function AdminDashboard() {
 
   const { data: pendingVendors } = useQuery({
     queryKey: ["/api/admin/vendors/pending"],
+    staleTime: 0,
+    cacheTime: 0,
+    refetchOnMount: 'always',
   });
 
   const { data: pendingDeals } = useQuery({
     queryKey: ["/api/admin/deals/pending"],
+    staleTime: 0,
+    cacheTime: 0,
+    refetchOnMount: 'always',
   });
 
   // Function to handle report downloads
