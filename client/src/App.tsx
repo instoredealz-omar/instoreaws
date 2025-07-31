@@ -397,13 +397,7 @@ function Router() {
       </RoleProtectedRoute>
     );
   }
-  if (matchVendorOnboarding) {
-    return (
-      <RoleProtectedRoute allowedRoles={['vendor']}>
-        <VendorOnboarding />
-      </RoleProtectedRoute>
-    );
-  }
+
   if (matchVendorProcess) {
     return (
       <RoleProtectedRoute allowedRoles={['vendor']}>
