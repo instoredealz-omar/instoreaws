@@ -3,6 +3,8 @@ import {
   InsertUser,
   Vendor,
   InsertVendor,
+  VendorApproval,
+  InsertVendorApproval,
   Deal,
   InsertDeal,
   DealLocation,
@@ -58,6 +60,8 @@ export interface IStorage {
   getAllVendors(): Promise<Vendor[]>;
   getPendingVendors(): Promise<Vendor[]>;
   approveVendor(id: number): Promise<Vendor | undefined>;
+  rejectVendor(id: number, reviewedBy: number, notes?: string): Promise<Vendor | undefined>;
+  getVendorApprovals(vendorId: number): Promise<VendorApproval[]>;
 
   // Deal operations
   getDeal(id: number): Promise<Deal | undefined>;
@@ -855,7 +859,17 @@ export class MemStorage implements IStorage {
   }
 
   async approveVendor(id: number): Promise<Vendor | undefined> {
-    return this.updateVendor(id, { isApproved: true });
+    return this.updateVendor(id, { isApproved: true, status: "approved" });
+  }
+
+  async rejectVendor(id: number, reviewedBy: number, notes?: string): Promise<Vendor | undefined> {
+    return this.updateVendor(id, { isApproved: false, status: "rejected" });
+  }
+
+  async getVendorApprovals(vendorId: number): Promise<VendorApproval[]> {
+    // For in-memory storage, we'll return an empty array as this is mainly for demo
+    // In real implementation, this would maintain a separate approvals collection
+    return [];
   }
 
   // Deal operations

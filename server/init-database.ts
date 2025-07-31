@@ -4,6 +4,28 @@ import { sql } from 'drizzle-orm';
 
 export async function initializeDatabase() {
   try {
+    // Add status column to vendors table if it doesn't exist
+    await db.execute(sql`
+      ALTER TABLE vendors 
+      ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'pending'
+    `);
+    
+    // Create vendor_approvals table if it doesn't exist
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS vendor_approvals (
+        id SERIAL PRIMARY KEY,
+        vendor_id INTEGER REFERENCES vendors(id) NOT NULL,
+        status TEXT NOT NULL,
+        submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        reviewed_at TIMESTAMP,
+        reviewed_by INTEGER REFERENCES users(id),
+        notes TEXT,
+        required_documents TEXT[],
+        is_active BOOLEAN DEFAULT true,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    
     // Create promotional_banners table if it doesn't exist
     await db.execute(sql`
       CREATE TABLE IF NOT EXISTS promotional_banners (

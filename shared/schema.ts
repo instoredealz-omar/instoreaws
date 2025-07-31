@@ -41,10 +41,25 @@ export const vendors = pgTable("vendors", {
   pincode: text("pincode").notNull(),
   latitude: decimal("latitude", { precision: 10, scale: 8 }),
   longitude: decimal("longitude", { precision: 11, scale: 8 }),
-  isApproved: boolean("is_approved").default(false),
+  status: text("status").notNull().default("pending"), // pending, approved, rejected, suspended
+  isApproved: boolean("is_approved").default(false), // Kept for backward compatibility
   rating: decimal("rating", { precision: 3, scale: 2 }).default("0"),
   totalDeals: integer("total_deals").default(0),
   totalRedemptions: integer("total_redemptions").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Vendor approvals table for tracking approval workflow
+export const vendorApprovals = pgTable("vendor_approvals", {
+  id: serial("id").primaryKey(),
+  vendorId: integer("vendor_id").references(() => vendors.id).notNull(),
+  status: text("status").notNull(), // pending, approved, rejected, requires_info
+  submittedAt: timestamp("submitted_at").defaultNow(),
+  reviewedAt: timestamp("reviewed_at"),
+  reviewedBy: integer("reviewed_by").references(() => users.id),
+  notes: text("notes"), // Admin notes or rejection reasons
+  requiredDocuments: text("required_documents").array(), // List of missing documents
+  isActive: boolean("is_active").default(true), // For tracking latest approval request
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -608,6 +623,12 @@ export const vendorsRelations = relations(vendors, ({ one, many }) => ({
   gdsConnections: many(gdsConnections),
   posTerminals: many(posTerminals),
   stockMovements: many(stockMovements),
+  approvals: many(vendorApprovals),
+}));
+
+export const vendorApprovalsRelations = relations(vendorApprovals, ({ one }) => ({
+  vendor: one(vendors, { fields: [vendorApprovals.vendorId], references: [vendors.id] }),
+  reviewer: one(users, { fields: [vendorApprovals.reviewedBy], references: [users.id] }),
 }));
 
 export const dealsRelations = relations(deals, ({ one, many }) => ({
@@ -721,6 +742,11 @@ export const insertUserSchema = createInsertSchema(users).omit({
 });
 
 export const insertVendorSchema = createInsertSchema(vendors).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertVendorApprovalSchema = createInsertSchema(vendorApprovals).omit({
   id: true,
   createdAt: true,
 });
@@ -876,6 +902,8 @@ export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type Vendor = typeof vendors.$inferSelect;
 export type InsertVendor = z.infer<typeof insertVendorSchema>;
+export type VendorApproval = typeof vendorApprovals.$inferSelect;
+export type InsertVendorApproval = z.infer<typeof insertVendorApprovalSchema>;
 export type Deal = typeof deals.$inferSelect;
 export type InsertDeal = z.infer<typeof insertDealSchema>;
 export type DealLocation = typeof dealLocations.$inferSelect;

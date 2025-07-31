@@ -7,6 +7,8 @@ import type {
   InsertUser,
   Vendor,
   InsertVendor,
+  VendorApproval,
+  InsertVendorApproval,
   Deal,
   InsertDeal,
   DealLocation,
@@ -97,8 +99,25 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createVendor(vendor: InsertVendor): Promise<Vendor> {
-    const result = await db.insert(schema.vendors).values(vendor).returning();
-    return result[0];
+    // Create vendor with pending status
+    const vendorData = {
+      ...vendor,
+      status: "pending" as const,
+      isApproved: false,
+    };
+    
+    const result = await db.insert(schema.vendors).values(vendorData).returning();
+    const createdVendor = result[0];
+    
+    // Create approval record
+    await db.insert(schema.vendorApprovals).values({
+      vendorId: createdVendor.id,
+      status: "pending",
+      submittedAt: new Date(),
+      isActive: true,
+    });
+    
+    return createdVendor;
   }
 
   async updateVendor(id: number, updates: Partial<Vendor>): Promise<Vendor | undefined> {
@@ -111,12 +130,116 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getPendingVendors(): Promise<Vendor[]> {
-    return await db.select().from(schema.vendors).where(eq(schema.vendors.isApproved, false)).orderBy(desc(schema.vendors.createdAt));
+    // Get vendors from vendor_approvals table where status is pending
+    const result = await db
+      .select({
+        id: schema.vendors.id,
+        userId: schema.vendors.userId,
+        businessName: schema.vendors.businessName,
+        gstNumber: schema.vendors.gstNumber,
+        panNumber: schema.vendors.panNumber,
+        panCardFile: schema.vendors.panCardFile,
+        logoUrl: schema.vendors.logoUrl,
+        companyWebsite: schema.vendors.companyWebsite,
+        description: schema.vendors.description,
+        address: schema.vendors.address,
+        city: schema.vendors.city,
+        state: schema.vendors.state,
+        pincode: schema.vendors.pincode,
+        latitude: schema.vendors.latitude,
+        longitude: schema.vendors.longitude,
+        status: schema.vendors.status,
+        isApproved: schema.vendors.isApproved,
+        rating: schema.vendors.rating,
+        totalDeals: schema.vendors.totalDeals,
+        totalRedemptions: schema.vendors.totalRedemptions,
+        createdAt: schema.vendors.createdAt,
+      })
+      .from(schema.vendors)
+      .innerJoin(schema.vendorApprovals, eq(schema.vendors.id, schema.vendorApprovals.vendorId))
+      .where(
+        and(
+          eq(schema.vendorApprovals.status, "pending"),
+          eq(schema.vendorApprovals.isActive, true)
+        )
+      )
+      .orderBy(desc(schema.vendors.createdAt));
+    
+    return result;
   }
 
   async approveVendor(id: number): Promise<Vendor | undefined> {
-    const result = await db.update(schema.vendors).set({ isApproved: true }).where(eq(schema.vendors.id, id)).returning();
-    return result[0];
+    // Update vendor status to approved
+    const vendorResult = await db
+      .update(schema.vendors)
+      .set({ 
+        status: "approved",
+        isApproved: true 
+      })
+      .where(eq(schema.vendors.id, id))
+      .returning();
+    
+    if (vendorResult[0]) {
+      // Update approval record
+      await db
+        .update(schema.vendorApprovals)
+        .set({
+          status: "approved",
+          reviewedAt: new Date(),
+          isActive: false, // Mark as inactive since it's been processed
+        })
+        .where(
+          and(
+            eq(schema.vendorApprovals.vendorId, id),
+            eq(schema.vendorApprovals.isActive, true)
+          )
+        );
+    }
+    
+    return vendorResult[0];
+  }
+
+  // New method to reject vendor
+  async rejectVendor(id: number, reviewedBy: number, notes?: string): Promise<Vendor | undefined> {
+    // Update vendor status to rejected
+    const vendorResult = await db
+      .update(schema.vendors)
+      .set({ 
+        status: "rejected",
+        isApproved: false 
+      })
+      .where(eq(schema.vendors.id, id))
+      .returning();
+    
+    if (vendorResult[0]) {
+      // Update approval record
+      await db
+        .update(schema.vendorApprovals)
+        .set({
+          status: "rejected",
+          reviewedAt: new Date(),
+          reviewedBy,
+          notes,
+          isActive: false,
+        })
+        .where(
+          and(
+            eq(schema.vendorApprovals.vendorId, id),
+            eq(schema.vendorApprovals.isActive, true)
+          )
+        );
+    }
+    
+    return vendorResult[0];
+  }
+
+  // Get vendor approval history
+  async getVendorApprovals(vendorId: number): Promise<VendorApproval[]> {
+    return await db
+      .select()
+      .from(schema.vendorApprovals)
+      .where(eq(schema.vendorApprovals.vendorId, vendorId))
+      .orderBy(desc(schema.vendorApprovals.createdAt));
   }
 
   // Deal operations

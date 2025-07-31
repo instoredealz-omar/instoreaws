@@ -1281,6 +1281,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const vendorData = insertVendorSchema.parse({
         ...req.body,
         userId: user.id,
+        status: "pending", // Set explicit pending status for admin approval
         isApproved: false, // Requires admin approval
       });
       
@@ -2768,6 +2769,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(vendor);
     } catch (error) {
       res.status(500).json({ message: "Failed to approve vendor" });
+    }
+  });
+
+  app.post('/api/admin/vendors/:id/reject', requireAuth, requireRole(['admin', 'superadmin']), async (req: AuthenticatedRequest, res) => {
+    try {
+      const vendorId = parseInt(req.params.id);
+      const { notes } = req.body;
+      const vendor = await storage.rejectVendor(vendorId, req.user!.id, notes);
+      
+      if (!vendor) {
+        return res.status(404).json({ message: "Vendor not found" });
+      }
+      
+      // Log rejection
+      await storage.createSystemLog({
+        userId: req.user!.id,
+        action: "VENDOR_REJECTED",
+        details: { vendorId, businessName: vendor.businessName, rejectionNotes: notes },
+        ipAddress: req.ip,
+        userAgent: req.headers['user-agent'],
+      });
+      
+      res.json({ vendor, message: "Vendor application rejected successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to reject vendor" });
     }
   });
 
