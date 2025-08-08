@@ -196,15 +196,20 @@ export default function DealDetail({ params }: DealDetailProps) {
         body: {},
       });
       const data = await response.json();
+      console.log('Claim API Response:', data); // Debug log
       return data;
     },
     onSuccess: (data) => {
-      // Store the claim code for display
-      setClaimCode(data.claimCode);
+      console.log('onSuccess received data:', data); // Debug log
+      
+      // Store the claim code for display - ensure we get the correct field
+      const claimCode = data.claimCode || data.data?.claimCode;
+      console.log('Extracted claim code:', claimCode); // Debug log
+      setClaimCode(claimCode);
       
       toast({
         title: "Deal Claimed Successfully! 🎉",
-        description: `Your claim code is ${data.claimCode}. Show this code at the store.`,
+        description: `Your claim code is ${claimCode}. Show this code at the store.`,
         variant: "default",
       });
       
