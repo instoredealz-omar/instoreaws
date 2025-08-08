@@ -546,8 +546,8 @@ export default function DealDetail({ params }: DealDetailProps) {
                           </div>
                         )}
 
-                        {/* Show message if newly claimed - always show when claimCode exists */}
-                        {claimCode && (
+                        {/* Show message if newly claimed - only show if not already displayed in the claims list */}
+                        {claimCode && !userClaims_forDeal.find(claim => claim.claimCode === claimCode) && (
                           <div className="bg-green-50 dark:bg-green-900/30 rounded-lg p-4 border border-green-200 dark:border-green-800">
                             <div className="text-center">
                               <div className="text-sm text-green-600 dark:text-green-400 font-medium mb-2">
