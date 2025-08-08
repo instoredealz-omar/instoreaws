@@ -11,6 +11,9 @@ Preferred communication style: Simple, everyday language.
 ### UI/UX Decisions
 The platform features a modern, responsive design built with Radix UI and styled using Tailwind CSS, ensuring accessibility and a consistent user experience across devices. Key UI elements include full-width promotional banners with responsive video display, dynamic category carousels with gradient icons, and enhanced digital membership cards. Dark mode support is comprehensive across all components, optimizing typography and color schemes for readability. Interactive elements like chart controls and smart action buttons enhance user engagement. The logo is a modern square design with an animated gradient border and blue/gold scrolling text animation.
 
+### Documentation & Onboarding
+Comprehensive vendor onboarding documentation has been created (VENDOR_ONBOARDING_GUIDE.md) providing step-by-step guidance for new vendors including signup, business registration, verification, POS system training, and best practices for success on the platform.
+
 ### Technical Implementations
 The application follows a monorepo structure with distinct `client/` (React with TypeScript, Vite), `server/` (Express.js with TypeScript), and `shared/` directories. PostgreSQL with Drizzle ORM is used for the database, and state management is handled by Zustand (for authentication) and TanStack Query (for data fetching). Wouter provides lightweight client-side routing. Authentication is JWT-based with role-based access control (Customer, Vendor, Admin, Super Admin). A 6-character alphanumeric PIN verification system is central to deal redemption, alongside a two-phase claiming process (claim online, verify in-store). Vendor deal creation includes custom categories and requires admin approval for edits. A comprehensive POS (Point of Sale) system is implemented for vendors, including session management and transaction processing.
 
