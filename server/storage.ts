@@ -689,19 +689,33 @@ export class MemStorage implements IStorage {
 
     const membershipRequirements = ["basic", "premium", "ultimate"];
     
-    // Generate a variety of 4-digit PINs using different patterns
+    // Generate secure 6-character alphanumeric PINs
     const generatePin = (dealId: number): string => {
+      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
       const patterns = [
-        () => `${1000 + dealId}`, // Sequential starting from 1000
-        () => `${2000 + (dealId * 3) % 1000}`, // Mathematical pattern starting from 2000
-        () => `${3000 + (dealId * 7) % 1000}`, // Mathematical pattern starting from 3000
-        () => `${4000 + (dealId * 11) % 1000}`, // Mathematical pattern starting from 4000
-        () => `${5000 + (dealId * 13) % 1000}`, // Mathematical pattern starting from 5000
-        () => `${6000 + (dealId * 17) % 1000}`, // Mathematical pattern starting from 6000
-        () => `${7000 + (dealId * 19) % 1000}`, // Mathematical pattern starting from 7000
-        () => `${8000 + (dealId * 23) % 1000}`, // Mathematical pattern starting from 8000
+        () => `A${dealId}${chars[dealId % 36]}${chars[(dealId * 3) % 36]}${chars[(dealId * 7) % 36]}${chars[(dealId * 11) % 36]}`,
+        () => `B${chars[dealId % 36]}${(1000 + dealId).toString().slice(-2)}${chars[(dealId * 13) % 36]}${chars[(dealId * 17) % 36]}`,
+        () => `C${chars[(dealId * 5) % 36]}${chars[(dealId * 9) % 36]}${(2000 + dealId).toString().slice(-2)}${chars[(dealId * 19) % 36]}`,
+        () => `D${(3000 + dealId).toString().slice(-2)}${chars[(dealId * 7) % 36]}${chars[(dealId * 23) % 36]}${chars[(dealId * 29) % 36]}`,
+        () => `E${chars[(dealId * 11) % 36]}${chars[(dealId * 13) % 36]}${chars[(dealId * 17) % 36]}${(4000 + dealId).toString().slice(-2)}`,
+        () => `F${chars[(dealId * 3) % 36]}${(5000 + dealId).toString().slice(-2)}${chars[(dealId * 31) % 36]}${chars[(dealId * 37) % 36]}`,
       ];
-      return patterns[dealId % patterns.length]();
+      
+      let pin = patterns[dealId % patterns.length]();
+      
+      // Ensure PIN is exactly 6 characters and meets complexity requirements
+      if (pin.length !== 6) {
+        pin = pin.substring(0, 6).padEnd(6, chars[dealId % 36]);
+      }
+      
+      // Add variation to ensure uniqueness
+      const uniqueChars = new Set(pin.split(''));
+      if (uniqueChars.size < 3) {
+        // Replace last characters to add more uniqueness
+        pin = pin.substring(0, 4) + chars[(dealId * 41) % 36] + chars[(dealId * 43) % 36];
+      }
+      
+      return pin;
     };
     
     categories.forEach((category, categoryIndex) => {
@@ -726,7 +740,7 @@ export class MemStorage implements IStorage {
           originalPrice: null, // Removed pricing as per user preference
           discountedPrice: null, // Removed pricing as per user preference
           discountPercentage: 25 + (i * 10), // 25%, 35%, 45%, 55%, 65%
-          verificationPin: generatePin(dealId), // Unique 4-digit PIN for each deal
+          verificationPin: generatePin(dealId), // Unique 6-character alphanumeric PIN for each deal
           validFrom: new Date(Date.now() - (i * 24 * 60 * 60 * 1000)),
           validUntil: new Date(Date.now() + ((45 - i * 5) * 24 * 60 * 60 * 1000)), // Varying validity periods
           maxRedemptions: 50 + (i * 25), // 50, 75, 100, 125, 150
@@ -1990,8 +2004,114 @@ export class MemStorage implements IStorage {
     return updatedDeal;
   }
 
-  // Note: Promotional Banners operations moved to DatabaseStorage
-  // All promotional banner methods are implemented in db-storage.ts
+  // Promotional Banners operations
+  async getAllPromotionalBanners(): Promise<PromotionalBanner[]> {
+    return Array.from(this.promotionalBanners.values())
+      .sort((a, b) => a.priority - b.priority);
+  }
+
+  async getActivePromotionalBanners(): Promise<PromotionalBanner[]> {
+    const now = new Date();
+    return Array.from(this.promotionalBanners.values())
+      .filter(banner => 
+        banner.isActive && 
+        (!banner.startDate || banner.startDate <= now) &&
+        (!banner.endDate || banner.endDate >= now)
+      )
+      .sort((a, b) => a.priority - b.priority);
+  }
+
+  async getPromotionalBanner(id: number): Promise<PromotionalBanner | undefined> {
+    return this.promotionalBanners.get(id);
+  }
+
+  async createPromotionalBanner(insertBanner: InsertPromotionalBanner): Promise<PromotionalBanner> {
+    const banner: PromotionalBanner = {
+      id: this.currentPromotionalBannerId++,
+      ...insertBanner,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    this.promotionalBanners.set(banner.id, banner);
+    return banner;
+  }
+
+  async updatePromotionalBanner(id: number, updates: Partial<PromotionalBanner>): Promise<PromotionalBanner | undefined> {
+    const banner = this.promotionalBanners.get(id);
+    if (banner) {
+      const updatedBanner = { ...banner, ...updates, updatedAt: new Date() };
+      this.promotionalBanners.set(id, updatedBanner);
+      return updatedBanner;
+    }
+    return undefined;
+  }
+
+  async deletePromotionalBanner(id: number): Promise<boolean> {
+    return this.promotionalBanners.delete(id);
+  }
+
+  async incrementBannerClicks(id: number): Promise<void> {
+    const banner = this.promotionalBanners.get(id);
+    if (banner) {
+      banner.clickCount = (banner.clickCount || 0) + 1;
+      this.promotionalBanners.set(id, banner);
+    }
+  }
+
+  async incrementBannerViews(id: number): Promise<void> {
+    const banner = this.promotionalBanners.get(id);
+    if (banner) {
+      banner.viewCount = (banner.viewCount || 0) + 1;
+      this.promotionalBanners.set(id, banner);
+    }
+  }
+
+  private generateTestBanners(): void {
+    const banners: PromotionalBanner[] = [
+      {
+        id: 1,
+        title: "Summer Sale Spectacular!",
+        subtitle: "Up to 70% off on all categories",
+        description: "Don't miss out on the biggest sale of the year with incredible discounts on dining, shopping, wellness, and more!",
+        videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+        thumbnailUrl: "https://images.unsplash.com/photo-1607083206869-4c7672e72a8a?w=800&h=400&fit=crop",
+        ctaText: "Shop Now",
+        ctaUrl: "/deals",
+        backgroundColor: "#FF6B35",
+        textColor: "#FFFFFF",
+        priority: 1,
+        isActive: true,
+        startDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+        endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+        viewCount: 1250,
+        clickCount: 89,
+        createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+        updatedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+      },
+      {
+        id: 2,
+        title: "New Premium Membership",
+        subtitle: "Unlock exclusive deals and rewards",
+        description: "Upgrade to Premium and get access to exclusive deals, early access to sales, and special member-only discounts.",
+        videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
+        thumbnailUrl: "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=800&h=400&fit=crop",
+        ctaText: "Upgrade Now",
+        ctaUrl: "/membership",
+        backgroundColor: "#4A90E2",
+        textColor: "#FFFFFF",
+        priority: 2,
+        isActive: true,
+        startDate: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
+        endDate: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000),
+        viewCount: 875,
+        clickCount: 67,
+        createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
+        updatedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
+      }
+    ];
+
+    banners.forEach(banner => this.promotionalBanners.set(banner.id, banner));
+  }
 }
 
 import { DatabaseStorage } from "./db-storage";
