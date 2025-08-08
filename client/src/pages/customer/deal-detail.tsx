@@ -183,9 +183,10 @@ export default function DealDetail({ params }: DealDetailProps) {
     refetchOnMount: true,
   });
 
-  // Check if current deal has been claimed
-  const userClaim = userClaims.find(claim => claim.dealId === Number(id));
-  const hasClaimedDeal = !!userClaim;
+  // Check if current deal has been claimed - Allow multiple claims
+  const userClaims_forDeal = userClaims.filter(claim => claim.dealId === Number(id));
+  const userClaim = userClaims_forDeal.sort((a, b) => b.id - a.id)[0]; // Get most recent claim
+  const hasClaimedDeal = false; // Allow multiple claims per customer
 
   // New claim deal with code mutation (corrected system)
   const claimDealMutation = useMutation({
@@ -469,16 +470,42 @@ export default function DealDetail({ params }: DealDetailProps) {
                       </Button>
                     ) : (
                       <div className="space-y-4">
-                        <div className="text-center text-lg text-green-600 dark:text-green-400 font-medium bg-green-50 dark:bg-green-900/30 rounded-lg py-3">
-                          ✅ Deal Claimed Successfully
-                        </div>
+                        {/* Always show the claim button since we allow multiple claims */}
+                        <Button
+                          onClick={() => claimDealMutation.mutate(deal!.id)}
+                          disabled={isExpired || !!isFullyRedeemed || !deal?.isActive || claimDealMutation.isPending}
+                          className="w-full bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white"
+                          size="lg"
+                        >
+                          {claimDealMutation.isPending ? (
+                            <>
+                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                              Claiming...
+                            </>
+                          ) : isExpired ? (
+                            "Deal Expired"
+                          ) : isFullyRedeemed ? (
+                            "Fully Redeemed"
+                          ) : (
+                            <>
+                              <Shield className="w-4 h-4 mr-2" />
+                              {userClaims_forDeal.length > 0 ? 'Claim Again' : 'Claim Deal'}
+                            </>
+                          )}
+                        </Button>
+                        
+                        {userClaims_forDeal.length > 0 && (
+                          <div className="text-center text-sm text-green-600 dark:text-green-400 font-medium bg-green-50 dark:bg-green-900/30 rounded-lg py-2">
+                            ✅ You have claimed this deal {userClaims_forDeal.length} time{userClaims_forDeal.length > 1 ? 's' : ''}
+                          </div>
+                        )}
                         
                         {/* Show claim code if available */}
                         {(claimCode || userClaim?.claimCode) && (
                           <div className="bg-blue-50 dark:bg-blue-900/30 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
                             <div className="text-center">
                               <div className="text-sm text-blue-600 dark:text-blue-400 font-medium mb-2">
-                                Your Claim Code
+                                Your Claim Code {userClaims_forDeal.length > 1 && `(Latest of ${userClaims_forDeal.length})`}
                               </div>
                               <div className="text-2xl font-bold text-blue-800 dark:text-blue-300 tracking-wider mb-2">
                                 {claimCode || userClaim?.claimCode}
@@ -486,6 +513,11 @@ export default function DealDetail({ params }: DealDetailProps) {
                               <div className="text-sm text-blue-600 dark:text-blue-400">
                                 Show this code at the store to redeem your discount
                               </div>
+                              {userClaims_forDeal.length > 1 && (
+                                <div className="mt-2 text-xs text-blue-500 dark:text-blue-400">
+                                  💡 You can claim this deal multiple times with different codes
+                                </div>
+                              )}
                             </div>
                           </div>
                         )}
