@@ -366,15 +366,35 @@ export class MemStorage implements IStorage {
       isActive: true,
     };
 
+    // Create demo customer
+    const demoUser: User = {
+      id: this.currentUserId++,
+      name: "Demo Customer",
+      username: "demo",
+      email: "demo@demo.com",
+      password: "demo123",
+      role: "customer",
+      phone: "+91-9876543215",
+      city: "Mumbai",
+      state: "Maharashtra",
+      membershipPlan: "basic",
+      membershipExpiry: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+      isPromotionalUser: false,
+      totalSavings: "1250.00",
+      dealsClaimed: 5,
+      createdAt: new Date(),
+      isActive: true,
+    };
+
     // Create vendor user
     const vendorUser: User = {
       id: this.currentUserId++,
-      name: "Fashion Store Owner",
+      name: "Test Vendor",
       username: "vendor",
-      email: "vendor@example.com",
+      email: "vendor@test.com",
       password: "vendor123",
       role: "vendor",
-      phone: "+91-9876543215",
+      phone: "+91-9876543216",
       city: "Mumbai",
       state: "Maharashtra",
       membershipPlan: null,
@@ -387,7 +407,7 @@ export class MemStorage implements IStorage {
     };
 
     // Save users
-    [adminUser, superAdminUser, customerBasic, customerPremium, customerUltimate, vendorUser].forEach(user => {
+    [adminUser, superAdminUser, customerBasic, customerPremium, customerUltimate, demoUser, vendorUser].forEach(user => {
       this.users.set(user.id, user);
     });
 

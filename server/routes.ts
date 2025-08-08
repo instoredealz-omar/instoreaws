@@ -2,10 +2,11 @@ import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import axios, { AxiosError, AxiosResponse } from "axios";
 import { DatabaseStorage } from "./db-storage";
+import { MemStorage } from "./storage";
 import { upload, processImage, processBase64Image, processImageFromUrl, deleteImage, getImageConfig } from "./image-processor";
 
-// Use database storage instead of in-memory storage
-const storage = new DatabaseStorage();
+// Use in-memory storage as fallback when database is not available
+let storage: any = new MemStorage();
 import { loginSchema, signupSchema, insertVendorSchema, insertDealSchema, insertHelpTicketSchema, insertWishlistSchema, updateUserProfileSchema, updateVendorProfileSchema, insertCustomDealAlertSchema, insertDealConciergeRequestSchema, insertAlertNotificationSchema } from "@shared/schema";
 import { z } from "zod";
 import { sendEmail, getWelcomeCustomerEmail, getVendorRegistrationEmail, getReportEmail, getDealApprovalEmail, getDealRejectionEmail } from "./email";
