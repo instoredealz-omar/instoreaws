@@ -102,24 +102,26 @@ export default function ImageUpload({
     try {
       const response = await apiRequest('/api/process-base64-image', {
         method: 'POST',
-        body: JSON.stringify({ base64Data }),
+        body: { base64Data },
       });
       
-      if (response.success) {
+      const result = await response.json();
+      
+      if (result.success) {
         // Update image URL and info
-        onChange(response.data.url);
+        onChange(result.data.url);
         setProcessedImageInfo({
-          filename: response.data.filename,
-          size: response.data.size,
-          dimensions: response.data.dimensions,
+          filename: result.data.filename,
+          size: result.data.size,
+          dimensions: result.data.dimensions,
         });
         
         toast({
           title: "Image processed successfully",
-          description: `Image resized to ${response.data.dimensions.width}x${response.data.dimensions.height} and optimized for web.`,
+          description: `Image resized to ${result.data.dimensions.width}x${result.data.dimensions.height} and optimized for web.`,
         });
       } else {
-        throw new Error(response.message || 'Failed to process image');
+        throw new Error(result.message || 'Failed to process image');
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to process image';
@@ -141,24 +143,26 @@ export default function ImageUpload({
     try {
       const response = await apiRequest('/api/process-image-url', {
         method: 'POST',
-        body: JSON.stringify({ imageUrl }),
+        body: { imageUrl },
       });
       
-      if (response.success) {
+      const result = await response.json();
+      
+      if (result.success) {
         // Update image URL and info
-        onChange(response.data.url);
+        onChange(result.data.url);
         setProcessedImageInfo({
-          filename: response.data.filename,
-          size: response.data.size,
-          dimensions: response.data.dimensions,
+          filename: result.data.filename,
+          size: result.data.size,
+          dimensions: result.data.dimensions,
         });
         
         toast({
           title: "Image processed successfully",
-          description: `Image resized to ${response.data.dimensions.width}x${response.data.dimensions.height} and optimized for web.`,
+          description: `Image resized to ${result.data.dimensions.width}x${result.data.dimensions.height} and optimized for web.`,
         });
       } else {
-        throw new Error(response.message || 'Failed to process image');
+        throw new Error(result.message || 'Failed to process image');
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to process image';
