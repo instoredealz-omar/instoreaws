@@ -1440,16 +1440,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get current rotating PIN for a specific deal
+  // Get current static PIN for a specific deal
   app.get('/api/vendors/deals/:id/current-pin', requireAuth, requireRole(['vendor']), async (req: AuthenticatedRequest, res) => {
     try {
-      // Prevent caching for rotating PIN endpoint
-      res.set({
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-        'Pragma': 'no-cache',
-        'Expires': '0'
-      });
-
       const dealId = parseInt(req.params.id);
       const vendor = await storage.getVendorByUserId(req.user!.id);
       
@@ -1463,17 +1456,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Deal not found" });
       }
 
-      const { generateRotatingPin } = await import('./pin-security');
-      const rotatingPin = generateRotatingPin(dealId);
-      
+      // Return static database PIN (consistent 6-digit PIN)
       const response = {
         dealId,
         dealTitle: deal.title,
-        currentPin: rotatingPin.currentPin,
-        nextRotationAt: rotatingPin.nextRotationAt,
-        rotationInterval: rotatingPin.rotationInterval,
-        isActive: rotatingPin.isActive,
-        message: "Current PIN for your deal. This PIN changes every 30 minutes.",
+        currentPin: deal.verificationPin,
+        isActive: true,
+        pinType: "static",
+        message: "Current PIN for your deal verification.",
         usage: "Share this PIN with customers for deal verification."
       };
 
@@ -4197,34 +4187,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Verify PIN using multiple methods: rotating PIN, secure hashing, and legacy fallback
-      let pinVerificationResult;
-      let isRotatingPin = false;
+      // Use static database PIN verification (consistent 6-digit PINs)
+      const cleanPin = String(pin || '').trim().toUpperCase();
+      const storedPin = String(deal.verificationPin || '').trim().toUpperCase();
       
-      // First, try rotating PIN verification
-      if (verifyRotatingPin(dealId, pin)) {
-        pinVerificationResult = {
-          isValid: true,
-          message: "Rotating PIN verified successfully"
-        };
-        isRotatingPin = true;
-      } else if (deal.pinSalt) {
-        // New secure PIN verification
-        pinVerificationResult = await verifyPin(
-          pin, 
-          deal.verificationPin, 
-          deal.pinSalt, 
-          deal.pinExpiresAt || undefined
-        );
-      } else {
-        // Legacy plain text PIN verification (temporary)
-        const cleanPin = String(pin || '').trim();
-        const storedPin = String(deal.verificationPin || '').trim();
-        pinVerificationResult = {
-          isValid: cleanPin === storedPin,
-          message: cleanPin === storedPin ? "PIN verified successfully" : "Invalid PIN"
-        };
-      }
+      const pinVerificationResult = {
+        isValid: cleanPin === storedPin,
+        message: cleanPin === storedPin ? "PIN verified successfully" : "Invalid PIN"
+      };
 
       // Check if PIN has expired
       if (!pinVerificationResult.isValid && deal.pinExpiresAt && new Date() > new Date(deal.pinExpiresAt)) {
