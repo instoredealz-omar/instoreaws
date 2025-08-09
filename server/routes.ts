@@ -4146,6 +4146,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get vendor information
       const vendor = await storage.getVendorByUserId(req.user!.id);
       if (!vendor) {
+        Logger.debug('Vendor not found for PIN verification', {
+          userId: req.user!.id,
+          userEmail: req.user!.email,
+          userName: req.user!.name
+        });
         return res.status(404).json({ 
           success: false, 
           error: "Vendor not found" 
