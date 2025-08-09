@@ -4191,6 +4191,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const cleanPin = String(pin || '').trim().toUpperCase();
       const storedPin = String(deal.verificationPin || '').trim().toUpperCase();
       
+      // Removed debug logging for production
+      
       const pinVerificationResult = {
         isValid: cleanPin === storedPin,
         message: cleanPin === storedPin ? "PIN verified successfully" : "Invalid PIN"

@@ -689,33 +689,27 @@ export class MemStorage implements IStorage {
 
     const membershipRequirements = ["basic", "premium", "ultimate"];
     
-    // Generate secure 6-character alphanumeric PINs
-    const generatePin = (dealId: number): string => {
-      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    // Generate consistent 6-character alphanumeric PINs for deals
+    const generatePin = (dealId: number, category: string): string => {
+      // Fixed mapping to ensure consistency - use simple pattern based on deal ID
       const patterns = [
-        () => `A${dealId}${chars[dealId % 36]}${chars[(dealId * 3) % 36]}${chars[(dealId * 7) % 36]}${chars[(dealId * 11) % 36]}`,
-        () => `B${chars[dealId % 36]}${(1000 + dealId).toString().slice(-2)}${chars[(dealId * 13) % 36]}${chars[(dealId * 17) % 36]}`,
-        () => `C${chars[(dealId * 5) % 36]}${chars[(dealId * 9) % 36]}${(2000 + dealId).toString().slice(-2)}${chars[(dealId * 19) % 36]}`,
-        () => `D${(3000 + dealId).toString().slice(-2)}${chars[(dealId * 7) % 36]}${chars[(dealId * 23) % 36]}${chars[(dealId * 29) % 36]}`,
-        () => `E${chars[(dealId * 11) % 36]}${chars[(dealId * 13) % 36]}${chars[(dealId * 17) % 36]}${(4000 + dealId).toString().slice(-2)}`,
-        () => `F${chars[(dealId * 3) % 36]}${(5000 + dealId).toString().slice(-2)}${chars[(dealId * 31) % 36]}${chars[(dealId * 37) % 36]}`,
+        'B001NR', 'F002AS', 'D003TR', 'E004MQ', 'A005LZ',
+        'H006KX', 'G007JW', 'C008IV', 'N009HU', 'P010GT'
       ];
       
-      let pin = patterns[dealId % patterns.length]();
-      
-      // Ensure PIN is exactly 6 characters and meets complexity requirements
-      if (pin.length !== 6) {
-        pin = pin.substring(0, 6).padEnd(6, chars[dealId % 36]);
+      // If we have a predefined pattern for this deal ID, use it
+      if (dealId <= patterns.length) {
+        return patterns[dealId - 1];
       }
       
-      // Add variation to ensure uniqueness
-      const uniqueChars = new Set(pin.split(''));
-      if (uniqueChars.size < 3) {
-        // Replace last characters to add more uniqueness
-        pin = pin.substring(0, 4) + chars[(dealId * 41) % 36] + chars[(dealId * 43) % 36];
-      }
+      // For deals beyond our predefined patterns, generate deterministically
+      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+      const categoryPrefix = category.charAt(0).toUpperCase();
+      const dealNum = String(dealId).padStart(3, '0');
+      const char1 = chars[(dealId * 7) % chars.length];
+      const char2 = chars[(dealId * 13) % chars.length];
       
-      return pin;
+      return categoryPrefix + dealNum + char1 + char2;
     };
     
     categories.forEach((category, categoryIndex) => {
@@ -740,7 +734,7 @@ export class MemStorage implements IStorage {
           originalPrice: null, // Removed pricing as per user preference
           discountedPrice: null, // Removed pricing as per user preference
           discountPercentage: 25 + (i * 10), // 25%, 35%, 45%, 55%, 65%
-          verificationPin: generatePin(dealId), // Unique 6-character alphanumeric PIN for each deal
+          verificationPin: generatePin(dealId, category), // Unique 6-character alphanumeric PIN for each deal
           validFrom: new Date(Date.now() - (i * 24 * 60 * 60 * 1000)),
           validUntil: new Date(Date.now() + ((45 - i * 5) * 24 * 60 * 60 * 1000)), // Varying validity periods
           maxRedemptions: 50 + (i * 25), // 50, 75, 100, 125, 150
