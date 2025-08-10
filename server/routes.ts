@@ -1270,7 +1270,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Vendor routes
-  app.post('/api/vendors/register', requireAuth, requireRole(['vendor']), async (req: AuthenticatedRequest, res) => {
+  app.post('/api/vendors/register', requireAuth, async (req: AuthenticatedRequest, res) => {
     try {
       const user = req.user!;
       
@@ -1278,6 +1278,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const existingVendor = await storage.getVendorByUserId(user.id);
       if (existingVendor) {
         return res.status(400).json({ message: "Vendor profile already exists" });
+      }
+
+      // If user is not already a vendor, upgrade their role
+      if (user.role !== 'vendor') {
+        await storage.updateUser(user.id, { role: 'vendor' });
+        // Update the user object in request for subsequent operations
+        user.role = 'vendor';
       }
 
       const vendorData = insertVendorSchema.parse({
