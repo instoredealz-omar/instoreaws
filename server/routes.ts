@@ -5,8 +5,8 @@ import { DatabaseStorage } from "./db-storage";
 import { MemStorage } from "./storage";
 import { upload, processImage, processBase64Image, processImageFromUrl, deleteImage, getImageConfig } from "./image-processor";
 
-// Use in-memory storage as fallback when database is not available
-let storage: any = new MemStorage();
+// Use database storage for persistent data
+let storage: any = new DatabaseStorage();
 import { loginSchema, signupSchema, insertVendorSchema, insertDealSchema, insertHelpTicketSchema, insertWishlistSchema, updateUserProfileSchema, updateVendorProfileSchema, insertCustomDealAlertSchema, insertDealConciergeRequestSchema, insertAlertNotificationSchema } from "@shared/schema";
 import { z } from "zod";
 import { sendEmail, getWelcomeCustomerEmail, getVendorRegistrationEmail, getReportEmail, getDealApprovalEmail, getDealRejectionEmail } from "./email";
