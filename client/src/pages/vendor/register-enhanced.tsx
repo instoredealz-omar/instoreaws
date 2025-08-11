@@ -132,7 +132,7 @@ export default function VendorRegisterEnhanced() {
         description: "Your application is under review. You'll be notified once approved.",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/vendors/me"] });
-      navigate("/vendor/dashboard");
+      navigate("/vendor/profile-data");
     },
     onError: (error: any) => {
       toast({

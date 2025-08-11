@@ -43,6 +43,7 @@ import POSPinVerification from "@/pages/vendor/pos-pin-verification";
 import PosTransactions from "@/pages/vendor/pos-transactions";
 import VendorProfile from "@/pages/vendor/profile";
 import VendorProcess from "@/pages/vendor/VendorProcess";
+import VendorProfileData from "@/pages/vendor/vendor-profile-data";
 
 import VendorDealCreation from "@/pages/vendor/VendorDealCreation";
 import VendorLocationAnalytics from "@/pages/vendor/location-analytics";
@@ -173,6 +174,7 @@ function Router() {
   const [matchVendorEnhancedPos] = useRoute("/vendor/pos/enhanced");
   const [matchVendorPosTransactions] = useRoute("/vendor/pos/transactions");
   const [matchVendorProfile] = useRoute("/vendor/profile");
+  const [matchVendorProfileData] = useRoute("/vendor/profile-data");
   const [matchVendorManualVerification] = useRoute("/vendor/manual-verification");
 
   // Admin routes
@@ -387,6 +389,13 @@ function Router() {
     return (
       <RoleProtectedRoute allowedRoles={['vendor']}>
         <VendorProfile />
+      </RoleProtectedRoute>
+    );
+  }
+  if (matchVendorProfileData) {
+    return (
+      <RoleProtectedRoute allowedRoles={['vendor']}>
+        <VendorProfileData />
       </RoleProtectedRoute>
     );
   }
