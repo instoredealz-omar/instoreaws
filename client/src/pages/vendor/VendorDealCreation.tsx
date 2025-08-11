@@ -40,6 +40,7 @@ import {
 import { useAuth } from '@/lib/auth';
 import { Link } from 'wouter';
 import Navbar from '@/components/ui/navbar';
+import VendorRegistrationStatus from "@/components/vendor-registration-status";
 
 // Enhanced deal creation schema
 const dealCreationSchema = z.object({
@@ -154,18 +155,7 @@ const VendorDealCreation = () => {
       <div className="min-h-screen bg-background">
         <Navbar />
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <Card>
-            <CardContent className="p-8 text-center">
-              <AlertCircle className="h-12 w-12 text-amber-500 mx-auto mb-4" />
-              <h2 className="text-xl font-semibold mb-2">Vendor Profile Required</h2>
-              <p className="text-muted-foreground mb-4">
-                You need to complete your vendor registration before creating deals.
-              </p>
-              <Button asChild>
-                <Link to="/vendor/register">Complete Registration</Link>
-              </Button>
-            </CardContent>
-          </Card>
+          <VendorRegistrationStatus showTitle={true} />
         </div>
       </div>
     );

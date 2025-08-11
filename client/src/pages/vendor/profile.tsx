@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, Store, Save, MapPin, Globe, Phone, Mail, Building, Star, Award } from "lucide-react";
+import VendorRegistrationStatus from "@/components/vendor-registration-status";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { indianStates, getCitiesByState } from "@/lib/cities";
@@ -136,20 +137,7 @@ export default function VendorProfile() {
       <div className="min-h-screen bg-background">
         <Navbar />
         <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <Card>
-            <CardContent className="p-8 text-center">
-              <Store className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-foreground mb-2">
-                No Vendor Profile Found
-              </h3>
-              <p className="text-muted-foreground mb-4">
-                You need to complete your vendor registration first.
-              </p>
-              <Button asChild>
-                <a href="/vendor/register">Complete Registration</a>
-              </Button>
-            </CardContent>
-          </Card>
+          <VendorRegistrationStatus showTitle={true} />
         </div>
       </div>
     );

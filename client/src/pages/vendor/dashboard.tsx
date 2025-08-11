@@ -10,6 +10,7 @@ import { Progress } from "@/components/ui/progress";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from "@/components/ui/chart";
 import { useAuth } from "@/lib/auth";
 import { Link, useLocation } from "wouter";
+import VendorRegistrationStatus from "@/components/vendor-registration-status";
 import { 
   Store, 
   TrendingUp, 
@@ -196,66 +197,8 @@ export default function VendorDashboard() {
           </div>
         </div>
 
-        {/* Approval Status - Only show if vendor exists and is explicitly NOT approved */}
-        {vendor && isApproved === false && (
-          <Card className="mb-8 border-warning bg-warning/5">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <Clock className="h-6 w-6 text-warning" />
-                  <div>
-                    <h3 className="font-semibold text-foreground">Account Under Review</h3>
-                    <p className="text-muted-foreground">
-                      Your vendor account is currently being reviewed. You'll be able to create deals once approved.
-                    </p>
-                  </div>
-                </div>
-                <AlertCircle className="h-8 w-8 text-warning" />
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Approval Success Message - Show for approved vendors */}
-        {vendor && isApproved === true && (
-          <Card className="mb-8 border-success bg-success/5">
-            <CardContent className="p-6">
-              <div className="flex items-center space-x-3">
-                <CheckCircle className="h-6 w-6 text-success" />
-                <div>
-                  <h3 className="font-semibold text-foreground">Account Approved!</h3>
-                  <p className="text-muted-foreground">
-                    Welcome to Instoredealz! Your vendor account is active and you can now create deals.
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Registration Prompt */}
-        {!vendor && (
-          <Card className="mb-8 border-primary bg-primary/5">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <Store className="h-6 w-6 text-primary" />
-                  <div>
-                    <h3 className="font-semibold text-foreground">Complete Your Registration</h3>
-                    <p className="text-muted-foreground">
-                      Register your business to start offering deals to customers
-                    </p>
-                  </div>
-                </div>
-                <Button asChild>
-                  <Link to="/vendor/register">
-                    Register Now
-                  </Link>
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+        {/* Vendor Registration Status - Centralized Component */}
+        <VendorRegistrationStatus className="mb-8" />
 
         {/* Stats Grid */}
         {(vendor as any) && isApproved && (
