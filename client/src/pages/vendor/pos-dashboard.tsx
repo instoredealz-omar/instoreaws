@@ -250,6 +250,19 @@ export default function PosDashboard() {
     queryKey: ['/api/pos/sessions'],
   });
 
+  // Initialize active session from existing sessions
+  useEffect(() => {
+    if (sessions.length > 0 && !posState.activeSession) {
+      const activeSession = sessions.find(session => session.isActive);
+      if (activeSession) {
+        setPosState(prev => ({ 
+          ...prev, 
+          activeSession: activeSession 
+        }));
+      }
+    }
+  }, [sessions, posState.activeSession]);
+
   // Start POS session mutation
   const startSessionMutation = useMutation({
     mutationFn: async () => {

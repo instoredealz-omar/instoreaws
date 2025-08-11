@@ -6037,6 +6037,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
     return code;
   }
 
+  // Admin endpoint to get current PIN for any deal (for debugging/support)
+  app.get('/api/admin/deals/:id/current-pin', requireAuth, requireRole(['admin', 'super_admin']), async (req: AuthenticatedRequest, res) => {
+    try {
+      const dealId = parseInt(req.params.id);
+      
+      // Get deal details
+      const deal = await storage.getDeal(dealId);
+      if (!deal) {
+        return res.status(404).json({ message: "Deal not found" });
+      }
+
+      // Import PIN security utilities
+      const { generateRotatingPin } = await import('./pin-security');
+      
+      // Generate current rotating PIN for this deal
+      const rotatingPinResult = generateRotatingPin(dealId);
+      
+      // Get vendor information for context
+      const vendor = await storage.getVendor(deal.vendorId);
+      
+      const response = {
+        dealId,
+        dealTitle: deal.title,
+        vendorId: deal.vendorId,
+        vendorName: vendor?.businessName || 'Unknown Vendor',
+        currentPin: rotatingPinResult.currentPin,
+        nextRotationAt: rotatingPinResult.nextRotationAt,
+        rotationInterval: rotatingPinResult.rotationInterval,
+        isActive: rotatingPinResult.isActive,
+        pinType: "rotating",
+        message: "Current rotating PIN for deal (Admin view)",
+        adminNote: "This PIN matches what the vendor sees for deal verification."
+      };
+
+      res.json(response);
+    } catch (error) {
+      Logger.error("Admin current PIN retrieval error:", error);
+      res.status(500).json({ message: "Failed to retrieve current PIN" });
+    }
+  });
+
   // Audit endpoint for admin to check deal code consistency
   app.get('/api/admin/audit/deal-codes', requireAuth, requireRole(['admin', 'super_admin']), async (req: AuthenticatedRequest, res) => {
     try {
