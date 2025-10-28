@@ -537,11 +537,27 @@ export default function VendorDashboard() {
                           </div>
                         </div>
                         
+                        {/* Verification PIN Display */}
+                        {deal.verificationPin && (
+                          <div className="mt-3 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+                            <div className="flex items-center gap-2 text-green-700 dark:text-green-300 mb-2">
+                              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                              <span className="text-sm font-medium">Your Verification Code</span>
+                            </div>
+                            <div className="font-mono text-2xl font-bold text-green-700 dark:text-green-300 tracking-wider bg-white dark:bg-gray-800 px-4 py-2 rounded border border-green-300 dark:border-green-700 text-center">
+                              {deal.verificationPin}
+                            </div>
+                            <p className="text-xs text-green-600 dark:text-green-400 mt-2">
+                              This is your deal's verification code - use it for manual verification
+                            </p>
+                          </div>
+                        )}
+                        
                         {deal.claimCodes && deal.claimCodes.length > 0 && (
                           <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
                             <div className="flex items-center gap-2 text-blue-700 dark:text-blue-300 mb-2">
                               <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                              <span className="text-sm font-medium">Active Claim Codes ({deal.activeClaimsCount || 0})</span>
+                              <span className="text-sm font-medium">Customer Claim Codes ({deal.activeClaimsCount || 0})</span>
                             </div>
                             <div className="flex flex-wrap gap-2">
                               {deal.claimCodes.filter((claim: any) => !claim.isExpired).slice(0, 3).map((claim: any, idx: number) => (

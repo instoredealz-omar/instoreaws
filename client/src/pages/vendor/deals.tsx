@@ -596,19 +596,41 @@ export default function VendorDeals() {
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel className="text-sm">Verification Code *</FormLabel>
-                            <FormControl>
-                              <Input
-                                {...field}
-                                type="text"
-                                placeholder="6-character code"
-                                maxLength={6}
-                                pattern="[A-Za-z0-9]{6}"
-                                className="h-12 text-base text-center font-mono uppercase"
-                                onChange={(e) => field.onChange(e.target.value.toUpperCase())}
-                              />
-                            </FormControl>
+                            <div className="flex gap-2">
+                              <FormControl>
+                                <Input
+                                  {...field}
+                                  type="text"
+                                  placeholder="6-character code"
+                                  maxLength={6}
+                                  pattern="[A-Za-z0-9]{6}"
+                                  className="h-12 text-base text-center font-mono uppercase"
+                                  onChange={(e) => field.onChange(e.target.value.toUpperCase())}
+                                />
+                              </FormControl>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                className="h-12 px-3"
+                                onClick={() => {
+                                  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+                                  let code = '';
+                                  for (let i = 0; i < 6; i++) {
+                                    code += chars.charAt(Math.floor(Math.random() * chars.length));
+                                  }
+                                  field.onChange(code);
+                                  toast({
+                                    title: "Code Generated",
+                                    description: `Your verification code: ${code}`,
+                                  });
+                                }}
+                                data-testid="button-generate-pin"
+                              >
+                                Generate
+                              </Button>
+                            </div>
                             <FormDescription className="text-xs">
-                              Set your 6-character alphanumeric deal code. The system also provides rotating codes (change every 30 minutes) for enhanced security. Customers use this for the 3-step claiming process: 1) Claim online, 2) Visit store for current code, 3) Verify & add bill amount
+                              Enter your own 6-character code or click Generate to auto-create one
                             </FormDescription>
                             <FormMessage />
                           </FormItem>
