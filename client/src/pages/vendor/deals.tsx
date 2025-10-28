@@ -967,6 +967,74 @@ export default function VendorDeals() {
                         </div>
                       </div>
                       
+                      {/* Active Claim Codes Section */}
+                      {deal.isActive && deal.isApproved && deal.claimCodes && deal.claimCodes.length > 0 && (
+                        <div className="border-t pt-6">
+                          <div className="mb-4">
+                            <h4 className="text-sm font-semibold text-foreground mb-2 flex items-center gap-2">
+                              <Target className="h-4 w-4 text-primary" />
+                              Active Claim Codes ({deal.activeClaimsCount || 0})
+                            </h4>
+                            <p className="text-xs text-muted-foreground mb-3">
+                              These are claim codes from customers who have claimed this deal. 
+                              Verify these codes when customers visit your store.
+                            </p>
+                          </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                            {deal.claimCodes.slice(0, 6).map((claim: any, index: number) => (
+                              <div 
+                                key={index} 
+                                className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3"
+                                data-testid={`claim-code-${index}`}
+                              >
+                                <div className="flex items-center justify-between mb-2">
+                                  <span className="text-lg font-mono font-bold text-primary">
+                                    {claim.code}
+                                  </span>
+                                  <Badge variant="outline" className="text-xs">
+                                    Active
+                                  </Badge>
+                                </div>
+                                <div className="text-xs text-muted-foreground space-y-1">
+                                  <div className="flex items-center gap-1">
+                                    <Clock className="h-3 w-3" />
+                                    Claimed: {new Date(claim.claimedAt).toLocaleDateString()}
+                                  </div>
+                                  {claim.expiresAt && (
+                                    <div className="flex items-center gap-1">
+                                      <AlertCircle className="h-3 w-3" />
+                                      Expires: {new Date(claim.expiresAt).toLocaleDateString()}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                          {deal.claimCodes.length > 6 && (
+                            <p className="text-xs text-muted-foreground mt-3 text-center">
+                              +{deal.claimCodes.length - 6} more claim codes. 
+                              Use POS dashboard to view all claims.
+                            </p>
+                          )}
+                          {deal.totalClaimsCount > 0 && (
+                            <div className="mt-4 pt-4 border-t grid grid-cols-3 gap-4 text-center text-sm">
+                              <div>
+                                <div className="text-2xl font-bold text-primary">{deal.activeClaimsCount || 0}</div>
+                                <div className="text-xs text-muted-foreground">Active Claims</div>
+                              </div>
+                              <div>
+                                <div className="text-2xl font-bold text-green-600">{deal.verifiedClaimsCount || 0}</div>
+                                <div className="text-xs text-muted-foreground">Verified</div>
+                              </div>
+                              <div>
+                                <div className="text-2xl font-bold text-gray-600">{deal.totalClaimsCount || 0}</div>
+                                <div className="text-xs text-muted-foreground">Total Claims</div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      
                       {/* Rotating PIN Display */}
                       {deal.isActive && deal.isApproved && (
                         <div className="border-t pt-6">

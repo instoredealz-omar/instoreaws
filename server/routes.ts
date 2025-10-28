@@ -1426,14 +1426,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const deals = await storage.getDealsByVendor(vendor.id);
       
-      // Include location data for each deal
+      // Get all claims to find claim codes for each deal
+      const allClaims = await storage.getAllDealClaims();
+      
+      // Include location data and claim codes for each deal
       const dealsWithLocations = await Promise.all(deals.map(async deal => {
         const locations = await storage.getDealLocations(deal.id);
+        
+        // Get all claims for this deal (both active and used)
+        const dealClaims = allClaims.filter(c => c.dealId === deal.id);
+        
+        // Get active (unclaimed/pending) claim codes
+        const activeClaimCodes = dealClaims
+          .filter(c => !c.vendorVerified && (!c.codeExpiresAt || new Date() < new Date(c.codeExpiresAt)))
+          .map(c => ({
+            code: c.claimCode,
+            claimedAt: c.claimedAt,
+            expiresAt: c.codeExpiresAt,
+            customerId: c.userId
+          }));
+        
         return {
           ...deal,
           locations: locations,
           locationCount: locations.length,
           hasMultipleLocations: locations.length > 1,
+          claimCodes: activeClaimCodes,
+          activeClaimsCount: activeClaimCodes.length,
+          totalClaimsCount: dealClaims.length,
+          verifiedClaimsCount: dealClaims.filter(c => c.vendorVerified).length
         };
       }));
       
