@@ -9,21 +9,28 @@ async function throwIfResNotOk(res: Response) {
 
 export async function apiRequest(
   url: string,
-  options: {
-    method: string;
-    body?: unknown;
-  }
+  methodOrOptions: string | { method: string; body?: unknown },
+  body?: unknown
 ): Promise<Response> {
-  const { method, body } = options;
+  let method: string;
+  let requestBody: unknown;
+
+  if (typeof methodOrOptions === 'string') {
+    method = methodOrOptions;
+    requestBody = body;
+  } else {
+    method = methodOrOptions.method;
+    requestBody = methodOrOptions.body;
+  }
+
   const token = localStorage.getItem('auth_token');
   const headers: Record<string, string> = {};
   
-  if (body) {
+  if (requestBody) {
     headers["Content-Type"] = "application/json";
   }
   
   if (token) {
-    // Check if token is old format and warn
     if (!token.startsWith('eyJ')) {
       localStorage.removeItem('auth_token');
       throw new Error('401: Authentication expired. Please log out and log back in.');
@@ -34,7 +41,7 @@ export async function apiRequest(
   const res = await fetch(url, {
     method,
     headers,
-    body: body ? JSON.stringify(body) : undefined,
+    body: requestBody ? JSON.stringify(requestBody) : undefined,
     credentials: "include",
   });
 
