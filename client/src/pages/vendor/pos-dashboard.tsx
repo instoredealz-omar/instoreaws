@@ -397,11 +397,10 @@ export default function PosDashboard() {
   const verifyClaimCodeMutation = useMutation({
     mutationFn: async (claimCode: string) => {
       console.log("Verifying claim code:", claimCode);
-      const response = await apiRequest('/api/pos/verify-claim-code', {
+      const data = await apiRequest('/api/pos/verify-claim-code', {
         method: 'POST',
         body: { claimCode },
       });
-      const data = await response.json();
       console.log("Claim code verification response:", data);
       return data;
     },
