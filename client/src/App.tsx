@@ -170,6 +170,7 @@ function Router() {
   const [matchVendorAnalytics] = useRoute("/vendor/analytics");
   const [matchVendorLocationAnalytics] = useRoute("/vendor/location-analytics");
   const [matchVendorPos] = useRoute("/vendor/pos");
+  const [matchVendorPosDashboard] = useRoute("/vendor/pos-dashboard");
   const [matchVendorPinVerification] = useRoute("/vendor/pos/pin-verification");
   const [matchVendorEnhancedPos] = useRoute("/vendor/pos/enhanced");
   const [matchVendorPosTransactions] = useRoute("/vendor/pos/transactions");
@@ -354,6 +355,13 @@ function Router() {
     return (
       <RoleProtectedRoute allowedRoles={['vendor']}>
         <VendorLocationAnalytics />
+      </RoleProtectedRoute>
+    );
+  }
+  if (matchVendorPosDashboard) {
+    return (
+      <RoleProtectedRoute allowedRoles={['vendor']}>
+        <PosDashboard />
       </RoleProtectedRoute>
     );
   }
