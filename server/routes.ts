@@ -1853,6 +1853,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin endpoint to fix claim code expiry dates
+  app.post('/api/admin/fix-claim-expiries', requireAuth, requireRole(['admin', 'superadmin']), async (req: AuthenticatedRequest, res) => {
+    try {
+      const result = await storage.fixClaimCodeExpiries();
+      res.json({
+        success: true,
+        message: `Successfully updated ${result.updated} claim codes to match their deal expiry dates`,
+        updated: result.updated
+      });
+    } catch (error) {
+      console.error('Fix claim expiries error:', error);
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to fix claim code expiries",
+        error: error.message
+      });
+    }
+  });
+
   // Vendor dashboard - claimed deals only with complete data
   app.get('/api/vendors/claimed-deals', requireAuth, requireRole(['vendor']), async (req: AuthenticatedRequest, res) => {
     try {

@@ -400,6 +400,30 @@ export class DatabaseStorage implements IStorage {
       .where(eq(schema.deals.id, dealId));
   }
 
+  async fixClaimCodeExpiries(): Promise<{ updated: number }> {
+    // Get ALL claims (both verified and unverified) to fix old 24-hour expiries
+    const allClaims = await db.select().from(schema.dealClaims);
+    
+    let updatedCount = 0;
+    
+    // Update each claim's expiry to match its deal's expiry
+    for (const claim of allClaims) {
+      const deal = await this.getDeal(claim.dealId);
+      if (deal && deal.validUntil) {
+        // Only update if the expiry doesn't match the deal's expiry
+        // This fixes both unverified and verified claims with incorrect 24-hour expiry
+        if (!claim.codeExpiresAt || new Date(claim.codeExpiresAt).getTime() !== new Date(deal.validUntil).getTime()) {
+          await db.update(schema.dealClaims)
+            .set({ codeExpiresAt: deal.validUntil })
+            .where(eq(schema.dealClaims.id, claim.id));
+          updatedCount++;
+        }
+      }
+    }
+    
+    return { updated: updatedCount };
+  }
+
   // Help ticket operations
   async createHelpTicket(ticket: InsertHelpTicket): Promise<HelpTicket> {
     const result = await db.insert(schema.helpTickets).values(ticket).returning();
