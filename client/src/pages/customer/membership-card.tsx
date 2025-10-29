@@ -120,10 +120,21 @@ export default function MembershipCard() {
         sessionId: `session_${Date.now()}_${user.id}`
       };
       
+      console.log('🔐 Generating membership QR code with complete customer data:', {
+        userId: customerData.userId,
+        userName: customerData.userName,
+        email: customerData.email,
+        membershipPlan: customerData.membershipPlan,
+        membershipId: customerData.membershipId,
+        totalSavings: customerData.totalSavings
+      });
+      
       const qrDataUrl = await generateCustomerClaimQR(customerData);
       setQrCodeDataUrl(qrDataUrl);
+      
+      console.log('✅ QR Code generated successfully - contains all customer info including tier:', customerData.membershipPlan);
     } catch (error) {
-      console.error('Error generating QR code:', error);
+      console.error('❌ Error generating QR code:', error);
       toast({
         title: "QR Code Error",
         description: "Failed to generate QR code. Please try again.",

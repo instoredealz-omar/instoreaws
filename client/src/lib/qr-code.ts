@@ -254,6 +254,18 @@ export const generateCustomerClaimQR = async (customerData: {
   
   const qrText = JSON.stringify(claimData);
   
+  console.log('📊 QR Code Data Encoded:', {
+    userId: claimData.userId,
+    userName: claimData.userName,
+    email: claimData.email,
+    membershipTier: claimData.membershipPlan,
+    membershipId: claimData.membershipId,
+    phone: claimData.phone,
+    totalSavings: claimData.totalSavings,
+    type: claimData.type,
+    dataSize: qrText.length + ' characters'
+  });
+  
   return generateThemedQRCode(qrText, 'deal', 300);
 };
 

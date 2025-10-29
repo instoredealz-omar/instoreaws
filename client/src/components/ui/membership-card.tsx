@@ -32,7 +32,7 @@ export default function MembershipCard({
   useEffect(() => {
     const generateQR = async () => {
       try {
-        const qrCode = await generateCustomerClaimQR({
+        const customerData = {
           userId,
           userName,
           email: userEmail || `user${userId}@instoredealz.com`,
@@ -40,10 +40,16 @@ export default function MembershipCard({
           membershipId,
           phone: userPhone,
           totalSavings
-        });
+        };
+        
+        console.log('🔐 Generating QR Code with customer data:', customerData);
+        
+        const qrCode = await generateCustomerClaimQR(customerData);
         setQrCodeUrl(qrCode);
+        
+        console.log('✅ QR Code generated successfully with all customer information including membership tier:', membershipPlan);
       } catch (error) {
-        console.error('Error generating QR code:', error);
+        console.error('❌ Error generating QR code:', error);
         // Fallback QR code
         setQrCodeUrl(`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(membershipId)}`);
       }
