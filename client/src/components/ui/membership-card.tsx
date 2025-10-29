@@ -85,6 +85,16 @@ export default function MembershipCard({
         <div className="w-full h-full bg-card rounded-full transform -translate-x-12 translate-y-12" />
       </div>
 
+      {/* Prominent Tier Badge */}
+      <div className="mb-4 text-center relative z-10">
+        <div className="bg-white/20 backdrop-blur-sm rounded-lg py-2 px-4 inline-block border border-white/30">
+          <p className="text-white/90 text-xs uppercase tracking-wider mb-1">Membership Tier</p>
+          <h2 className="text-2xl font-bold text-white uppercase tracking-wide">
+            {membershipPlan}
+          </h2>
+        </div>
+      </div>
+
       {/* Card Header */}
       <div className="flex justify-between items-start mb-4 relative z-10">
         <div className="flex items-center space-x-3">
@@ -105,21 +115,20 @@ export default function MembershipCard({
           
           {/* User Info */}
           <div>
-            <h3 className="text-xl font-bold capitalize">
-              {membershipPlan} Member
+            <h3 className="text-lg font-semibold">
+              {userName}
             </h3>
             {isPromotionalUser && (
               <div className="bg-success text-white text-xs px-2 py-1 rounded-full mt-1 inline-block">
                 🎉 Promotional Plan
               </div>
             )}
-            <p className="text-blue-100 mt-2">{userName}</p>
-            <p className="text-blue-100 text-sm">ID: {membershipId}</p>
+            <p className="text-blue-100 text-sm mt-1">ID: {membershipId}</p>
           </div>
         </div>
-        <div className="bg-card p-2 rounded">
+        <div className="bg-card p-2 rounded" title="Show this QR code to vendors">
           {qrCodeUrl ? (
-            <img src={qrCodeUrl} alt="QR Code" className="w-16 h-16" />
+            <img src={qrCodeUrl} alt="Membership Verification QR Code" className="w-16 h-16" data-testid="card-qr-code" />
           ) : (
             <div className="w-16 h-16 bg-gray-200 flex items-center justify-center">
               <QrCode className="h-8 w-8 text-gray-500" />

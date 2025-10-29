@@ -20,6 +20,9 @@ import {
   Eye,
   EyeOff,
   User,
+  AlertCircle,
+  Store,
+  Scan,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { generateCustomerClaimQR } from "@/lib/qr-code";
@@ -225,6 +228,40 @@ export default function MembershipCard() {
             <p className="text-muted-foreground">Your secure access to exclusive deals</p>
           </div>
 
+          {/* Prominent Tier Badge */}
+          <div className="mb-6">
+            <Card className={`${tierInfo.color} text-white border-none`}>
+              <CardContent className="py-4">
+                <div className="flex items-center justify-center gap-3">
+                  <TierIcon className="w-8 h-8" />
+                  <div className="text-center">
+                    <p className="text-sm text-white/80">Current Membership Tier</p>
+                    <p className="text-3xl font-bold">{tierInfo.name}</p>
+                  </div>
+                  <TierIcon className="w-8 h-8" />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Important Notice */}
+          <Card className="mb-6 border-blue-500 bg-blue-50 dark:bg-blue-950">
+            <CardContent className="py-4">
+              <div className="flex gap-3">
+                <AlertCircle className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+                <div>
+                  <h3 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">
+                    📱 Present This Card at Vendor Stores
+                  </h3>
+                  <p className="text-sm text-blue-800 dark:text-blue-200">
+                    To claim any deal, you <strong>MUST present your membership card</strong> (with QR code) to the vendor for verification. 
+                    The vendor will scan your QR code to verify your {tierInfo.name} membership tier and validate your deal claim.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
           <div className="grid lg:grid-cols-2 gap-8">
             {/* Membership Card */}
             <div className="space-y-6">
@@ -321,22 +358,27 @@ export default function MembershipCard() {
             {/* QR Code & Security */}
             <div className="space-y-6">
               {/* QR Code Section */}
-              <Card>
-                <CardHeader>
+              <Card className="border-2 border-purple-200 dark:border-purple-800">
+                <CardHeader className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-950 dark:to-blue-950">
                   <CardTitle className="flex items-center">
-                    <QrCode className="w-5 h-5 mr-2" />
-                    Secure QR Code
+                    <Scan className="w-5 h-5 mr-2 text-purple-600" />
+                    Vendor Verification QR Code
                   </CardTitle>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    <Store className="w-4 h-4 inline mr-1" />
+                    <strong>Required for all deal claims</strong> - Vendors scan this to verify your {tierInfo.name} membership
+                  </p>
                 </CardHeader>
-                <CardContent className="text-center space-y-4">
+                <CardContent className="text-center space-y-4 pt-6">
                   {showQR ? (
                     <div className="space-y-4">
-                      <div className="bg-card p-4 rounded-lg border-2 border-dashed border-gray-300 inline-block">
+                      <div className="bg-gradient-to-br from-purple-50 to-blue-50 dark:from-purple-950 dark:to-blue-950 p-6 rounded-lg border-2 border-dashed border-purple-300 dark:border-purple-700 inline-block">
                         {qrCodeDataUrl ? (
                           <img
                             src={qrCodeDataUrl}
-                            alt="Membership QR Code"
+                            alt="Membership Verification QR Code"
                             className="w-48 h-48 mx-auto"
+                            data-testid="membership-qr-code"
                           />
                         ) : (
                           <div className="w-48 h-48 mx-auto flex items-center justify-center bg-gray-100 rounded">
@@ -344,13 +386,19 @@ export default function MembershipCard() {
                           </div>
                         )}
                       </div>
-                      <p className="text-sm text-muted-foreground">
-                        Show this QR code to vendors for instant deal verification
-                      </p>
+                      <div className="bg-yellow-50 dark:bg-yellow-950 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3">
+                        <p className="text-sm text-yellow-800 dark:text-yellow-200 font-medium">
+                          ✓ Contains your {tierInfo.name} membership tier
+                        </p>
+                        <p className="text-xs text-yellow-700 dark:text-yellow-300 mt-1">
+                          Vendor will scan this to verify and approve your deal claim
+                        </p>
+                      </div>
                       <Button 
                         onClick={() => setShowQR(false)} 
                         variant="outline" 
                         size="sm"
+                        data-testid="button-hide-qr"
                       >
                         <EyeOff className="w-4 h-4 mr-2" />
                         Hide QR Code
@@ -358,9 +406,12 @@ export default function MembershipCard() {
                     </div>
                   ) : (
                     <div className="space-y-4">
-                      <div className="bg-gray-100 p-8 rounded-lg">
+                      <div className="bg-gray-100 dark:bg-gray-800 p-8 rounded-lg">
                         <QrCode className="w-16 h-16 mx-auto text-gray-400 mb-2" />
                         <p className="text-muted-foreground">QR Code Hidden for Security</p>
+                        <p className="text-xs text-muted-foreground mt-2">
+                          Tap below to reveal for vendor scanning
+                        </p>
                       </div>
                       <Button 
                         onClick={async () => {
@@ -370,6 +421,7 @@ export default function MembershipCard() {
                           }
                         }} 
                         className="w-full"
+                        data-testid="button-show-qr"
                       >
                         <Eye className="w-4 h-4 mr-2" />
                         Show QR Code
