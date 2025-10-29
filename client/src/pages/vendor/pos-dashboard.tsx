@@ -877,9 +877,6 @@ export default function PosDashboard() {
                       <p className="text-sm text-muted-foreground">
                         {item.deal.discountPercentage}% off • PIN: {item.pin}
                       </p>
-                      <p className="text-sm">
-                        ₹{item.deal.originalPrice} → ₹{item.deal.discountedPrice}
-                      </p>
                     </div>
                     <div className="flex items-center gap-4">
                       <span className="font-semibold">Qty: {item.quantity}</span>
@@ -887,6 +884,7 @@ export default function PosDashboard() {
                         variant="destructive"
                         size="sm"
                         onClick={() => removeDealFromCart(item.deal.id)}
+                        data-testid="button-remove-deal"
                       >
                         Remove
                       </Button>
@@ -895,11 +893,6 @@ export default function PosDashboard() {
                 ))}
 
                 <Separator />
-                
-                <div className="flex justify-between items-center text-lg font-bold">
-                  <span>Total: ₹{posState.totalAmount.toFixed(2)}</span>
-                  <span className="text-green-600">Savings: ₹{posState.totalSavings.toFixed(2)}</span>
-                </div>
 
                 <div className="space-y-4">
                   <div>
@@ -919,11 +912,22 @@ export default function PosDashboard() {
                   </div>
 
                   {billAmount && parseFloat(billAmount) > 0 && (
-                    <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
-                      <div className="text-sm font-medium text-green-700 dark:text-green-300">
-                        Customer will save: ₹{posState.selectedDeals.reduce((sum, item) => 
-                          sum + ((parseFloat(billAmount) / posState.selectedDeals.length * item.deal.discountPercentage) / 100), 0
-                        ).toFixed(2)}
+                    <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800 space-y-2">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Total Bill:</span>
+                        <span className="text-lg font-bold text-gray-900 dark:text-gray-100">₹{parseFloat(billAmount).toFixed(2)}</span>
+                      </div>
+                      <Separator />
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-medium text-green-700 dark:text-green-300">Customer Savings:</span>
+                        <span className="text-lg font-bold text-green-600 dark:text-green-400">
+                          ₹{posState.selectedDeals.reduce((sum, item) => 
+                            sum + ((parseFloat(billAmount) / posState.selectedDeals.length * item.deal.discountPercentage) / 100), 0
+                          ).toFixed(2)}
+                        </span>
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        Based on {posState.selectedDeals[0]?.deal.discountPercentage}% discount
                       </div>
                     </div>
                   )}
