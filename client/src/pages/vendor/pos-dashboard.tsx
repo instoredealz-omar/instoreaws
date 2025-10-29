@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -40,7 +41,8 @@ import {
   Plus,
   Minus,
   Edit,
-  Trash2
+  Trash2,
+  ArrowLeft
 } from "lucide-react";
 interface Deal {
   id: number;
@@ -95,6 +97,7 @@ interface PosState {
 export default function PosDashboard() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [, setLocation] = useLocation();
   
   const [posState, setPosState] = useState<PosState>({
     activeSession: null,
@@ -550,9 +553,19 @@ export default function PosDashboard() {
   return (
     <div className="container mx-auto p-6">
       <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-3xl font-bold">POS Dashboard</h1>
-          <p className="text-muted-foreground">Comprehensive Point of Sale System</p>
+        <div className="flex items-center gap-4">
+          <Button 
+            variant="outline" 
+            size="icon"
+            onClick={() => setLocation('/vendor/dashboard')}
+            data-testid="button-back"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold">POS Dashboard</h1>
+            <p className="text-muted-foreground">Comprehensive Point of Sale System</p>
+          </div>
         </div>
         
         <div className="flex items-center gap-4">
