@@ -2364,14 +2364,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         savingsAmount: calculatedSavings.toString()
       });
 
-      // Update user's total savings
+      // Update user's total savings and dealsClaimed counter (atomic operations)
       const customer = await storage.getUser(claim.userId);
       if (customer) {
         const currentSavings = parseFloat(customer.totalSavings || '0');
         await storage.updateUser(customer.id, {
           totalSavings: (currentSavings + calculatedSavings).toString()
         });
+        // Atomic increment to prevent race conditions
+        await storage.incrementUserDealsClaimed(customer.id);
       }
+
+      // Atomic increment for deal redemptions (prevents race conditions on concurrent POS transactions)
+      await storage.incrementDealRedemptions(deal.id);
+
+      // Atomic increment for vendor redemptions (prevents race conditions on concurrent POS transactions)
+      await storage.incrementVendorRedemptions(vendor.id);
 
       // Log the completed transaction with comprehensive analytics
       try {

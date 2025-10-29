@@ -79,6 +79,14 @@ export class DatabaseStorage implements IStorage {
     return result[0];
   }
 
+  async incrementUserDealsClaimed(userId: number): Promise<void> {
+    await db.execute(sql`
+      UPDATE users 
+      SET deals_claimed = COALESCE(deals_claimed, 0) + 1 
+      WHERE id = ${userId}
+    `);
+  }
+
   async getAllUsers(): Promise<User[]> {
     return await db.select().from(schema.users).orderBy(desc(schema.users.createdAt));
   }
@@ -123,6 +131,14 @@ export class DatabaseStorage implements IStorage {
   async updateVendor(id: number, updates: Partial<Vendor>): Promise<Vendor | undefined> {
     const result = await db.update(schema.vendors).set(updates).where(eq(schema.vendors.id, id)).returning();
     return result[0];
+  }
+
+  async incrementVendorRedemptions(vendorId: number): Promise<void> {
+    await db.execute(sql`
+      UPDATE vendors 
+      SET total_redemptions = COALESCE(total_redemptions, 0) + 1 
+      WHERE id = ${vendorId}
+    `);
   }
 
   async getAllVendors(): Promise<Vendor[]> {

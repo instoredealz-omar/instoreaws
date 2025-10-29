@@ -49,6 +49,7 @@ export interface IStorage {
   getUserByPhone(phone: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: number, updates: Partial<User>): Promise<User | undefined>;
+  incrementUserDealsClaimed(userId: number): Promise<void>;
   getAllUsers(): Promise<User[]>;
   getUsersByRole(role: string): Promise<User[]>;
 
@@ -57,6 +58,7 @@ export interface IStorage {
   getVendorByUserId(userId: number): Promise<Vendor | undefined>;
   createVendor(vendor: InsertVendor): Promise<Vendor>;
   updateVendor(id: number, updates: Partial<Vendor>): Promise<Vendor | undefined>;
+  incrementVendorRedemptions(vendorId: number): Promise<void>;
   getAllVendors(): Promise<Vendor[]>;
   getPendingVendors(): Promise<Vendor[]>;
   approveVendor(id: number): Promise<Vendor | undefined>;
@@ -839,6 +841,14 @@ export class MemStorage implements IStorage {
     return undefined;
   }
 
+  async incrementUserDealsClaimed(userId: number): Promise<void> {
+    const user = this.users.get(userId);
+    if (user) {
+      user.dealsClaimed = (user.dealsClaimed || 0) + 1;
+      this.users.set(userId, user);
+    }
+  }
+
   async getAllUsers(): Promise<User[]> {
     return Array.from(this.users.values())
       .sort((a, b) => new Date(b.createdAt || Date.now()).getTime() - new Date(a.createdAt || Date.now()).getTime());
@@ -887,6 +897,14 @@ export class MemStorage implements IStorage {
       return updatedVendor;
     }
     return undefined;
+  }
+
+  async incrementVendorRedemptions(vendorId: number): Promise<void> {
+    const vendor = this.vendors.get(vendorId);
+    if (vendor) {
+      vendor.totalRedemptions = (vendor.totalRedemptions || 0) + 1;
+      this.vendors.set(vendorId, vendor);
+    }
   }
 
   async getAllVendors(): Promise<Vendor[]> {
