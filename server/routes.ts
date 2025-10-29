@@ -1540,35 +1540,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Vendor not approved yet" });
       }
       
-      // Import PIN security utilities
-      const { generateSecurePin, hashPin } = await import('./pin-security');
-      
-      // Generate secure PIN if not provided or if provided PIN is not secure
+      // Store verification PIN in plain text so vendors can see and use it
+      // Note: Customer claim codes remain secure and unique per claim
       let finalPin = req.body.verificationPin;
-      let pinSalt = null;
-      let pinExpiresAt = null;
       
       if (!finalPin) {
-        // Generate a secure PIN automatically
+        // Generate a secure PIN automatically if not provided
+        const { generateSecurePin } = await import('./pin-security');
         finalPin = generateSecurePin();
-      }
-      
-      // Hash the PIN for secure storage
-      const pinResult = await hashPin(finalPin);
-      if (!pinResult.success) {
-        return res.status(400).json({ 
-          message: "Failed to secure PIN", 
-          error: pinResult.message 
-        });
       }
       
       // Transform data to match schema expectations
       const transformedData = {
         ...req.body,
         vendorId: vendor.id,
-        verificationPin: pinResult.hashedPin,
-        pinSalt: pinResult.salt,
-        pinExpiresAt: pinResult.expiresAt,
+        verificationPin: finalPin, // Store in plain text for vendor visibility
+        pinSalt: null, // Not needed for plain text storage
+        pinExpiresAt: null, // Vendor PINs don't expire
         // Convert ISO string to Date object for timestamp field
         validUntil: req.body.validUntil ? new Date(req.body.validUntil) : undefined,
         // Ensure latitude and longitude are strings if provided
@@ -1600,12 +1588,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
-      // Return the deal with the plain text PIN for vendor reference (one-time only)
-      res.status(201).json({
-        ...deal,
-        plainTextPin: finalPin, // Only shown once during creation
-        securityNote: "Store this PIN securely. It will be hashed and cannot be retrieved later."
-      });
+      // Return the created deal
+      res.status(201).json(deal);
     } catch (error) {
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Validation error", errors: error.errors });
