@@ -394,6 +394,12 @@ export default function MembershipCard() {
                           Vendor will scan this to verify and approve your deal claim
                         </p>
                       </div>
+                      <div className="bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-lg p-3">
+                        <p className="text-xs text-red-800 dark:text-red-200">
+                          ⚠️ <strong>For Vendor Use Only</strong> - This QR code is designed for vendor POS systems. 
+                          Do not scan with your personal phone. Show this screen to the vendor when claiming deals.
+                        </p>
+                      </div>
                       <Button 
                         onClick={() => setShowQR(false)} 
                         variant="outline" 
