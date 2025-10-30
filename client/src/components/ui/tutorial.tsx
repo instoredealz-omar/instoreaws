@@ -68,7 +68,7 @@ export default function Tutorial({ type, onComplete }: TutorialProps) {
       title: "Browse Deals",
       description: "Find deals using search and filters",
       icon: Search,
-      content: "Use the search bar to find specific deals or browse by categories like Fashion, Electronics, Food, and more. Filter by location to find deals near you.",
+      content: "Use the search bar to find specific deals or browse by categories like Fashion, Electronics, Food, and more. Filter by location to find deals near you. You can also filter by deal type: In-Store Deals (redeemed at physical locations) or Online Deals (shop via affiliate links).",
       action: "Try Searching"
     },
     {
@@ -89,10 +89,10 @@ export default function Tutorial({ type, onComplete }: TutorialProps) {
     },
     {
       id: 5,
-      title: "Claim Deals Online",
-      description: "Save deals for in-store redemption",
+      title: "Claim Deals (In-Store & Online)",
+      description: "Save deals for in-store or online redemption",
       icon: MousePointer2,
-      content: "Found a deal you want? Click 'Claim Deal' to reserve it for in-store use. This creates a pending claim that you'll complete at the vendor's location.",
+      content: "Found a deal you want? Click 'Claim Deal' to get started. For offline deals, reserve it for in-store redemption at the vendor's location. For online deals, you'll receive the affiliate link to shop directly online and apply your discount code at checkout.",
       action: "Try Claiming"
     },
     {
@@ -181,17 +181,17 @@ export default function Tutorial({ type, onComplete }: TutorialProps) {
     {
       id: 3,
       title: "Create Your First Deal",
-      description: "Add deals with secure PIN verification",
+      description: "Add offline or online deals",
       icon: Plus,
-      content: "Click 'Create New Deal' to add your first offer. Include attractive images, clear descriptions, discount percentages, validity periods, and a unique 6-character alphanumeric code for secure customer verification at your store.",
+      content: "Click 'Create New Deal' to add your first offer. Choose between Offline Deals (in-store redemption with PIN verification) or Online Deals (affiliate marketing with your custom link). Include attractive images, clear descriptions, discount percentages, and validity periods. For offline deals, add a 6-character verification code. For online deals, provide your affiliate link where customers can shop.",
       action: "Create Deal"
     },
     {
       id: 4,
       title: "Understanding Deal Claims",
-      description: "How customers claim your deals online",
+      description: "How customers claim your deals",
       icon: MousePointer2,
-      content: "Customers can claim your deals online, which creates a 'pending' status. This reserves the deal but doesn't count as a sale yet. Customers must visit your store to complete redemption.",
+      content: "Customers can claim your deals online. For offline deals, this creates a 'pending' status and customers must visit your store for redemption. For online deals, customers receive your affiliate link immediately and can shop online using their claim code for the discount.",
       action: "Learn Claims"
     },
     {
