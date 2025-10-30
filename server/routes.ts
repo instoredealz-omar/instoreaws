@@ -861,6 +861,186 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // POST /api/deals/:id/claim-with-bill - Claim deal with bill amount and PIN
+  app.post('/api/deals/:id/claim-with-bill', requireAuth, async (req: AuthenticatedRequest, res) => {
+    try {
+      const dealId = parseInt(req.params.id);
+      const { billAmount, pin } = req.body;
+      const userId = req.user!.id;
+      const ipAddress = req.ip || 'unknown';
+      const userAgent = req.headers['user-agent'] || '';
+
+      // Validate inputs
+      if (!billAmount || billAmount <= 0) {
+        return res.status(400).json({ 
+          success: false,
+          message: "Valid bill amount is required" 
+        });
+      }
+
+      if (!pin || pin.length !== 6) {
+        return res.status(400).json({ 
+          success: false,
+          message: "Valid 6-digit PIN is required" 
+        });
+      }
+
+      // Get deal details
+      const deal = await storage.getDeal(dealId);
+      if (!deal || !deal.isActive || !deal.isApproved) {
+        return res.status(404).json({ 
+          success: false,
+          message: "Deal not found or not available" 
+        });
+      }
+
+      // Check if deal is still valid
+      if (new Date(deal.validUntil) < new Date()) {
+        return res.status(400).json({ 
+          success: false,
+          message: "Deal has expired" 
+        });
+      }
+
+      // Check redemption limit
+      if (deal.maxRedemptions && (deal.currentRedemptions || 0) >= deal.maxRedemptions) {
+        return res.status(400).json({ 
+          success: false,
+          message: "Deal redemption limit reached" 
+        });
+      }
+
+      // Check membership requirement
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ 
+          success: false,
+          message: "User not found" 
+        });
+      }
+
+      const membershipLevels = { basic: 1, premium: 2, ultimate: 3 };
+      const userLevel = membershipLevels[user.membershipPlan as keyof typeof membershipLevels] || 1;
+      const requiredLevel = membershipLevels[deal.requiredMembership as keyof typeof membershipLevels] || 1;
+
+      if (userLevel < requiredLevel) {
+        return res.status(403).json({ 
+          success: false,
+          message: "Upgrade membership to claim this deal" 
+        });
+      }
+
+      // Verify PIN
+      const { validatePinFormat, verifyPin, verifyRotatingPin } = await import('./pin-security');
+      
+      const validation = validatePinFormat(pin);
+      if (!validation.isValid) {
+        return res.status(400).json({
+          success: false,
+          message: validation.message
+        });
+      }
+
+      let pinVerificationResult;
+      let isRotatingPin = false;
+
+      // Try rotating PIN verification first
+      if (verifyRotatingPin(dealId, pin)) {
+        pinVerificationResult = {
+          isValid: true,
+          message: "Rotating PIN verified successfully"
+        };
+        isRotatingPin = true;
+      } else if (deal.pinSalt) {
+        // Secure PIN verification
+        pinVerificationResult = await verifyPin(
+          pin,
+          deal.verificationPin,
+          deal.pinSalt,
+          deal.pinExpiresAt || undefined
+        );
+      } else {
+        // Legacy plain text PIN verification
+        const cleanPin = String(pin || '').trim();
+        const storedPin = String(deal.verificationPin || '').trim();
+        pinVerificationResult = {
+          isValid: cleanPin === storedPin,
+          message: cleanPin === storedPin ? "PIN verified successfully" : "Invalid PIN"
+        };
+      }
+
+      if (!pinVerificationResult.isValid) {
+        // Record failed attempt
+        await storage.recordPinAttempt(dealId, userId, ipAddress, userAgent, false);
+        return res.status(400).json({
+          success: false,
+          message: "Invalid PIN"
+        });
+      }
+
+      // Record successful attempt
+      await storage.recordPinAttempt(dealId, userId, ipAddress, userAgent, true);
+
+      // Calculate savings
+      const savingsAmount = (billAmount * deal.discountPercentage) / 100;
+
+      // Create or update claim
+      const claim = await storage.claimDeal({
+        userId,
+        dealId,
+        savingsAmount: savingsAmount.toString(),
+        status: "used",
+        billAmount: billAmount.toString(),
+      });
+
+      // Update user's total savings
+      const currentTotalSavings = parseFloat(user.totalSavings || "0");
+      const newTotalSavings = currentTotalSavings + savingsAmount;
+
+      await storage.updateUser(userId, {
+        totalSavings: newTotalSavings.toString(),
+      });
+
+      // Atomic increment for deal redemptions
+      await storage.incrementDealRedemptions(dealId);
+
+      // Atomic increment for user deals claimed
+      await storage.incrementUserDealsClaimed(userId);
+
+      // Log the activity
+      try {
+        await storage.createSystemLog({
+          userId,
+          action: "DEAL_CLAIMED_WITH_BILL",
+          details: {
+            dealId,
+            dealTitle: deal.title,
+            billAmount,
+            savingsAmount,
+            status: "used"
+          },
+          ipAddress,
+          userAgent,
+        });
+      } catch (logError) {
+        console.warn('System log creation failed:', logError);
+      }
+
+      res.status(201).json({
+        ...claim,
+        savingsAmount: savingsAmount.toString(),
+        billAmount: billAmount.toString(),
+        message: "Deal claimed successfully!",
+      });
+    } catch (error) {
+      console.error('Deal claiming with bill error:', error);
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to claim deal" 
+      });
+    }
+  });
+
   // Security-enhanced PIN information endpoint (development only)
   app.get('/api/deals/:id/debug-pin', async (req: AuthenticatedRequest, res) => {
     if (process.env.NODE_ENV !== 'development') {
