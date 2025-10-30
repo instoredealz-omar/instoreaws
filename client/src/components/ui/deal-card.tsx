@@ -38,6 +38,8 @@ interface DealCardProps {
   terms?: string;
   isActive?: boolean;
   isFavorite?: boolean;
+  dealType?: string;
+  affiliateLink?: string;
   onClaim?: () => void;
   onView?: () => void;
   onToggleFavorite?: () => void;
@@ -63,6 +65,8 @@ export default function DealCard({
   terms,
   isActive = true,
   isFavorite = false,
+  dealType = "offline",
+  affiliateLink,
   onClaim,
   onView,
   onToggleFavorite,
@@ -185,7 +189,26 @@ export default function DealCard({
           </div>
         )}
         
-        <div className="absolute top-12 left-2 space-y-1">
+        {/* Favorite Button */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleFavorite?.();
+          }}
+          className="absolute top-2 left-2 p-1.5 rounded-full bg-card/80 backdrop-blur-sm hover:bg-card transition-all duration-200 z-10"
+        >
+          <Heart 
+            className={`h-4 w-4 transition-colors duration-200 ${
+              isFavorite ? 'fill-red-500 text-red-500' : 'text-muted-foreground hover:text-red-500'
+            }`} 
+          />
+        </button>
+        
+        {/* Deal Type and Category Badges */}
+        <div className="absolute bottom-2 left-2 space-y-1">
+          <Badge className={`${dealType === 'online' ? 'bg-blue-500 text-white' : 'bg-gray-700 text-white'} border-0 text-xs`}>
+            {dealType === 'online' ? '🌐 Online' : '🏪 Offline'}
+          </Badge>
           <Badge className={`${categoryColors[category as keyof typeof categoryColors]} border-0`}>
             {category}
           </Badge>
@@ -195,6 +218,7 @@ export default function DealCard({
             </Badge>
           )}
         </div>
+        
         {/* Discount Badge */}
         <div className={`absolute top-2 right-2 rounded-full px-3 py-1 text-xs font-bold transition-all duration-300 shadow-md z-10 ${
           isFlashing 
@@ -203,21 +227,6 @@ export default function DealCard({
         }`}>
           {discountPercentage}% OFF
         </div>
-        
-        {/* Favorite Button */}
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onToggleFavorite?.();
-          }}
-          className="absolute top-2 left-2 p-1.5 rounded-full bg-card/80 backdrop-blur-sm hover:bg-card transition-all duration-200"
-        >
-          <Heart 
-            className={`h-4 w-4 transition-colors duration-200 ${
-              isFavorite ? 'fill-red-500 text-red-500' : 'text-muted-foreground hover:text-red-500'
-            }`} 
-          />
-        </button>
         {viewCount > 0 && (
           <div className="absolute bottom-2 right-2 bg-black/70 text-white rounded px-2 py-1 text-xs flex items-center space-x-1">
             <Eye className="h-3 w-3" />

@@ -99,10 +99,10 @@ export function ClaimDealDialog({
           {/* Bill Amount Input */}
           <div className="space-y-2">
             <Label htmlFor="billAmount" className="text-base font-semibold">
-              Discounted bill amount
+              Total billed amount
             </Label>
             <p className="text-sm text-muted-foreground">
-              Enter the bill amount after applying the discount.
+              Enter your total bill amount before discount.
             </p>
             <Input
               id="billAmount"
@@ -114,6 +114,17 @@ export function ClaimDealDialog({
               disabled={isLoading}
               data-testid="input-bill-amount"
             />
+            {billAmount && parseFloat(billAmount) > 0 && (
+              <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-3 border border-green-200 dark:border-green-800">
+                <p className="text-sm text-green-700 dark:text-green-300">
+                  <span className="font-semibold">Your Savings: </span>
+                  ₹{(parseFloat(billAmount) * discountPercentage / 100).toFixed(2)}
+                </p>
+                <p className="text-xs text-green-600 dark:text-green-400 mt-1">
+                  You'll pay ₹{(parseFloat(billAmount) * (100 - discountPercentage) / 100).toFixed(2)} after discount
+                </p>
+              </div>
+            )}
           </div>
 
           {/* PIN Input */}
@@ -166,15 +177,15 @@ export function ClaimDealDialog({
 
           {/* Terms Link */}
           <div className="text-center">
-            <button
-              type="button"
+            <a
+              href="/terms"
+              target="_blank"
+              rel="noopener noreferrer"
               className="text-sm text-blue-600 hover:underline"
-              onClick={() => {
-                // You can implement terms dialog here
-              }}
+              data-testid="link-terms"
             >
               Terms and Conditions
-            </button>
+            </a>
           </div>
         </div>
       </DialogContent>

@@ -32,6 +32,7 @@ import {
   Users,
   CheckCircle2,
   Loader2,
+  ExternalLink as LinkIcon,
 } from "lucide-react";
 import { Link } from "wouter";
 import { PinVerificationDialog } from "@/components/ui/pin-verification-dialog";
