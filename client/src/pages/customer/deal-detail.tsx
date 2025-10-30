@@ -192,13 +192,9 @@ export default function DealDetail({ params }: DealDetailProps) {
 
   // New claim deal with bill amount and PIN
   const claimDealMutation = useMutation({
-    mutationFn: async ({ dealId, billAmount, pin }: { dealId: number; billAmount: number; pin: string }): Promise<ClaimResponse> => {
-      const response = await apiRequest(`/api/deals/${dealId}/claim-with-bill`, {
-        method: 'POST',
-        body: { billAmount, pin },
-      });
-      const data = await response.json();
-      return data;
+    mutationFn: async ({ dealId, billAmount, pin }: { dealId: number; billAmount: number; pin: string }): Promise<any> => {
+      const response = await apiRequest(`/api/deals/${dealId}/claim-with-bill`, 'POST', { billAmount, pin });
+      return await response.json();
     },
     onSuccess: (data) => {
       setShowClaimDialog(false);
