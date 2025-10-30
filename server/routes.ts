@@ -685,11 +685,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Deal routes
   app.get('/api/deals', async (req, res) => {
     try {
-      const { category, city } = req.query;
+      const { category, city, dealType } = req.query;
       let deals = await storage.getActiveDeals();
       
       if (category) {
         deals = deals.filter(deal => deal.category === category);
+      }
+      
+      // Filter by deal type if provided
+      if (dealType) {
+        deals = deals.filter(deal => deal.dealType === dealType);
       }
       
       // Filter by vendor city if city parameter provided

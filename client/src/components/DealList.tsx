@@ -37,6 +37,8 @@ interface Deal {
   discountedPrice: string;
   discountPercentage: number;
   validUntil: string;
+  dealType?: string;
+  affiliateLink?: string;
   vendor: {
     id: number;
     name: string;
@@ -80,6 +82,7 @@ const DealList = () => {
   const [pinDialogDeal, setPinDialogDeal] = useState<Deal | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedCity, setSelectedCity] = useState<string>('all');
+  const [selectedDealType, setSelectedDealType] = useState<string>('all');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [sortBy, setSortBy] = useState<string>('newest');
   const [claimCodes, setClaimCodes] = useState<Record<number, string>>({});
@@ -97,9 +100,9 @@ const DealList = () => {
     }
   }, [location]);
 
-  // Fetch deals using TanStack Query with category and city filtering
+  // Fetch deals using TanStack Query with category, city, and dealType filtering
   const { data: deals = [], isLoading, error } = useQuery<Deal[]>({
-    queryKey: ['/api/deals', selectedCategory === 'all' ? '' : selectedCategory, selectedCity === 'all' ? '' : selectedCity],
+    queryKey: ['/api/deals', selectedCategory === 'all' ? '' : selectedCategory, selectedCity === 'all' ? '' : selectedCity, selectedDealType === 'all' ? '' : selectedDealType],
     queryFn: async () => {
       const params = new URLSearchParams();
       if (selectedCategory && selectedCategory !== 'all') {
@@ -107,6 +110,9 @@ const DealList = () => {
       }
       if (selectedCity && selectedCity !== 'all') {
         params.append('city', selectedCity);
+      }
+      if (selectedDealType && selectedDealType !== 'all') {
+        params.append('dealType', selectedDealType);
       }
       
       const response = await fetch(`/api/deals?${params.toString()}`);
@@ -345,6 +351,17 @@ const DealList = () => {
                     {city.name}, {city.state}
                   </SelectItem>
                 ))}
+              </SelectContent>
+            </Select>
+
+            <Select value={selectedDealType} onValueChange={setSelectedDealType}>
+              <SelectTrigger className="w-full sm:w-48">
+                <SelectValue placeholder="Deal Type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Deals</SelectItem>
+                <SelectItem value="offline">In-Store Deals</SelectItem>
+                <SelectItem value="online">Online Deals</SelectItem>
               </SelectContent>
             </Select>
 
