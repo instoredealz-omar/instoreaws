@@ -57,7 +57,20 @@ const dealCreationSchema = z.object({
   terms: z.string().min(10, 'Terms and conditions must be at least 10 characters').optional(),
   imageUrl: z.string().optional().or(z.literal('')),
   verificationPin: z.string().regex(/^[0-9]{4}$/, 'PIN must be exactly 4 digits'),
-});
+  dealType: z.enum(['offline', 'online']).default('offline'),
+  affiliateLink: z.string().optional(),
+}).refine(
+  (data) => {
+    if (data.dealType === 'online' && !data.affiliateLink) {
+      return false;
+    }
+    return true;
+  },
+  {
+    message: 'Affiliate link is required for online deals',
+    path: ['affiliateLink'],
+  }
+);
 
 type DealFormData = z.infer<typeof dealCreationSchema>;
 
@@ -106,6 +119,8 @@ const VendorDealCreation = () => {
       terms: '',
       imageUrl: '',
       verificationPin: '',
+      dealType: 'offline',
+      affiliateLink: '',
     },
   });
 
@@ -359,6 +374,59 @@ const VendorDealCreation = () => {
                             </FormItem>
                           )}
                         />
+
+                        <FormField
+                          control={form.control}
+                          name="dealType"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Deal Type *</FormLabel>
+                              <Select 
+                                onValueChange={field.onChange} 
+                                defaultValue={field.value}
+                                disabled={previewMode}
+                              >
+                                <FormControl>
+                                  <SelectTrigger data-testid="select-deal-type">
+                                    <SelectValue placeholder="Select deal type" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="offline">Offline Deal (In-Store)</SelectItem>
+                                  <SelectItem value="online">Online Deal (Affiliate Link)</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormDescription>
+                                Choose whether customers redeem this deal in your store or online
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        {watchedValues.dealType === 'online' && (
+                          <FormField
+                            control={form.control}
+                            name="affiliateLink"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Affiliate Link *</FormLabel>
+                                <FormControl>
+                                  <Input 
+                                    placeholder="https://yourwebsite.com/deal-page"
+                                    {...field}
+                                    disabled={previewMode}
+                                    data-testid="input-affiliate-link"
+                                  />
+                                </FormControl>
+                                <FormDescription>
+                                  Enter the URL where customers can redeem this online deal
+                                </FormDescription>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        )}
                       </TabsContent>
 
                       {/* Pricing Tab */}

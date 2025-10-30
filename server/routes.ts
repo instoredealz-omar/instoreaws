@@ -2091,6 +2091,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           dealTitle: deal?.title || 'Unknown Deal',
           dealCategory: deal?.category || 'Other',
           discountPercentage: deal?.discountPercentage || 0,
+          dealType: deal?.dealType || 'offline',
+          affiliateLink: deal?.affiliateLink || null,
           
           // Required financial data
           totalAmount: parseFloat(claim.billAmount || '0'),

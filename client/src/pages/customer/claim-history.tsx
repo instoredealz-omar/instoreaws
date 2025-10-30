@@ -25,7 +25,10 @@ import {
   FileText,
   Receipt,
   Calculator,
-  Loader2
+  Loader2,
+  Copy,
+  ExternalLink,
+  Globe
 } from "lucide-react";
 
 export default function ClaimHistory() {
@@ -307,6 +310,48 @@ export default function ClaimHistory() {
                               </span>
                             )}
                           </div>
+
+                          {/* Online Deal Info */}
+                          {claim.deal?.dealType === 'online' && (
+                            <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                              <div className="flex items-center gap-2 mb-2">
+                                <Globe className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                                <span className="text-sm font-medium text-blue-900 dark:text-blue-100">Online Deal</span>
+                              </div>
+                              {claim.claimCode && (
+                                <div className="flex items-center gap-2 mb-2">
+                                  <code className="text-sm font-mono bg-white dark:bg-gray-800 px-2 py-1 rounded border border-blue-300 dark:border-blue-700 text-blue-600 dark:text-blue-400">
+                                    {claim.claimCode}
+                                  </code>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => {
+                                      navigator.clipboard.writeText(claim.claimCode);
+                                      toast({
+                                        title: "Copied!",
+                                        description: "Claim code copied to clipboard",
+                                      });
+                                    }}
+                                    className="h-6 px-2"
+                                  >
+                                    <Copy className="h-3 w-3" />
+                                  </Button>
+                                </div>
+                              )}
+                              {claim.deal?.affiliateLink && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => window.open(claim.deal.affiliateLink, '_blank')}
+                                  className="text-xs"
+                                >
+                                  <ExternalLink className="h-3 w-3 mr-1" />
+                                  Visit Website
+                                </Button>
+                              )}
+                            </div>
+                          )}
                         </div>
                       </div>
                       

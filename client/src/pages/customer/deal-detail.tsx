@@ -67,6 +67,8 @@ interface Deal {
   locations?: DealLocation[];
   locationCount?: number;
   hasMultipleLocations?: boolean;
+  dealType?: string;
+  affiliateLink?: string;
   vendor?: {
     id: number;
     businessName: string;
@@ -437,6 +439,70 @@ export default function DealDetail({ params }: DealDetailProps) {
                     Subscription Discount
                   </Badge>
                 </div>
+
+                {/* Online Deal Information with Claim Code and Affiliate Link */}
+                {currentDeal.dealType === 'online' && userClaim && userClaim.claimCode && (
+                  <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 border border-blue-200 dark:border-blue-800 rounded-lg p-6 space-y-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Tag className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                      <h4 className="font-semibold text-blue-900 dark:text-blue-100 text-lg">Online Deal - Claim Code</h4>
+                    </div>
+                    
+                    {/* Claim Code Display */}
+                    <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border-2 border-blue-300 dark:border-blue-700">
+                      <p className="text-sm text-muted-foreground mb-2">Your Claim Code:</p>
+                      <div className="flex items-center justify-between gap-4">
+                        <code className="text-3xl font-bold tracking-wider text-blue-600 dark:text-blue-400" data-testid="text-claim-code">
+                          {userClaim.claimCode}
+                        </code>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            navigator.clipboard.writeText(userClaim.claimCode || '');
+                            toast({
+                              title: "Copied!",
+                              description: "Claim code copied to clipboard",
+                            });
+                          }}
+                          data-testid="button-copy-claim-code"
+                        >
+                          <Copy className="h-4 w-4 mr-2" />
+                          Copy Code
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* Affiliate Link Button */}
+                    {currentDeal.affiliateLink && (
+                      <div className="space-y-2">
+                        <p className="text-sm text-blue-800 dark:text-blue-200">
+                          Use this code on the vendor's website to get your discount:
+                        </p>
+                        <Button
+                          onClick={() => window.open(currentDeal.affiliateLink, '_blank')}
+                          className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white"
+                          size="lg"
+                          data-testid="button-visit-affiliate-link"
+                        >
+                          <LinkIcon className="w-4 h-4 mr-2" />
+                          Visit Vendor Website
+                        </Button>
+                      </div>
+                    )}
+
+                    {/* Instructions */}
+                    <div className="text-sm text-blue-700 dark:text-blue-300 bg-blue-100 dark:bg-blue-900/50 rounded p-3">
+                      <strong>How to redeem:</strong>
+                      <ol className="list-decimal list-inside mt-2 space-y-1">
+                        <li>Copy the claim code above</li>
+                        <li>Click "Visit Vendor Website" button</li>
+                        <li>Apply the code at checkout to get {currentDeal.discountPercentage}% off</li>
+                        <li>Your savings will be tracked automatically</li>
+                      </ol>
+                    </div>
+                  </div>
+                )}
 
                 <Separator />
 
