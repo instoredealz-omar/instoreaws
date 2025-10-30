@@ -168,7 +168,7 @@ export default function DealCard({
   };
 
   return (
-    <Card className="deal-card h-full flex flex-col" onClick={onView}>
+    <Card className="deal-card h-full flex flex-col relative" onClick={onView}>
       {/* Image */}
       <div className="relative h-48 overflow-hidden rounded-t-lg">
         {imageUrl ? (
@@ -204,21 +204,6 @@ export default function DealCard({
           />
         </button>
         
-        {/* Deal Type and Category Badges */}
-        <div className="absolute bottom-2 left-2 space-y-1 z-10">
-          <Badge className={`${dealType === 'online' ? 'bg-blue-500 text-white' : 'bg-gray-700 text-white'} border-0 text-xs shadow-lg`}>
-            {dealType === 'online' ? '🌐 Online' : '🏪 Offline'}
-          </Badge>
-          <Badge className={`${categoryColors[category as keyof typeof categoryColors]} border-0 shadow-md`}>
-            {category}
-          </Badge>
-          {subcategory && formatSubcategory(subcategory) && (
-            <Badge className="bg-green-100 text-green-800 border-0 text-xs block shadow-md">
-              {formatSubcategory(subcategory)}
-            </Badge>
-          )}
-        </div>
-        
         {/* Discount Badge */}
         <div className={`absolute top-2 right-2 rounded-full px-3 py-1 text-xs font-bold transition-all duration-300 shadow-md z-10 ${
           isFlashing 
@@ -228,10 +213,25 @@ export default function DealCard({
           {discountPercentage}% OFF
         </div>
         {viewCount > 0 && (
-          <div className="absolute bottom-2 right-2 bg-black/70 text-white rounded px-2 py-1 text-xs flex items-center space-x-1">
+          <div className="absolute bottom-2 right-2 bg-black/70 text-white rounded px-2 py-1 text-xs flex items-center space-x-1 z-10">
             <Eye className="h-3 w-3" />
             <span>{viewCount}</span>
           </div>
+        )}
+      </div>
+      
+      {/* Deal Type and Category Badges - Positioned outside image container */}
+      <div className="absolute top-[11rem] left-2 space-y-1 z-20">
+        <Badge className={`${dealType === 'online' ? 'bg-blue-500 text-white' : 'bg-gray-700 text-white'} border-0 text-xs shadow-lg`}>
+          {dealType === 'online' ? '🌐 Online' : '🏪 Offline'}
+        </Badge>
+        <Badge className={`${categoryColors[category as keyof typeof categoryColors]} border-0 shadow-md`}>
+          {category}
+        </Badge>
+        {subcategory && formatSubcategory(subcategory) && (
+          <Badge className="bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100 border-0 text-xs block shadow-md">
+            {formatSubcategory(subcategory)}
+          </Badge>
         )}
       </div>
 
