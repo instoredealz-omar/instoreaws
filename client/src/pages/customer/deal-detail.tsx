@@ -193,7 +193,48 @@ export default function DealDetail({ params }: DealDetailProps) {
   const userClaim = userClaims_forDeal.sort((a, b) => b.id - a.id)[0]; // Get most recent claim
   const hasClaimedDeal = false; // Allow multiple claims - same code will be reused
 
-  // New claim deal with bill amount and PIN
+  // Simple claim for online deals (no bill/PIN required)
+  const simpleClaimMutation = useMutation({
+    mutationFn: async (dealId: number): Promise<any> => {
+      const response = await apiRequest(`/api/deals/${dealId}/claim`, 'POST', {});
+      return await response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Online Deal Claimed! 🎉",
+        description: data.message || "Your claim code has been generated. Visit the vendor website to redeem.",
+        variant: "default",
+      });
+      
+      // Refresh user data and claims
+      setTimeout(async () => {
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: ["/api/users/claims"] }),
+          queryClient.invalidateQueries({ queryKey: [`/api/deals/${id}`] }),
+          queryClient.invalidateQueries({ queryKey: [`/api/deals/${id}/secure`] }),
+          queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] })
+        ]);
+        refetchClaims();
+        queryClient.refetchQueries({ queryKey: ["/api/auth/me"] });
+      }, 500);
+
+      // For online deals, open affiliate link if available
+      if (data.affiliateLink) {
+        setTimeout(() => {
+          window.open(data.affiliateLink, '_blank');
+        }, 1000);
+      }
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Claim Failed",
+        description: error.message || "Failed to claim deal. Please try again.",
+        variant: "destructive",
+      });
+    }
+  });
+
+  // Claim deal with bill amount and PIN (for offline deals)
   const claimDealMutation = useMutation({
     mutationFn: async ({ dealId, billAmount, pin }: { dealId: number; billAmount: number; pin: string }): Promise<any> => {
       const response = await apiRequest(`/api/deals/${dealId}/claim-with-bill`, 'POST', { billAmount, pin });
@@ -283,7 +324,14 @@ export default function DealDetail({ params }: DealDetailProps) {
       return;
     }
     
-    setShowClaimDialog(true);
+    // Check if this is an online or offline deal
+    if (currentDeal?.dealType === 'online') {
+      // For online deals, claim immediately without asking for bill/PIN
+      simpleClaimMutation.mutate(currentDeal.id);
+    } else {
+      // For offline deals, show the dialog to collect bill amount and PIN
+      setShowClaimDialog(true);
+    }
   };
 
   const handleClaimSubmit = (billAmount: number, pin: string) => {
@@ -524,7 +572,7 @@ export default function DealDetail({ params }: DealDetailProps) {
                         {/* Claim Deal Button */}
                         <Button
                           onClick={handleClaimDeal}
-                          disabled={isExpired || !!isFullyRedeemed || !deal?.isActive}
+                          disabled={isExpired || !!isFullyRedeemed || !deal?.isActive || simpleClaimMutation.isPending || claimDealMutation.isPending}
                           className="w-full bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white"
                           size="lg"
                           data-testid="button-claim-deal"
@@ -533,10 +581,21 @@ export default function DealDetail({ params }: DealDetailProps) {
                             "Deal Expired"
                           ) : isFullyRedeemed ? (
                             "Fully Redeemed"
+                          ) : simpleClaimMutation.isPending || claimDealMutation.isPending ? (
+                            "Claiming..."
                           ) : (
                             <>
-                              <Shield className="w-4 h-4 mr-2" />
-                              Claim Deal
+                              {currentDeal?.dealType === 'online' ? (
+                                <>
+                                  <LinkIcon className="w-4 h-4 mr-2" />
+                                  Claim Online Deal
+                                </>
+                              ) : (
+                                <>
+                                  <Shield className="w-4 h-4 mr-2" />
+                                  Claim Deal
+                                </>
+                              )}
                             </>
                           )}
                         </Button>
@@ -564,14 +623,22 @@ export default function DealDetail({ params }: DealDetailProps) {
                   )}
 
                   {/* Deal Claiming Process Instructions */}
-                  {canAccessDeal() && (
+                  {canAccessDeal() && !userClaim && (
                     <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
                       <div className="flex items-center gap-2 mb-2">
-                        <Shield className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                        <h4 className="font-semibold text-blue-900 dark:text-blue-100">How do I claim a deal?</h4>
+                        {currentDeal?.dealType === 'online' ? (
+                          <LinkIcon className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                        ) : (
+                          <Shield className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                        )}
+                        <h4 className="font-semibold text-blue-900 dark:text-blue-100">How do I claim this deal?</h4>
                       </div>
                       <p className="text-blue-800 dark:text-blue-200 text-sm">
-                        Visit the store and click "Claim Deal" at checkout. Enter your billed amount and the vendor's 6-digit PIN to complete the claim. Your savings will be automatically added to your account!
+                        {currentDeal?.dealType === 'online' ? (
+                          <>Click "Claim Online Deal" to get your unique code. You'll be redirected to the vendor's website where you can use the code at checkout to get your discount!</>
+                        ) : (
+                          <>Visit the store and click "Claim Deal" at checkout. Enter your billed amount and the vendor's 6-digit PIN to complete the claim. Your savings will be automatically added to your account!</>
+                        )}
                       </p>
                     </div>
                   )}

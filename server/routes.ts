@@ -829,37 +829,86 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Upgrade membership to claim this deal" });
       }
       
-      // Allow multiple claims - create new claim each time
-      const claim = await storage.claimDeal({
-        userId,
-        dealId,
-        savingsAmount: "0", // No savings until PIN verification
-        status: "pending" // Mark as pending until store verification
-      });
-
-      // Log the claim activity (but not as completed savings)
-      try {
-        await storage.createSystemLog({
+      // Handle online deals differently from offline deals
+      if (deal.dealType === 'online') {
+        // For online deals: Create claim and mark as completed immediately
+        // Generate a unique claim code for tracking using crypto-grade randomness
+        const crypto = await import('crypto');
+        const claimCode = crypto.randomBytes(3).toString('hex').toUpperCase();
+        
+        const claim = await storage.claimDeal({
           userId,
-          action: "DEAL_CLAIMED_PENDING",
-          details: {
-            dealId,
-            dealTitle: deal.title,
-            status: "pending_verification"
-          },
-          ipAddress: req.ip,
-          userAgent: req.headers['user-agent'],
+          dealId,
+          savingsAmount: "0", // Savings tracked via affiliate link
+          status: "clicked", // Mark as clicked (not pending)
+          claimCode,
+          codeExpiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days for online deals
         });
-      } catch (logError) {
-        console.warn('System log creation failed:', logError.message);
+
+        // Increment deal redemptions for online deals
+        await storage.incrementDealRedemptions(deal.id);
+
+        // Log the online claim activity
+        try {
+          await storage.createSystemLog({
+            userId,
+            action: "ONLINE_DEAL_CLAIMED",
+            details: {
+              dealId,
+              dealTitle: deal.title,
+              affiliateLink: deal.affiliateLink,
+              status: "clicked"
+            },
+            ipAddress: req.ip,
+            userAgent: req.headers['user-agent'],
+          });
+        } catch (logError) {
+          console.warn('System log creation failed:', logError.message);
+        }
+        
+        return res.status(201).json({
+          ...claim,
+          message: "Deal claimed! Use the code on the vendor's website.",
+          dealType: deal.dealType,
+          affiliateLink: deal.affiliateLink,
+          requiresVerification: false,
+          isOnline: true
+        });
+      } else {
+        // For offline deals: Create pending claim that needs store verification
+        const claim = await storage.claimDeal({
+          userId,
+          dealId,
+          savingsAmount: "0", // No savings until PIN verification
+          status: "pending" // Mark as pending until store verification
+        });
+
+        // Log the claim activity (but not as completed savings)
+        try {
+          await storage.createSystemLog({
+            userId,
+            action: "DEAL_CLAIMED_PENDING",
+            details: {
+              dealId,
+              dealTitle: deal.title,
+              status: "pending_verification"
+            },
+            ipAddress: req.ip,
+            userAgent: req.headers['user-agent'],
+          });
+        } catch (logError) {
+          console.warn('System log creation failed:', logError.message);
+        }
+        
+        return res.status(201).json({
+          ...claim,
+          message: "Deal claimed! Visit the store and verify your PIN to complete the redemption.",
+          savingsAmount: 0, // No savings until verified
+          dealType: deal.dealType,
+          requiresVerification: true,
+          isOnline: false
+        });
       }
-      
-      res.status(201).json({
-        ...claim,
-        message: "Deal claimed! Visit the store and verify your PIN to complete the redemption.",
-        savingsAmount: 0, // No savings until verified
-        requiresVerification: true
-      });
     } catch (error) {
       console.error('Deal claiming error:', error);
       res.status(500).json({ message: "Failed to claim deal" });
@@ -896,6 +945,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ 
           success: false,
           message: "Deal not found or not available" 
+        });
+      }
+
+      // Prevent online deals from using the offline claim-with-bill endpoint
+      if (deal.dealType === 'online') {
+        return res.status(400).json({
+          success: false,
+          message: "This endpoint is for offline deals only. Online deals should use /api/deals/:id/claim"
         });
       }
 
