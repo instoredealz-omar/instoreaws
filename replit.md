@@ -41,14 +41,23 @@ The application follows a monorepo structure with distinct `client/` (React with
 - **POS System**: Integrated Point of Sale for vendors to manage sessions, process transactions, and verify deals.
 - **Reports & Analytics**: Admin reports cover users, vendors, deals, claims, and revenue, with CSV export.
 - **Notifications**: Automated email notifications for registrations and business approvals using SendGrid (optional).
-- **Commission Tracking System** (Foundation Complete): Gateway-less affiliate commission tracking for online deals with:
-  - Vendor commission settings with flexible rate tiers (click rate, conversion rate)
-  - Click tracking with user attribution (IP, user agent, claim code)
-  - Conversion tracking via manual confirmation workflow
-  - Estimated vs confirmed commission calculations
-  - Payout batch management with minimum thresholds
-  - Comprehensive reporting for vendors and admins
-  - Ready for integration into online deal claim flow and dashboard analytics
+- **Commission Tracking System** (Fully Implemented - October 31, 2025): Gateway-less affiliate commission tracking for online deals with:
+  - Vendor commission settings with flexible rate tiers (5% click rate, 10% conversion rate by default)
+  - Automatic click tracking when customers claim online deals via affiliate links
+  - Conversion tracking via manual admin confirmation workflow with sale amount entry
+  - Estimated vs confirmed commission calculations (estimated on click, confirmed on conversion)
+  - Payout batch creation and processing with status tracking and payment reference management
+  - Admin commission reports dashboard with:
+    - Overview metrics (total clicks, conversions, estimated/confirmed commissions)
+    - Transaction list with status and date range filtering
+    - Conversion confirmation UI
+    - Payout batch management (create, update, process)
+  - Vendor online deal performance analytics page showing:
+    - Summary statistics (clicks, conversions, conversion rate, commission earnings)
+    - Performance breakdown by deal with metrics and conversion rates
+    - Educational information about commission tracking
+  - Complete end-to-end flow: customer claims online deal → commission transaction created → admin confirms conversion → payout batch processed
+  - Predicate-based cache invalidation ensures real-time data updates after mutations
 
 ### System Design Choices
 The application emphasizes modularity, separation of concerns, and type safety. Database operations are abstracted through an `IStorage` interface. All critical processes like PIN verification and claim management are designed for high security and data integrity. The system supports a flexible workflow where customers can claim deals online and verify them offline at the store. Extensive error handling and robust validation are implemented across the system.
