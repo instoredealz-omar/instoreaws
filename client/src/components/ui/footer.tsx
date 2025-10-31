@@ -16,16 +16,16 @@ export default function Footer() {
               Your ultimate destination for discovering amazing deals from local businesses across India.
             </p>
             <div className="flex space-x-4">
-              <a href="#" className="text-gray-300 hover:text-white transition-colors">
+              <a href="https://facebook.com/instoredealz" target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-white transition-colors" aria-label="Facebook">
                 <Facebook className="h-5 w-5" />
               </a>
-              <a href="#" className="text-gray-300 hover:text-white transition-colors">
+              <a href="https://twitter.com/instoredealz" target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-white transition-colors" aria-label="Twitter">
                 <Twitter className="h-5 w-5" />
               </a>
-              <a href="#" className="text-gray-300 hover:text-white transition-colors">
+              <a href="https://instagram.com/instoredealz" target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-white transition-colors" aria-label="Instagram">
                 <Instagram className="h-5 w-5" />
               </a>
-              <a href="#" className="text-gray-300 hover:text-white transition-colors">
+              <a href="https://linkedin.com/company/instoredealz" target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-white transition-colors" aria-label="LinkedIn">
                 <Linkedin className="h-5 w-5" />
               </a>
             </div>
@@ -73,14 +73,14 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <a href="#marketing" className="hover:text-white transition-colors">
+                <Link to="/vendor/marketing-tools" className="hover:text-white transition-colors">
                   Marketing Tools
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#support" className="hover:text-white transition-colors">
+                <Link to="/business-support" className="hover:text-white transition-colors">
                   Business Support
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
@@ -100,12 +100,12 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link to="/privacy" className="hover:text-white transition-colors">
+                <Link to="/cookie-consent" className="hover:text-white transition-colors">
                   Cookie Consent
                 </Link>
               </li>
               <li>
-                <Link to="/terms" className="hover:text-white transition-colors">
+                <Link to="/refund-policy" className="hover:text-white transition-colors">
                   Refund Policy
                 </Link>
               </li>
