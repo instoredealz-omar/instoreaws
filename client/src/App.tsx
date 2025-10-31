@@ -52,6 +52,7 @@ import VendorDealCreation from "@/pages/vendor/VendorDealCreation";
 import VendorLocationAnalytics from "@/pages/vendor/location-analytics";
 import ManualVerification from "@/pages/vendor/ManualVerification";
 import MarketingTools from "@/pages/vendor/marketing-tools";
+import OnlineDealPerformance from "@/pages/vendor/online-deal-performance";
 
 // Admin pages
 import AdminDashboard from "@/pages/admin/dashboard";
@@ -63,6 +64,7 @@ import AdminDealDistribution from "@/pages/admin/deal-distribution";
 import AdminAnalytics from "@/pages/admin/analytics";
 import AdminLocationAnalytics from "@/pages/admin/location-analytics";
 import PromotionalBanners from "@/pages/admin/promotional-banners";
+import CommissionReports from "@/pages/admin/commission-reports";
 
 // Super Admin pages
 import SuperAdminDashboard from "@/pages/superadmin/dashboard";
@@ -187,6 +189,7 @@ function Router() {
   const [matchVendorProfileData] = useRoute("/vendor/profile-data");
   const [matchVendorManualVerification] = useRoute("/vendor/manual-verification");
   const [matchVendorMarketingTools] = useRoute("/vendor/marketing-tools");
+  const [matchVendorOnlinePerformance] = useRoute("/vendor/online-performance");
 
   // Admin routes
   const [matchAdmin] = useRoute("/admin");
@@ -196,6 +199,7 @@ function Router() {
   const [matchAdminVendors] = useRoute("/admin/vendors");
   const [matchAdminDeals] = useRoute("/admin/deals");
   const [matchAdminReports] = useRoute("/admin/reports");
+  const [matchAdminCommissionReports] = useRoute("/admin/commission-reports");
   const [matchAdminAnalytics] = useRoute("/admin/analytics");
   const [matchAdminLocationAnalytics] = useRoute("/admin/location-analytics");
   const [matchAdminPromotionalBanners] = useRoute("/admin/promotional-banners");
@@ -429,6 +433,14 @@ function Router() {
     );
   }
   if (matchVendorMarketingTools) return <MarketingTools />;
+  
+  if (matchVendorOnlinePerformance) {
+    return (
+      <RoleProtectedRoute allowedRoles={['vendor']}>
+        <OnlineDealPerformance />
+      </RoleProtectedRoute>
+    );
+  }
 
   if (matchVendorProcess) {
     return (
@@ -485,6 +497,13 @@ function Router() {
     return (
       <RoleProtectedRoute allowedRoles={['admin', 'superadmin']}>
         <AdminReports />
+      </RoleProtectedRoute>
+    );
+  }
+  if (matchAdminCommissionReports) {
+    return (
+      <RoleProtectedRoute allowedRoles={['admin', 'superadmin']}>
+        <CommissionReports />
       </RoleProtectedRoute>
     );
   }

@@ -848,6 +848,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Increment deal redemptions for online deals
         await storage.incrementDealRedemptions(deal.id);
 
+        // Create commission transaction for click tracking
+        try {
+          const vendor = await storage.getVendor(deal.vendorId);
+          if (vendor) {
+            // Get vendor commission settings or use defaults
+            const vendorSettings = await storage.getVendorCommissionSettings(vendor.id);
+            const commissionRate = vendorSettings?.onlineClickCommission || "5.00";
+            
+            await storage.createCommissionTransaction({
+              vendorId: vendor.id,
+              dealId: deal.id,
+              dealClaimId: claim.id,
+              userId: userId,
+              transactionType: "click",
+              clickTimestamp: new Date(),
+              commissionRate: commissionRate,
+              commissionAmount: "0.00", // No commission for clicks, only for conversions
+              status: "pending",
+              isEstimated: true,
+              affiliateLink: deal.affiliateLink || null,
+              customerIpAddress: req.ip || null,
+              customerUserAgent: req.headers['user-agent'] || null,
+            });
+
+            Logger.info("Commission transaction created for online deal click", {
+              dealId,
+              claimId: claim.id,
+              vendorId: vendor.id,
+              userId
+            });
+          }
+        } catch (commissionError) {
+          Logger.error("Failed to create commission transaction", {
+            dealId,
+            error: commissionError
+          });
+          // Don't fail the claim if commission tracking fails
+        }
+
         // Log the online claim activity
         try {
           await storage.createSystemLog({
@@ -4098,6 +4137,281 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(deals);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch most claimed deals" });
+    }
+  });
+
+  // Commission Tracking API Routes
+
+  // Admin: Get commission overview
+  app.get('/api/admin/commission/overview', requireAuth, requireRole(['admin', 'superadmin']), async (req: AuthenticatedRequest, res) => {
+    try {
+      const { from, to } = req.query;
+      const startDate = from ? new Date(from as string) : undefined;
+      const endDate = to ? new Date(to as string) : undefined;
+      
+      const overview = await storage.getAdminCommissionOverview(startDate, endDate);
+      res.json(overview);
+    } catch (error) {
+      Logger.error('Failed to get commission overview', error);
+      res.status(500).json({ message: "Failed to get commission overview" });
+    }
+  });
+
+  // Admin: Get all commission transactions
+  app.get('/api/admin/commission/transactions', requireAuth, requireRole(['admin', 'superadmin']), async (req: AuthenticatedRequest, res) => {
+    try {
+      const { vendorId, status, from, to } = req.query;
+      
+      // Get all transactions (for now, we'll filter on the client side or extend storage method)
+      let transactions: any[] = [];
+      
+      if (vendorId) {
+        const startDate = from ? new Date(from as string) : undefined;
+        const endDate = to ? new Date(to as string) : undefined;
+        transactions = await storage.getCommissionTransactionsByVendor(parseInt(vendorId as string), startDate, endDate);
+      } else {
+        // Get transactions for all vendors
+        const vendors = await storage.getAllVendors();
+        const startDate = from ? new Date(from as string) : undefined;
+        const endDate = to ? new Date(to as string) : undefined;
+        
+        for (const vendor of vendors) {
+          const vendorTransactions = await storage.getCommissionTransactionsByVendor(vendor.id, startDate, endDate);
+          transactions.push(...vendorTransactions);
+        }
+      }
+      
+      // Filter by status if provided
+      if (status) {
+        transactions = transactions.filter(t => t.status === status);
+      }
+      
+      res.json(transactions);
+    } catch (error) {
+      Logger.error('Failed to get commission transactions', error);
+      res.status(500).json({ message: "Failed to get commission transactions" });
+    }
+  });
+
+  // Admin: Confirm conversion (update transaction to confirmed)
+  app.put('/api/admin/commission/transactions/:id/confirm', requireAuth, requireRole(['admin', 'superadmin']), async (req: AuthenticatedRequest, res) => {
+    try {
+      const transactionId = parseInt(req.params.id);
+      const { saleAmount } = req.body;
+      
+      const transaction = await storage.getCommissionTransactionById(transactionId);
+      if (!transaction) {
+        return res.status(404).json({ message: "Transaction not found" });
+      }
+      
+      // Get vendor commission settings for conversion rate
+      const vendorSettings = await storage.getVendorCommissionSettings(transaction.vendorId);
+      const conversionRate = vendorSettings?.onlineConversionCommission || "10.00";
+      
+      // Calculate commission based on sale amount
+      const commissionAmount = (parseFloat(saleAmount) * parseFloat(conversionRate)) / 100;
+      
+      // Update transaction to confirmed conversion
+      const updated = await storage.updateCommissionTransaction(transactionId, {
+        transactionType: "conversion",
+        conversionTimestamp: new Date(),
+        saleAmount: saleAmount.toString(),
+        commissionRate: conversionRate,
+        commissionAmount: commissionAmount.toFixed(2),
+        status: "confirmed",
+        isEstimated: false,
+      });
+      
+      Logger.info('Commission transaction confirmed', {
+        transactionId,
+        saleAmount,
+        commissionAmount,
+        vendorId: transaction.vendorId
+      });
+      
+      res.json(updated);
+    } catch (error) {
+      Logger.error('Failed to confirm commission transaction', error);
+      res.status(500).json({ message: "Failed to confirm transaction" });
+    }
+  });
+
+  // Vendor: Get online deal performance
+  app.get('/api/vendor/commission/performance', requireAuth, requireRole(['vendor']), async (req: AuthenticatedRequest, res) => {
+    try {
+      const vendor = await storage.getVendorByUserId(req.user!.id);
+      if (!vendor) {
+        return res.status(404).json({ message: "Vendor not found" });
+      }
+      
+      const performance = await storage.getOnlineDealPerformance(vendor.id);
+      res.json(performance);
+    } catch (error) {
+      Logger.error('Failed to get vendor performance', error);
+      res.status(500).json({ message: "Failed to get performance data" });
+    }
+  });
+
+  // Vendor: Get commission summary
+  app.get('/api/vendor/commission/summary', requireAuth, requireRole(['vendor']), async (req: AuthenticatedRequest, res) => {
+    try {
+      const { from, to } = req.query;
+      const vendor = await storage.getVendorByUserId(req.user!.id);
+      if (!vendor) {
+        return res.status(404).json({ message: "Vendor not found" });
+      }
+      
+      const startDate = from ? new Date(from as string) : undefined;
+      const endDate = to ? new Date(to as string) : undefined;
+      
+      const summary = await storage.getCommissionSummaryByVendor(vendor.id, startDate, endDate);
+      res.json(summary);
+    } catch (error) {
+      Logger.error('Failed to get commission summary', error);
+      res.status(500).json({ message: "Failed to get commission summary" });
+    }
+  });
+
+  // Admin: Create payout batch
+  app.post('/api/admin/commission/payouts', requireAuth, requireRole(['admin', 'superadmin']), async (req: AuthenticatedRequest, res) => {
+    try {
+      const { vendorId, periodStart, periodEnd, notes } = req.body;
+      
+      // Get confirmed transactions for the period
+      const transactions = await storage.getCommissionTransactionsByVendor(
+        vendorId,
+        new Date(periodStart),
+        new Date(periodEnd)
+      );
+      
+      const confirmedTransactions = transactions.filter(t => t.status === 'confirmed' && !t.payoutBatchId);
+      
+      if (confirmedTransactions.length === 0) {
+        return res.status(400).json({ message: "No confirmed transactions found for this period" });
+      }
+      
+      // Calculate totals
+      const totalClicks = transactions.filter(t => t.transactionType === 'click').length;
+      const totalConversions = confirmedTransactions.filter(t => t.transactionType === 'conversion').length;
+      const totalSaleAmount = confirmedTransactions.reduce((sum, t) => sum + parseFloat(t.saleAmount || '0'), 0);
+      const totalCommission = confirmedTransactions.reduce((sum, t) => sum + parseFloat(t.commissionAmount || '0'), 0);
+      
+      // Generate batch number
+      const batchNumber = `PAYOUT-${vendorId}-${Date.now()}`;
+      
+      // Create payout batch
+      const batch = await storage.createCommissionPayoutBatch({
+        vendorId,
+        batchNumber,
+        periodStart: new Date(periodStart),
+        periodEnd: new Date(periodEnd),
+        totalClicks,
+        totalConversions,
+        totalSaleAmount: totalSaleAmount.toFixed(2),
+        totalCommission: totalCommission.toFixed(2),
+        platformFee: "0.00",
+        netPayout: totalCommission.toFixed(2),
+        status: "pending",
+        notes,
+        createdBy: req.user!.id,
+      });
+      
+      // Update transactions with payout batch ID
+      for (const transaction of confirmedTransactions) {
+        await storage.updateCommissionTransaction(transaction.id, {
+          payoutBatchId: batch.id,
+        });
+      }
+      
+      Logger.info('Payout batch created', {
+        batchId: batch.id,
+        vendorId,
+        totalCommission,
+        transactionCount: confirmedTransactions.length
+      });
+      
+      res.status(201).json(batch);
+    } catch (error) {
+      Logger.error('Failed to create payout batch', error);
+      res.status(500).json({ message: "Failed to create payout batch" });
+    }
+  });
+
+  // Admin: Get all payout batches
+  app.get('/api/admin/commission/payouts', requireAuth, requireRole(['admin', 'superadmin']), async (req: AuthenticatedRequest, res) => {
+    try {
+      const batches = await storage.getAllPendingPayoutBatches();
+      res.json(batches);
+    } catch (error) {
+      Logger.error('Failed to get payout batches', error);
+      res.status(500).json({ message: "Failed to get payout batches" });
+    }
+  });
+
+  // Admin: Update payout batch status
+  app.put('/api/admin/commission/payouts/:id', requireAuth, requireRole(['admin', 'superadmin']), async (req: AuthenticatedRequest, res) => {
+    try {
+      const batchId = parseInt(req.params.id);
+      const { status, paymentMethod, transactionReference } = req.body;
+      
+      const updates: any = { status };
+      
+      if (status === 'paid') {
+        updates.paidAt = new Date();
+        updates.approvedBy = req.user!.id;
+        updates.approvedAt = new Date();
+      }
+      
+      if (paymentMethod) {
+        updates.paymentMethod = paymentMethod;
+      }
+      
+      if (transactionReference) {
+        updates.transactionReference = transactionReference;
+      }
+      
+      const batch = await storage.updateCommissionPayoutBatch(batchId, updates);
+      
+      // If paid, update all associated transactions
+      if (status === 'paid' && batch) {
+        const transactions = await storage.getCommissionTransactionsByVendor(batch.vendorId);
+        const batchTransactions = transactions.filter(t => t.payoutBatchId === batchId);
+        
+        for (const transaction of batchTransactions) {
+          await storage.updateCommissionTransaction(transaction.id, {
+            status: 'paid',
+            paidAt: new Date(),
+            paymentReference: transactionReference || batch.transactionReference || null,
+          });
+        }
+      }
+      
+      Logger.info('Payout batch updated', {
+        batchId,
+        status,
+        approvedBy: req.user!.id
+      });
+      
+      res.json(batch);
+    } catch (error) {
+      Logger.error('Failed to update payout batch', error);
+      res.status(500).json({ message: "Failed to update payout batch" });
+    }
+  });
+
+  // Vendor: Get payout history
+  app.get('/api/vendor/commission/payouts', requireAuth, requireRole(['vendor']), async (req: AuthenticatedRequest, res) => {
+    try {
+      const vendor = await storage.getVendorByUserId(req.user!.id);
+      if (!vendor) {
+        return res.status(404).json({ message: "Vendor not found" });
+      }
+      
+      const batches = await storage.getCommissionPayoutBatchesByVendor(vendor.id);
+      res.json(batches);
+    } catch (error) {
+      Logger.error('Failed to get vendor payouts', error);
+      res.status(500).json({ message: "Failed to get payout history" });
     }
   });
 
