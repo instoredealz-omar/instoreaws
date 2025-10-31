@@ -146,103 +146,12 @@ export async function initializeDatabase() {
       ON CONFLICT DO NOTHING
     `);
 
-    // Create sample deals for test vendor
-    await db.execute(sql`
-      INSERT INTO deals (
-        vendor_id, title, description, category, image_url,
-        discount_percentage, original_price, discounted_price,
-        valid_from, valid_until, max_redemptions, current_redemptions,
-        is_active, is_approved, view_count, required_membership,
-        address, verification_pin, deal_availability
-      )
-      SELECT 
-        v.id,
-        'Test Deal - 40% Off Electronics',
-        'Amazing deal on electronics! Get 40% off on all items in store.',
-        'electronics',
-        'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=800&h=400&fit=crop',
-        40,
-        1000,
-        600,
-        CURRENT_TIMESTAMP,
-        CURRENT_TIMESTAMP + INTERVAL '60 days',
-        100,
-        0,
-        true,
-        true,
-        0,
-        'basic',
-        '123 Test Street, Delhi',
-        'TEST01',
-        'all-stores'
-      FROM vendors v
-      JOIN users u ON v.user_id = u.id
-      WHERE u.email = 'vendor@test.com'
-      ON CONFLICT DO NOTHING
-    `);
-
-    await db.execute(sql`
-      INSERT INTO deals (
-        vendor_id, title, description, category, image_url,
-        discount_percentage, original_price, discounted_price,
-        valid_from, valid_until, max_redemptions, current_redemptions,
-        is_active, is_approved, view_count, required_membership,
-        address, verification_pin, deal_availability
-      )
-      SELECT 
-        v.id,
-        'Test Deal - 30% Off Fashion',
-        'Trendy fashion items at 30% discount!',
-        'fashion',
-        'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=800&h=400&fit=crop',
-        30,
-        2000,
-        1400,
-        CURRENT_TIMESTAMP,
-        CURRENT_TIMESTAMP + INTERVAL '60 days',
-        50,
-        0,
-        true,
-        true,
-        0,
-        'basic',
-        '123 Test Street, Delhi',
-        'TEST02',
-        'all-stores'
-      FROM vendors v
-      JOIN users u ON v.user_id = u.id
-      WHERE u.email = 'vendor@test.com'
-      ON CONFLICT DO NOTHING
-    `);
-
-    // Create sample deal claims for testing POS verification
-    // Only create if there are deals in the database
-    await db.execute(sql`
-      INSERT INTO deal_claims (
-        user_id, deal_id, status, claim_code, claimed_at, code_expires_at,
-        vendor_verified, savings_amount
-      )
-      SELECT 
-        (SELECT id FROM users WHERE role = 'customer' LIMIT 1),
-        d.id,
-        'active',
-        CONCAT(
-          SUBSTRING('ABCDEFGHJKLMNPQRSTUVWXYZ23456789' FROM floor(random() * 32 + 1)::int FOR 1),
-          SUBSTRING('ABCDEFGHJKLMNPQRSTUVWXYZ23456789' FROM floor(random() * 32 + 1)::int FOR 1),
-          SUBSTRING('ABCDEFGHJKLMNPQRSTUVWXYZ23456789' FROM floor(random() * 32 + 1)::int FOR 1),
-          SUBSTRING('ABCDEFGHJKLMNPQRSTUVWXYZ23456789' FROM floor(random() * 32 + 1)::int FOR 1),
-          SUBSTRING('ABCDEFGHJKLMNPQRSTUVWXYZ23456789' FROM floor(random() * 32 + 1)::int FOR 1),
-          SUBSTRING('ABCDEFGHJKLMNPQRSTUVWXYZ23456789' FROM floor(random() * 32 + 1)::int FOR 1)
-        ),
-        CURRENT_TIMESTAMP,
-        CURRENT_TIMESTAMP + INTERVAL '24 hours',
-        false,
-        '0'
-      FROM deals d
-      WHERE d.is_active = true
-      LIMIT 3
-      ON CONFLICT DO NOTHING
-    `);
+    // DISABLED: Auto-generation of test deals
+    // Deals should only be created by vendors through the UI or API
+    
+    // Previously, sample deals were auto-generated here on every app restart,
+    // causing duplicate deals to accumulate in the database.
+    // Vendors can create deals manually through the vendor dashboard.
 
     // Add new carousel columns to existing promotional_banners table
     await db.execute(sql`
