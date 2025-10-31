@@ -16,6 +16,7 @@ Preferred communication style: Simple, everyday language.
 - **Completed comprehensive end-to-end testing**: Verified complete workflow across all three roles (customer, vendor, admin) from vendor registration through deal redemption
 - **Fixed duplicate vendor registration forms**: Consolidated multiple registration prompts into a single VendorRegistrationStatus component across dashboard, profile, and deal creation pages
 - **Database workflow confirmed**: All data properly flows from vendor registration through admin approval to customer-facing deals with correct counter updates
+- **Commission Tracking Foundation (October 31, 2025)**: Built comprehensive database schema and storage interface for tracking affiliate commissions from online deals without requiring payment gateway integration initially. System supports click tracking, conversion tracking (manual confirmation), commission calculations based on vendor-specific rates, and payout batch management. Ready for implementation phase.
 
 ## System Architecture
 
@@ -40,6 +41,14 @@ The application follows a monorepo structure with distinct `client/` (React with
 - **POS System**: Integrated Point of Sale for vendors to manage sessions, process transactions, and verify deals.
 - **Reports & Analytics**: Admin reports cover users, vendors, deals, claims, and revenue, with CSV export.
 - **Notifications**: Automated email notifications for registrations and business approvals using SendGrid (optional).
+- **Commission Tracking System** (Foundation Complete): Gateway-less affiliate commission tracking for online deals with:
+  - Vendor commission settings with flexible rate tiers (click rate, conversion rate)
+  - Click tracking with user attribution (IP, user agent, claim code)
+  - Conversion tracking via manual confirmation workflow
+  - Estimated vs confirmed commission calculations
+  - Payout batch management with minimum thresholds
+  - Comprehensive reporting for vendors and admins
+  - Ready for integration into online deal claim flow and dashboard analytics
 
 ### System Design Choices
 The application emphasizes modularity, separation of concerns, and type safety. Database operations are abstracted through an `IStorage` interface. All critical processes like PIN verification and claim management are designed for high security and data integrity. The system supports a flexible workflow where customers can claim deals online and verify them offline at the store. Extensive error handling and robust validation are implemented across the system.
