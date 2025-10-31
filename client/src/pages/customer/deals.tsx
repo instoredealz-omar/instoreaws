@@ -25,6 +25,7 @@ import {
 export default function CustomerDeals() {
   const [selectedCity, setSelectedCity] = useState("all");
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [selectedDealType, setSelectedDealType] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState("newest");
   const [location] = useLocation();
@@ -200,6 +201,11 @@ export default function CustomerDeals() {
 
   // Filter and sort deals with alphabet-based search
   const filteredDeals = deals?.filter((deal: any) => {
+    // Filter by deal type (offline/online)
+    if (selectedDealType !== "all") {
+      if (deal.dealType !== selectedDealType) return false;
+    }
+    
     if (searchQuery === "") return true;
     
     const query = searchQuery.toLowerCase().trim();
@@ -272,7 +278,7 @@ export default function CustomerDeals() {
         {/* Filters and Search */}
         <Card className="mb-6">
           <CardContent className="p-4">
-            <div className="grid md:grid-cols-5 gap-3">
+            <div className="grid md:grid-cols-6 gap-3">
               <div className="md:col-span-2">
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -281,12 +287,13 @@ export default function CustomerDeals() {
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="pl-10"
+                    data-testid="input-search-deals"
                   />
                 </div>
               </div>
               
               <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                <SelectTrigger>
+                <SelectTrigger data-testid="select-category">
                   <Filter className="h-4 w-4 mr-2" />
                   <SelectValue placeholder="All Categories" />
                 </SelectTrigger>
@@ -300,8 +307,20 @@ export default function CustomerDeals() {
                 </SelectContent>
               </Select>
               
+              <Select value={selectedDealType} onValueChange={setSelectedDealType}>
+                <SelectTrigger data-testid="select-deal-type">
+                  <Filter className="h-4 w-4 mr-2" />
+                  <SelectValue placeholder="All Deals" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Deals</SelectItem>
+                  <SelectItem value="offline">Offline Deals</SelectItem>
+                  <SelectItem value="online">Online Deals</SelectItem>
+                </SelectContent>
+              </Select>
+              
               <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger>
+                <SelectTrigger data-testid="select-sort-by">
                   <Filter className="h-4 w-4 mr-2" />
                   <SelectValue />
                 </SelectTrigger>
@@ -317,9 +336,11 @@ export default function CustomerDeals() {
                 variant="outline"
                 onClick={() => {
                   setSelectedCategory("all");
+                  setSelectedDealType("all");
                   setSearchQuery("");
                   setSortBy("newest");
                 }}
+                data-testid="button-clear-filters"
               >
                 Clear Filters
               </Button>
