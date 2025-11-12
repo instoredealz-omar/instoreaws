@@ -106,15 +106,22 @@ This comprehensive guide will walk you through every step of becoming a successf
 
 2. **Deal Creation Tutorial**
    - How to create effective deals
-   - Setting discount percentages
+   - Setting discount percentages (10-90%)
+   - Setting 6-character alphanumeric verification PINs (e.g., K9M3X7)
    - Managing deal inventory
    - Best practices for deal descriptions
 
 3. **POS System Training**
-   - Using the Point of Sale interface
-   - PIN verification process
+   - Using the Point of Sale interface with QR scanner
+   - 6-character alphanumeric PIN verification process
    - Transaction processing
    - Handling customer redemptions
+   - QR code scanning (camera, upload, manual entry)
+
+4. **Notification System Setup**
+   - Email notifications (SendGrid) - automatic for registration and deal approvals
+   - Understanding customer WhatsApp notifications (Twilio)
+   - Managing notification preferences
 
 ---
 
@@ -137,22 +144,36 @@ This comprehensive guide will walk you through every step of becoming a successf
    - Detailed description
    - Category selection
    - High-quality images (minimum 3)
+   - Deal type: Offline (in-store with PIN) or Online (affiliate link)
 
 2. **Pricing & Discounts**
    - Original price
    - Discounted price
-   - Discount percentage (auto-calculated)
+   - Discount percentage (1-90%, auto-calculated)
    - Maximum redemptions allowed
 
-3. **Terms & Conditions**
+3. **Verification PIN Setup**
+   - Set unique 6-character alphanumeric code (e.g., K9M3X7)
+   - Click "Generate" button for auto-creation
+   - PIN stays constant for entire deal duration
+   - Display PIN at checkout for customer verification
+
+4. **Location & Targeting**
+   - Add accurate store address
+   - Provide latitude/longitude (optional but recommended)
+   - Helps customers find deals in nearby searches
+   - Appears in geolocation-based deal discovery
+
+5. **Terms & Conditions**
    - Deal validity period
    - Usage restrictions
    - Refund policy
    - Special instructions
 
-4. **Submit for Approval**
-   - Review all details
-   - Submit to admin for approval
+6. **Submit for Approval**
+   - Review all details carefully
+   - Submit to admin for approval (24-48 hours)
+   - Receive email notification upon approval/rejection
    - Track approval status in dashboard
 
 ---
@@ -171,23 +192,43 @@ This comprehensive guide will walk you through every step of becoming a successf
    - Track daily transactions
 
 ### Processing Customer Redemptions
-1. **PIN Verification**
-   - Customer shows 6-character claim code
-   - Enter code in POS system
-   - Verify customer identity
-   - Process redemption
+1. **QR Code Verification (Recommended)**
+   - Customer shows membership QR code
+   - Scan using camera, upload image, or manual entry
+   - Instant customer verification with complete profile
+   - View membership level, savings history, contact details
+   - QR codes include 24-hour security tokens
 
-2. **Transaction Processing**
+2. **PIN Verification (Backup Method)**
+   - Share your deal's 6-character alphanumeric PIN with customer (e.g., K9M3X7)
+   - Customer enters PIN in their app to verify purchase
+   - Works offline without internet connection
+   - Each deal has unique static PIN set during creation
+
+3. **Transaction Processing**
    - Enter bill amount
-   - System calculates discount
+   - System calculates discount automatically
    - Confirm transaction
    - Generate receipt
 
-3. **Payment Handling**
+4. **Payment Handling**
    - Collect payment from customer
    - Process payment method
    - Update transaction status
    - Provide receipt to customer
+
+### Geolocation Strategy for Deals
+1. **Adding Location Data**
+   - Provide accurate store address and coordinates
+   - Customers discover deals within their chosen radius (1-25km)
+   - Platform uses Haversine formula for distance calculation
+   - Deals show distance, direction hints, and relevance scores
+
+2. **Benefits of Geolocation**
+   - Appear in "Nearby Deals" searches
+   - Attract local customers actively looking for deals
+   - Better targeting based on customer location
+   - Increased visibility in location-based searches
 
 ---
 

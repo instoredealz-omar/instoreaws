@@ -68,7 +68,7 @@ export default function Tutorial({ type, onComplete }: TutorialProps) {
       title: "Browse Deals",
       description: "Find deals using search and filters",
       icon: Search,
-      content: "Use the search bar to find specific deals or browse by categories like Fashion, Electronics, Food, and more. Filter by location to find deals near you. You can also filter by deal type: In-Store Deals (redeemed at physical locations) or Online Deals (shop via affiliate links).",
+      content: "Use the search bar to find specific deals or browse by categories like Fashion, Electronics, Food, and more. Filter by location to find deals near you with adjustable search radius (1-25km). You can also filter by deal type: In-Store Deals (redeemed at physical locations with PIN verification) or Online Deals (shop via affiliate links).",
       action: "Try Searching"
     },
     {
@@ -113,10 +113,10 @@ export default function Tutorial({ type, onComplete }: TutorialProps) {
     },
     {
       id: 8,
-      title: "Code Verification Backup", 
+      title: "PIN Verification Backup", 
       description: "Alternative verification without QR code",
       icon: Lock,
-      content: "If QR scanning isn't available, you can still use verification code backup. Ask the vendor for their 6-character alphanumeric verification code, then enter it in the app to verify your purchase. This works even without internet!",
+      content: "If QR scanning isn't available, you can still use PIN verification backup. Ask the vendor for their 6-character alphanumeric verification code (e.g., K9M3X7), then enter it in the app to verify your purchase. This works even without internet and ensures secure deal redemption!",
       action: "Learn PIN Process"
     },
     {
@@ -146,13 +146,21 @@ export default function Tutorial({ type, onComplete }: TutorialProps) {
     {
       id: 12,
       title: "Location-Based Deals",
-      description: "Find deals near you",
+      description: "Find deals near you with smart geolocation",
       icon: MapPin,
-      content: "Set your location to see deals from nearby vendors. The platform shows distance and helps you find the best deals in your area for easy redemption.",
+      content: "Set your location to discover deals from nearby vendors. The platform uses advanced geolocation with distance calculation (Haversine formula), showing deals within your chosen radius (1-25km). See distance, direction hints, and relevance scores to find the best deals in your area for easy redemption.",
       action: "Set Location"
     },
     {
       id: 13,
+      title: "Stay Updated with Notifications",
+      description: "Receive email and WhatsApp alerts",
+      icon: Bell,
+      content: "Get instant notifications about new deals, deal claims, and exclusive offers! You'll receive welcome emails upon registration, deal confirmation emails, and WhatsApp messages for new deals in your area (if enabled). Manage your notification preferences in your profile settings.",
+      action: "Setup Notifications"
+    },
+    {
+      id: 14,
       title: "Get Support",
       description: "Help is always available",
       icon: HelpCircle,
@@ -183,7 +191,7 @@ export default function Tutorial({ type, onComplete }: TutorialProps) {
       title: "Create Your First Deal",
       description: "Add offline or online deals",
       icon: Plus,
-      content: "Click 'Create New Deal' to add your first offer. Choose between Offline Deals (in-store redemption with PIN verification) or Online Deals (affiliate marketing with your custom link). Include attractive images, clear descriptions, discount percentages, and validity periods. For offline deals, add a 6-character verification code. For online deals, provide your affiliate link where customers can shop.",
+      content: "Click 'Create New Deal' to add your first offer. Choose between Offline Deals (in-store redemption with PIN verification) or Online Deals (affiliate marketing with your custom link). Include attractive images, clear descriptions, discount percentages, and validity periods. For offline deals, set a unique 6-character alphanumeric verification code (e.g., K9M3X7) or click 'Generate' to auto-create one. For online deals, provide your affiliate link where customers can shop.",
       action: "Create Deal"
     },
     {
@@ -206,8 +214,8 @@ export default function Tutorial({ type, onComplete }: TutorialProps) {
       id: 6,
       title: "QR Code Scanner",
       description: "Scan customer membership QR codes",
-      icon: Eye,
-      content: "Use the built-in QR scanner to instantly verify customers. Scan their membership QR codes using camera, upload images, or enter data manually. Customer details appear immediately with membership status and savings history.",
+      icon: Camera,
+      content: "Use the built-in QR scanner to instantly verify customers. Scan their membership QR codes using three methods: live camera scanning, image upload, or manual data entry. Customer details appear immediately with membership status, contact information, and savings history. QR codes include 24-hour security tokens for enhanced protection.",
       action: "Try QR Scanner"
     },
     {
@@ -220,10 +228,10 @@ export default function Tutorial({ type, onComplete }: TutorialProps) {
     },
     {
       id: 8,
-      title: "Code Verification Backup",
+      title: "PIN Verification Backup",
       description: "Alternative verification without QR scanner", 
       icon: Lock,
-      content: "If QR scanning isn't available, use verification code backup. Give customers the 6-character alphanumeric code so they can verify their purchase in the app. This confirms the sale and works offline.",
+      content: "If QR scanning isn't available, use PIN verification backup. Give customers your deal's 6-character alphanumeric verification code (e.g., K9M3X7) so they can verify their purchase in the app. This confirms the sale, works offline, and ensures secure deal redemption without internet connectivity.",
       action: "Learn PIN Process"
     },
     {
@@ -260,11 +268,19 @@ export default function Tutorial({ type, onComplete }: TutorialProps) {
     },
     {
       id: 13,
-      title: "Customer Notifications",
-      description: "Reach customers with promotions",
+      title: "Email & WhatsApp Notifications",
+      description: "Automated communication with vendors",
       icon: Bell,
-      content: "When customers follow your business or claim your deals, they'll receive notifications about new offers. Build a loyal customer base over time.",
-      action: "Send Notification"
+      content: "You'll receive email notifications for important events: registration confirmation, deal approval/rejection by admin, and account updates. Customers receive WhatsApp messages about new deals, deal claims, and marketing campaigns (if they opt-in). Email notifications are powered by SendGrid for reliable delivery.",
+      action: "Check Notifications"
+    },
+    {
+      id: 14,
+      title: "Geolocation Strategy",
+      description: "Optimize deals for nearby customers",
+      icon: MapPin,
+      content: "Add accurate location data to your deals to appear in nearby deals searches. Customers can discover your offers within their chosen radius (1-25km) using advanced geolocation. The system shows distance, direction hints, and relevance scores to help customers find your store easily.",
+      action: "Set Location"
     }
   ];
 
