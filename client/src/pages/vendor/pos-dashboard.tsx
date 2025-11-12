@@ -784,45 +784,27 @@ export default function PosDashboard() {
           </CardContent>
         </Card>
 
-        {/* Claim Code Scanner */}
+        {/* QR Scanner */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Scan className="h-5 w-5" />
-              Claim Code Scanner
+              <QrCode className="h-5 w-5" />
+              Customer QR Scanner
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="pinInput">Enter Customer Claim Code</Label>
-              <Input
-                id="pinInput"
-                value={pinInput}
-                onChange={(e) => setPinInput(e.target.value.toUpperCase())}
-                disabled={!posState.activeSession}
-                placeholder="6-character code (e.g., ABC123)"
-                maxLength={6}
-                pattern="[A-Za-z0-9]*"
-                inputMode="text"
-              />
-            </div>
+            <p className="text-sm text-muted-foreground">
+              Scan customer QR code to verify and populate customer information
+            </p>
             
             <Button 
-              onClick={() => {
-                if (pinInput.length === 6) {
-                  // Verify customer claim code
-                  verifyClaimCodeMutation.mutate(pinInput);
-                }
-              }}
-              disabled={!posState.activeSession || pinInput.length !== 6 || verifyClaimCodeMutation.isPending}
+              onClick={() => setShowQRScanner(true)}
+              disabled={!posState.activeSession}
               className="w-full"
+              data-testid="button-scan-qr"
             >
-              {verifyClaimCodeMutation.isPending ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <Scan className="h-4 w-4 mr-2" />
-              )}
-              Verify Claim Code
+              <QrCode className="h-4 w-4 mr-2" />
+              Scan Customer QR
             </Button>
           </CardContent>
         </Card>
