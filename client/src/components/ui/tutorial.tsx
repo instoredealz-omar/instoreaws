@@ -32,7 +32,12 @@ import {
   QrCode,
   Scan,
   Camera,
-  Lock
+  Lock,
+  DollarSign,
+  TrendingUp,
+  Wallet,
+  ShoppingCart,
+  Link as LinkIcon
 } from "lucide-react";
 
 interface TutorialStep {
@@ -89,14 +94,30 @@ export default function Tutorial({ type, onComplete }: TutorialProps) {
     },
     {
       id: 5,
-      title: "Claim Deals (In-Store & Online)",
-      description: "Save deals for in-store or online redemption",
-      icon: MousePointer2,
-      content: "Found a deal you want? Click 'Claim Deal' to get started. For offline deals, reserve it for in-store redemption at the vendor's location. For online deals, you'll receive the affiliate link to shop directly online and apply your discount code at checkout.",
+      title: "Claim Offline Deals",
+      description: "Reserve in-store deals for redemption",
+      icon: Store,
+      content: "For offline (in-store) deals, click 'Claim Deal' to reserve it. You'll receive a unique claim code that stays valid for 24 hours. Visit the vendor's physical location and verify your purchase using QR code or PIN backup to complete the redemption.",
       action: "Try Claiming"
     },
     {
       id: 6,
+      title: "Claim Online Deals",
+      description: "Shop instantly via affiliate links",
+      icon: ShoppingCart,
+      content: "For online deals, click 'Shop Now' to instantly access the vendor's affiliate link and your unique claim code (valid for 30 days). The affiliate link opens automatically, and you can use your discount code at checkout. No store visit needed - shop from anywhere!",
+      action: "Try Online Shopping"
+    },
+    {
+      id: 7,
+      title: "Secure Claim Codes",
+      description: "Unique codes for every claim",
+      icon: Lock,
+      content: "Every time you claim a deal, you receive a secure, unique claim code. These codes use enhanced cryptographic security to protect your transactions. Offline deal codes expire in 24 hours, while online deal codes stay valid for 30 days, giving you plenty of time to shop!",
+      action: "View Claim Code"
+    },
+    {
+      id: 8,
       title: "Generate Your QR Code",
       description: "Get your digital membership QR code",
       icon: Target,
@@ -104,39 +125,39 @@ export default function Tutorial({ type, onComplete }: TutorialProps) {
       action: "View Membership Card"
     },
     {
-      id: 7,
+      id: 9,
       title: "Visit Store & Show QR Code",
       description: "Present your QR code for instant verification",
       icon: Shield,
-      content: "Visit the vendor's store and show your membership QR code at checkout. The vendor can scan it with their POS system for instant customer verification and deal redemption. No internet needed for basic verification code backup!",
+      content: "For offline deals, visit the vendor's store and show your membership QR code at checkout. The vendor can scan it with their POS system for instant customer verification and deal redemption. No internet needed for basic verification code backup!",
       action: "Learn QR Process"
     },
     {
-      id: 8,
+      id: 10,
       title: "PIN Verification Backup", 
       description: "Alternative verification without QR code",
-      icon: Lock,
+      icon: QrCode,
       content: "If QR scanning isn't available, you can still use PIN verification backup. Ask the vendor for their 6-character alphanumeric verification code (e.g., K9M3X7), then enter it in the app to verify your purchase. This works even without internet and ensures secure deal redemption!",
       action: "Learn PIN Process"
     },
     {
-      id: 9,
+      id: 11,
       title: "Add Your Bill Amount",
       description: "Calculate exact savings from your purchase",
       icon: Calculator,
-      content: "After verification (QR or PIN), you can enter your actual bill amount to see your precise savings. This helps track your real spending and gives you accurate insights into your deal benefits.",
+      content: "After verification (QR or PIN) for offline deals, you can enter your actual bill amount to see your precise savings. This helps track your real spending and gives you accurate insights into your deal benefits.",
       action: "Try Bill Entry"
     },
     {
-      id: 10,
+      id: 12,
       title: "Track Your Savings",
       description: "Monitor your deals and savings dashboard",
       icon: BarChart3,
-      content: "View your claimed deals, total savings, and deal history in your dashboard. Track which deals are pending, completed, and see your overall savings progress with QR code usage analytics.",
+      content: "View your claimed deals, total savings, and deal history in your dashboard. Track which deals are pending, completed, and see your overall savings progress with QR code usage analytics. See separate tracking for offline and online deals!",
       action: "View Dashboard"
     },
     {
-      id: 11,
+      id: 13,
       title: "Save Favorites",
       description: "Heart icon to save deals for later",
       icon: Heart,
@@ -144,7 +165,7 @@ export default function Tutorial({ type, onComplete }: TutorialProps) {
       action: "Save a Deal"
     },
     {
-      id: 12,
+      id: 14,
       title: "Location-Based Deals",
       description: "Find deals near you with smart geolocation",
       icon: MapPin,
@@ -152,7 +173,7 @@ export default function Tutorial({ type, onComplete }: TutorialProps) {
       action: "Set Location"
     },
     {
-      id: 13,
+      id: 15,
       title: "Stay Updated with Notifications",
       description: "Receive email and WhatsApp alerts",
       icon: Bell,
@@ -160,7 +181,7 @@ export default function Tutorial({ type, onComplete }: TutorialProps) {
       action: "Setup Notifications"
     },
     {
-      id: 14,
+      id: 16,
       title: "Get Support",
       description: "Help is always available",
       icon: HelpCircle,
@@ -191,7 +212,7 @@ export default function Tutorial({ type, onComplete }: TutorialProps) {
       title: "Create Your First Deal",
       description: "Add offline or online deals",
       icon: Plus,
-      content: "Click 'Create New Deal' to add your first offer. Choose between Offline Deals (in-store redemption with PIN verification) or Online Deals (affiliate marketing with your custom link). Include attractive images, clear descriptions, discount percentages, and validity periods. For offline deals, set a unique 6-character alphanumeric verification code (e.g., K9M3X7) or click 'Generate' to auto-create one. For online deals, provide your affiliate link where customers can shop.",
+      content: "Click 'Create New Deal' to add your first offer. Choose between Offline Deals (in-store redemption with PIN verification) or Online Deals (affiliate marketing with commission tracking). Include attractive images, clear descriptions, discount percentages, and validity periods. For offline deals, set a unique 6-character alphanumeric verification code (e.g., K9M3X7) or click 'Generate' to auto-create one. For online deals, provide your affiliate link where customers can shop and earn commissions!",
       action: "Create Deal"
     },
     {
@@ -199,7 +220,7 @@ export default function Tutorial({ type, onComplete }: TutorialProps) {
       title: "Understanding Deal Claims",
       description: "How customers claim your deals",
       icon: MousePointer2,
-      content: "Customers can claim your deals online. For offline deals, this creates a 'pending' status and customers must visit your store for redemption. For online deals, customers receive your affiliate link immediately and can shop online using their claim code for the discount.",
+      content: "Customers can claim your deals online. For offline deals, this creates a 'pending' status and customers must visit your store within 24 hours for redemption. For online deals, customers receive your affiliate link immediately (valid for 30 days) and can shop online. Each claim generates a secure, unique code using enhanced cryptographic security for maximum protection.",
       action: "Learn Claims"
     },
     {
@@ -255,11 +276,35 @@ export default function Tutorial({ type, onComplete }: TutorialProps) {
       title: "Analytics Dashboard",
       description: "Track performance and QR code insights",
       icon: BarChart3,
-      content: "View detailed analytics about your deals including views, claims, QR code scans, conversion rates, and revenue. Track customer verification methods and optimize future offers.",
+      content: "View detailed analytics about your deals including views, claims, QR code scans, conversion rates, and revenue. Track customer verification methods and optimize future offers. For online deals, see click-through rates and commission earnings!",
       action: "View Analytics"
     },
     {
       id: 12,
+      title: "Commission Tracking System",
+      description: "Earn from online deal performance",
+      icon: DollarSign,
+      content: "For online deals, our commission tracking system automatically monitors your performance. Earn commissions when customers click your affiliate links (default 5% click commission) and when they complete purchases (default 10% conversion commission). All tracking is handled automatically - no payment gateway integration needed!",
+      action: "View Commissions"
+    },
+    {
+      id: 13,
+      title: "Online Deal Performance",
+      description: "Monitor clicks, conversions, and earnings",
+      icon: TrendingUp,
+      content: "Access your Online Deal Performance page to see detailed analytics: total clicks on your affiliate links, conversion rates, estimated commissions (from clicks), and confirmed commissions (from completed sales). Track performance by individual deal to see which offers drive the most revenue.",
+      action: "Check Performance"
+    },
+    {
+      id: 14,
+      title: "Commission Rates & Payouts",
+      description: "Understand your earning potential",
+      icon: Wallet,
+      content: "Commission rates can be customized per vendor. By default, you earn on clicks (5%) and conversions (10%). Admins confirm conversions manually and process payouts in batches. View your pending, confirmed, and paid commission amounts in your vendor dashboard.",
+      action: "View Settings"
+    },
+    {
+      id: 15,
       title: "Approval Process",
       description: "Admin review ensures quality",
       icon: CheckCircle,
@@ -267,15 +312,15 @@ export default function Tutorial({ type, onComplete }: TutorialProps) {
       action: "Check Status"
     },
     {
-      id: 13,
+      id: 16,
       title: "Email & WhatsApp Notifications",
       description: "Automated communication with vendors",
       icon: Bell,
-      content: "You'll receive email notifications for important events: registration confirmation, deal approval/rejection by admin, and account updates. Customers receive WhatsApp messages about new deals, deal claims, and marketing campaigns (if they opt-in). Email notifications are powered by SendGrid for reliable delivery.",
+      content: "You'll receive email notifications for important events: registration confirmation, deal approval/rejection by admin, commission updates, and account changes. Customers receive WhatsApp messages about new deals, deal claims, and marketing campaigns (if they opt-in). Email notifications are powered by SendGrid for reliable delivery.",
       action: "Check Notifications"
     },
     {
-      id: 14,
+      id: 17,
       title: "Geolocation Strategy",
       description: "Optimize deals for nearby customers",
       icon: MapPin,
