@@ -63,7 +63,9 @@ const vendorRegistrationSchema = z.object({
   hasGst: z.enum(["yes", "no"]),
   gstNumber: z.string().optional(),
   panNumber: z.string().regex(/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/, "PAN number must be in format ABCDE1234F"),
-  panCardFile: z.any().optional(),
+  panCardFile: z.any().refine((file) => file !== null && file !== undefined, {
+    message: "PAN card document is required",
+  }),
   logoUrl: z.string().optional(),
   agreeToTerms: z.boolean().refine(val => val === true, "You must agree to the terms and conditions"),
 }).refine((data) => {
@@ -144,12 +146,25 @@ export default function VendorRegisterEnhanced() {
   });
 
   const onSubmit = (data: VendorRegistrationForm) => {
+    // Final validation before submission
+    if (!panCardFile) {
+      toast({
+        title: "Missing Required Document",
+        description: "Please upload your PAN card document before submitting.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     registerMutation.mutate(data);
   };
 
   const selectedState = form.watch("state");
   const hasGst = form.watch("hasGst");
   const availableCities = selectedState ? getCitiesByState(selectedState) : [];
+  
+  // Check if all required fields are filled
+  const isFormValid = form.formState.isValid && panCardFile !== null;
 
   const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -671,11 +686,22 @@ export default function VendorRegisterEnhanced() {
                   <FormMessage />
                 </div>
 
+                {/* Validation Alert */}
+                {!isFormValid && (
+                  <Alert variant="destructive">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>
+                      Please fill all mandatory fields and upload required documents (PAN Card) before submitting.
+                    </AlertDescription>
+                  </Alert>
+                )}
+
                 <Button 
                   type="submit" 
                   className="w-full" 
                   size="lg"
-                  disabled={registerMutation.isPending}
+                  disabled={registerMutation.isPending || !isFormValid}
+                  data-testid="button-submit-registration"
                 >
                   {registerMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Submit Registration for Approval
