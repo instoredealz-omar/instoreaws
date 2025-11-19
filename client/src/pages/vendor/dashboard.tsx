@@ -548,7 +548,7 @@ export default function VendorDashboard() {
                               {deal.verificationPin}
                             </div>
                             <p className="text-xs text-green-600 dark:text-green-400 mt-2">
-                              This is your deal's verification code - use it for manual verification
+                              Share this 6-digit code with customers at checkout to complete their claim
                             </p>
                           </div>
                         )}
@@ -572,7 +572,7 @@ export default function VendorDashboard() {
                               )}
                             </div>
                             <p className="text-xs text-blue-600 dark:text-blue-400 mt-2">
-                              Customers show these codes at your store for verification
+                              These customers are waiting for your verification code to complete their claims
                             </p>
                           </div>
                         )}

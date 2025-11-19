@@ -942,11 +942,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         return res.status(201).json({
           ...claim,
-          message: "Deal claimed! Visit the store and verify your PIN to complete the redemption.",
+          message: "Deal claimed! At checkout, ask the vendor for their 6-digit verification code and your bill amount to complete the claim.",
+          instructions: "1. Visit the store and make your purchase\n2. At checkout, ask the vendor for their 6-digit verification code\n3. Enter the code and your bill amount to claim your discount",
           savingsAmount: 0, // No savings until verified
           dealType: deal.dealType,
           requiresVerification: true,
-          isOnline: false
+          isOnline: false,
+          needsVendorPin: true
         });
       }
     } catch (error) {

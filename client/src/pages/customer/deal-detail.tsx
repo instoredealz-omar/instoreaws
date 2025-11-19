@@ -193,18 +193,41 @@ export default function DealDetail({ params }: DealDetailProps) {
   const userClaim = userClaims_forDeal.sort((a, b) => b.id - a.id)[0]; // Get most recent claim
   const hasClaimedDeal = false; // Allow multiple claims - same code will be reused
 
-  // Simple claim for online deals (no bill/PIN required)
+  // Simple claim for online and offline deals
   const simpleClaimMutation = useMutation({
     mutationFn: async (dealId: number): Promise<any> => {
       const response = await apiRequest(`/api/deals/${dealId}/claim`, 'POST', {});
       return await response.json();
     },
     onSuccess: (data) => {
-      toast({
-        title: "Online Deal Claimed! 🎉",
-        description: data.message || "Your claim code has been generated. Visit the vendor website to redeem.",
-        variant: "default",
-      });
+      // Different messages for online vs offline deals
+      if (data.dealType === 'online') {
+        toast({
+          title: "Online Deal Claimed! 🎉",
+          description: data.message || "Your claim code has been generated. Visit the vendor website to redeem.",
+          variant: "default",
+        });
+        
+        // For online deals, open affiliate link if available
+        if (data.affiliateLink) {
+          setTimeout(() => {
+            window.open(data.affiliateLink, '_blank');
+          }, 1000);
+        }
+      } else {
+        // For offline deals, show instructions
+        toast({
+          title: "Deal Claimed! 🎉",
+          description: data.message || "At checkout, ask the vendor for their 6-digit verification code and your bill amount.",
+          variant: "default",
+          duration: 8000, // Show longer for offline deals
+        });
+        
+        // Show PIN dialog for entering the vendor's code
+        setTimeout(() => {
+          setShowClaimDialog(true);
+        }, 500);
+      }
       
       // Refresh user data and claims
       setTimeout(async () => {
@@ -217,13 +240,6 @@ export default function DealDetail({ params }: DealDetailProps) {
         refetchClaims();
         queryClient.refetchQueries({ queryKey: ["/api/auth/me"] });
       }, 500);
-
-      // For online deals, open affiliate link if available
-      if (data.affiliateLink) {
-        setTimeout(() => {
-          window.open(data.affiliateLink, '_blank');
-        }, 1000);
-      }
     },
     onError: (error: any) => {
       toast({
@@ -324,14 +340,9 @@ export default function DealDetail({ params }: DealDetailProps) {
       return;
     }
     
-    // Check if this is an online or offline deal
-    if (currentDeal?.dealType === 'online') {
-      // For online deals, claim immediately without asking for bill/PIN
-      simpleClaimMutation.mutate(currentDeal.id);
-    } else {
-      // For offline deals, show the dialog to collect bill amount and PIN
-      setShowClaimDialog(true);
-    }
+    // Claim the deal first (both online and offline)
+    // The mutation will handle showing the PIN dialog for offline deals
+    simpleClaimMutation.mutate(currentDeal!.id);
   };
 
   const handleClaimSubmit = (billAmount: number, pin: string) => {
