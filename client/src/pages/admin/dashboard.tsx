@@ -734,7 +734,7 @@ export default function AdminDashboard() {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 gap-4">
-                <Button asChild className="h-16 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white">
+                <Button asChild className="h-16 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white" data-testid="button-manage-vendors">
                   <Link to="/admin/vendors">
                     <div className="text-center">
                       <Store className="h-6 w-6 mx-auto mb-1" />
@@ -742,7 +742,7 @@ export default function AdminDashboard() {
                     </div>
                   </Link>
                 </Button>
-                <Button asChild className="h-16 bg-gradient-to-r from-green-500 to-teal-600 hover:from-green-600 hover:to-teal-700 text-white">
+                <Button asChild className="h-16 bg-gradient-to-r from-green-500 to-teal-600 hover:from-green-600 hover:to-teal-700 text-white" data-testid="button-review-deals">
                   <Link to="/admin/deals">
                     <div className="text-center">
                       <Ticket className="h-6 w-6 mx-auto mb-1" />
@@ -750,7 +750,7 @@ export default function AdminDashboard() {
                     </div>
                   </Link>
                 </Button>
-                <Button asChild className="h-16 bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white">
+                <Button asChild className="h-16 bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white" data-testid="button-user-management">
                   <Link to="/admin/users">
                     <div className="text-center">
                       <Users className="h-6 w-6 mx-auto mb-1" />
@@ -758,7 +758,15 @@ export default function AdminDashboard() {
                     </div>
                   </Link>
                 </Button>
-                <Button asChild className="h-16 bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white">
+                <Button asChild className="h-16 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white" data-testid="button-claimed-deals">
+                  <Link to="/admin/claimed-deals">
+                    <div className="text-center">
+                      <CheckCircle className="h-6 w-6 mx-auto mb-1" />
+                      <span className="text-sm font-medium">Claimed Deals</span>
+                    </div>
+                  </Link>
+                </Button>
+                <Button asChild className="h-16 bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white col-span-2" data-testid="button-reports">
                   <Link to="/admin/reports">
                     <div className="text-center">
                       <FileText className="h-6 w-6 mx-auto mb-1" />
