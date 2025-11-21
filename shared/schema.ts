@@ -873,6 +873,9 @@ export const insertUserSchema = createInsertSchema(users).omit({
 export const insertVendorSchema = createInsertSchema(vendors).omit({
   id: true,
   createdAt: true,
+}).extend({
+  contactPersonName: z.string().optional(),
+  contactPhone: z.string().optional(),
 });
 
 export const insertVendorApprovalSchema = createInsertSchema(vendorApprovals).omit({

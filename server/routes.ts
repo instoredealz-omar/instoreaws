@@ -1621,6 +1621,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         Logger.info('User role upgraded to vendor', { userId: user.id });
       }
 
+      Logger.info('Request body received for vendor registration', {
+        userId: user.id,
+        contactPersonName: req.body.contactPersonName,
+        contactPhone: req.body.contactPhone,
+        hasContactFields: !!(req.body.contactPersonName || req.body.contactPhone)
+      });
+
       const vendorData = insertVendorSchema.parse({
         ...req.body,
         userId: user.id,
@@ -1628,12 +1635,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         isApproved: false, // Requires admin approval
       });
       
+      Logger.info('Vendor data after schema parse', {
+        userId: user.id,
+        contactPersonName: vendorData.contactPersonName,
+        contactPhone: vendorData.contactPhone,
+        hasContactFieldsAfterParse: !!(vendorData.contactPersonName || vendorData.contactPhone)
+      });
+      
       const vendor = await storage.createVendor(vendorData);
       
       Logger.info('Vendor profile created successfully', { 
         vendorId: vendor.id,
         userId: user.id,
-        businessName: vendor.businessName 
+        businessName: vendor.businessName,
+        contactPersonName: vendor.contactPersonName,
+        contactPhone: vendor.contactPhone 
       });
       
       // Update user's location data with vendor business location
