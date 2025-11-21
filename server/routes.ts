@@ -931,11 +931,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       } else {
         // For offline deals: Create pending claim that needs store verification
+        // Generate a unique claim code for tracking using crypto-grade randomness
+        const crypto = await import('crypto');
+        const claimCode = crypto.randomBytes(3).toString('hex').toUpperCase();
+        
         const claim = await storage.claimDeal({
           userId,
           dealId,
           savingsAmount: "0", // No savings until PIN verification
-          status: "pending" // Mark as pending until store verification
+          status: "pending", // Mark as pending until store verification
+          claimCode,
+          codeExpiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days for offline deals
         });
 
         // Log the claim activity (but not as completed savings)
