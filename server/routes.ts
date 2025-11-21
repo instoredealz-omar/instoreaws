@@ -136,7 +136,11 @@ interface AuthenticatedRequest extends Request {
 // Middleware to check authentication
 const requireAuth = (req: AuthenticatedRequest, res: Response, next: any) => {
   if (!req.user) {
-    return res.status(401).json({ message: "Authentication required" });
+    return res.status(401).json({ 
+      success: false,
+      code: "AUTH_REQUIRED",
+      message: "Authentication required" 
+    });
   }
   next();
 };
@@ -144,7 +148,11 @@ const requireAuth = (req: AuthenticatedRequest, res: Response, next: any) => {
 // Middleware to check specific roles
 const requireRole = (roles: string[]) => (req: AuthenticatedRequest, res: Response, next: any) => {
   if (!req.user || !roles.includes(req.user.role)) {
-    return res.status(403).json({ message: "Insufficient permissions" });
+    return res.status(403).json({ 
+      success: false,
+      code: "INSUFFICIENT_PERMISSIONS",
+      message: "Insufficient permissions" 
+    });
   }
   next();
 };
@@ -1585,10 +1593,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const user = req.user!;
       
+      Logger.info('Vendor registration attempt', { 
+        userId: user.id, 
+        email: user.email,
+        role: user.role 
+      });
+      
       // Check if user already has a vendor profile
       const existingVendor = await storage.getVendorByUserId(user.id);
       if (existingVendor) {
-        return res.status(400).json({ message: "Vendor profile already exists" });
+        Logger.warn('Vendor registration failed: profile already exists', { 
+          userId: user.id, 
+          vendorId: existingVendor.id 
+        });
+        return res.status(400).json({ 
+          success: false,
+          code: "VENDOR_PROFILE_EXISTS",
+          message: "Vendor profile already exists. You can update your profile from the vendor dashboard." 
+        });
       }
 
       // If user is not already a vendor, upgrade their role
@@ -1596,6 +1618,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         await storage.updateUser(user.id, { role: 'vendor' });
         // Update the user object in request for subsequent operations
         user.role = 'vendor';
+        Logger.info('User role upgraded to vendor', { userId: user.id });
       }
 
       const vendorData = insertVendorSchema.parse({
@@ -1606,6 +1629,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
       const vendor = await storage.createVendor(vendorData);
+      
+      Logger.info('Vendor profile created successfully', { 
+        vendorId: vendor.id,
+        userId: user.id,
+        businessName: vendor.businessName 
+      });
       
       // Update user's location data with vendor business location
       if (vendor.city && vendor.state) {
@@ -1652,15 +1681,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       res.status(201).json({
-        ...vendor,
-        status: 'pending_approval',
+        success: true,
+        code: "VENDOR_REGISTERED",
+        data: {
+          ...vendor,
+          status: 'pending_approval'
+        },
         message: "Vendor registration successful. Awaiting admin approval."
       });
     } catch (error) {
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Validation error", errors: error.errors });
+        Logger.error('Vendor registration validation error', { 
+          userId: req.user?.id,
+          errors: error.errors 
+        });
+        const errorMessages = error.errors.map(err => `${err.path.join('.')}: ${err.message}`).join(', ');
+        return res.status(400).json({ 
+          success: false,
+          code: "VALIDATION_ERROR",
+          message: `Validation error: ${errorMessages}`, 
+          errors: error.errors 
+        });
       }
-      res.status(500).json({ message: "Failed to register vendor" });
+      Logger.error('Vendor registration failed', { 
+        userId: req.user?.id,
+        error: error instanceof Error ? error.message : error 
+      });
+      res.status(500).json({ 
+        success: false,
+        code: "INTERNAL_ERROR",
+        message: "Failed to register vendor. Please try again later." 
+      });
     }
   });
 

@@ -19,6 +19,18 @@ export async function initializeDatabase() {
       ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'pending'
     `);
     
+    // Add contact fields to vendors table if they don't exist
+    console.log('[MIGRATION] Adding contact fields to vendors table...');
+    await db.execute(sql`
+      ALTER TABLE vendors 
+      ADD COLUMN IF NOT EXISTS contact_person_name TEXT
+    `);
+    await db.execute(sql`
+      ALTER TABLE vendors 
+      ADD COLUMN IF NOT EXISTS contact_phone TEXT
+    `);
+    console.log('[MIGRATION] Contact fields added to vendors table');
+    
     // Create vendor_approvals table if it doesn't exist
     await db.execute(sql`
       CREATE TABLE IF NOT EXISTS vendor_approvals (

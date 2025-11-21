@@ -53,8 +53,6 @@ const vendorRegistrationSchema = z.object({
   companyType: z.string().min(1, "Please select a company type"),
   contactPersonName: z.string().min(2, "Contact person name must be at least 2 characters"),
   mobileNumber: z.string().regex(/^[0-9]{10}$/, "Mobile number must be exactly 10 digits"),
-  contactNumber: z.string().regex(/^[0-9]{10}$/, "Contact number must be exactly 10 digits"),
-  emailAddress: z.string().email("Please enter a valid email address"),
   companyWebsite: z.string().url("Please enter a valid website URL").optional().or(z.literal("")),
   address: z.string().min(5, "Business/Store address must be at least 5 characters"),
   state: z.string().min(1, "Please select a state"),
@@ -82,25 +80,61 @@ type VendorRegistrationForm = z.infer<typeof vendorRegistrationSchema>;
 
 export default function VendorRegisterEnhanced() {
   const [, navigate] = useLocation();
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [panCardFile, setPanCardFile] = useState<File | null>(null);
+
+  // Redirect to login if not authenticated
+  if (!isAuthenticated || !user) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+          <Card>
+            <CardContent className="p-8 text-center">
+              <AlertCircle className="h-12 w-12 text-warning mx-auto mb-4" />
+              <h2 className="text-2xl font-bold text-foreground mb-4">
+                Authentication Required
+              </h2>
+              <p className="text-muted-foreground mb-6">
+                You need to be logged in to register as a vendor. Please log in or create an account to continue.
+              </p>
+              <div className="flex gap-4 justify-center">
+                <Button
+                  onClick={() => navigate('/login')}
+                  data-testid="button-login"
+                >
+                  Log In
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => navigate('/signup')}
+                  data-testid="button-signup"
+                >
+                  Sign Up
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
 
   const form = useForm<VendorRegistrationForm>({
     resolver: zodResolver(vendorRegistrationSchema),
     defaultValues: {
       businessName: "",
       companyType: "",
-      contactPersonName: "",
-      mobileNumber: "",
-      contactNumber: "",
-      emailAddress: "",
+      contactPersonName: user?.name || "",
+      mobileNumber: user?.phone || "",
       companyWebsite: "",
       address: "",
-      state: "",
-      city: "",
+      state: user?.state || "",
+      city: user?.city || "",
       pincode: "",
       hasGst: "no",
       gstNumber: "",
@@ -121,11 +155,25 @@ export default function VendorRegisterEnhanced() {
       const formData = new FormData();
       formData.append('image', panCardFile);
       
+      // Use authenticated fetch for upload
+      const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+      if (!token) {
+        throw new Error('You must be logged in to register as a vendor');
+      }
+      
       const uploadResponse = await fetch('/api/upload-image', {
         method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
         body: formData,
         credentials: 'include',
       });
+      
+      if (uploadResponse.status === 401) {
+        localStorage.removeItem('auth_token');
+        throw new Error('Your session has expired. Please log in again.');
+      }
       
       if (!uploadResponse.ok) {
         const errorData = await uploadResponse.json().catch(() => ({}));
@@ -140,19 +188,32 @@ export default function VendorRegisterEnhanced() {
       
       const panCardUrl = uploadResult.data.url;
       
+      // Update user phone if provided
+      try {
+        await apiRequest('/api/user/profile', 'PUT', {
+          phone: data.mobileNumber,
+        });
+      } catch (error) {
+        console.warn('Failed to update user profile:', error);
+        // Don't fail registration if user update fails
+      }
+      
       const payload = {
         businessName: data.businessName,
+        contactPersonName: data.contactPersonName,
+        contactPhone: data.mobileNumber,
         gstNumber: data.hasGst === "yes" ? data.gstNumber : null,
         panNumber: data.panNumber,
         panCardFile: panCardUrl,
-        logoUrl: data.logoUrl,
-        companyWebsite: data.companyWebsite,
-        description: `${data.companyType} business located in ${data.city}, ${data.state}. Contact: ${data.contactPersonName} at ${data.emailAddress} (Mobile: ${data.mobileNumber}, Phone: ${data.contactNumber})`,
+        logoUrl: data.logoUrl || null,
+        companyWebsite: data.companyWebsite || null,
+        description: `${data.companyType} business in ${data.city}, ${data.state}`,
         address: data.address,
         city: data.city,
         state: data.state,
         pincode: data.pincode,
       };
+      
       return apiRequest('/api/vendors/register', 'POST', payload);
     },
     onSuccess: () => {
@@ -164,6 +225,19 @@ export default function VendorRegisterEnhanced() {
       navigate("/vendor/profile-data");
     },
     onError: (error: any) => {
+      // Check if it's an authentication error
+      if (error.message?.includes('session has expired') || error.message?.includes('log in')) {
+        toast({
+          title: "Session Expired",
+          description: "Your session has expired. Redirecting to login...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          navigate('/login');
+        }, 2000);
+        return;
+      }
+      
       toast({
         title: "Registration failed",
         description: error.message || "Please try again later.",
@@ -451,36 +525,11 @@ export default function VendorRegisterEnhanced() {
                         <FormItem>
                           <FormLabel>Mobile Number *</FormLabel>
                           <FormControl>
-                            <Input placeholder="Enter mobile number" {...field} />
+                            <Input placeholder="Enter mobile number" {...field} data-testid="input-mobile" />
                           </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="contactNumber"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Contact Number *</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Enter landline/alternate number" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="emailAddress"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Email Address *</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Enter email address" type="email" {...field} />
-                          </FormControl>
+                          <FormDescription>
+                            This will be saved to your user profile
+                          </FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
