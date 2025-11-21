@@ -42,7 +42,8 @@ import {
   Minus,
   Edit,
   Trash2,
-  ArrowLeft
+  ArrowLeft,
+  Ticket
 } from "lucide-react";
 interface Deal {
   id: number;
@@ -113,7 +114,7 @@ export default function PosDashboard() {
   const [isProcessingTransaction, setIsProcessingTransaction] = useState(false);
   const [showQRScanner, setShowQRScanner] = useState(false);
   const [verifiedCustomer, setVerifiedCustomer] = useState<any>(null);
-  const [activeModule, setActiveModule] = useState<'pos' | 'inventory' | 'gds' | 'billing'>('pos');
+  const [activeModule, setActiveModule] = useState<'pos' | 'inventory' | 'gds' | 'billing' | 'claims'>('pos');
   const [inventoryItems, setInventoryItems] = useState([
     { id: 1, name: "Samsung Galaxy S24", sku: "SAMSUNG-S24", stock: 25, price: 75000, lowStockAlert: 5 },
     { id: 2, name: "iPhone 15 Pro", sku: "IPHONE-15P", stock: 8, price: 135000, lowStockAlert: 10 },
@@ -252,6 +253,11 @@ export default function PosDashboard() {
   // Fetch active POS sessions
   const { data: sessions = [], refetch: refetchSessions } = useQuery({
     queryKey: ['/api/pos/sessions'],
+  });
+
+  // Fetch claimed deals with customer information
+  const { data: claimedDeals = [], isLoading: isLoadingClaims } = useQuery({
+    queryKey: ['/api/pos/claimed-deals'],
   });
 
   // Initialize active session from existing sessions
@@ -657,6 +663,15 @@ export default function PosDashboard() {
         >
           <FileText className="h-4 w-4" />
           Billing
+        </Button>
+        <Button 
+          variant={activeModule === 'claims' ? 'default' : 'outline'}
+          onClick={() => setActiveModule('claims')}
+          className="flex items-center gap-2 min-w-fit"
+          data-testid="button-claimed-deals"
+        >
+          <Ticket className="h-4 w-4" />
+          Claimed Deals
         </Button>
       </div>
 
@@ -1386,6 +1401,140 @@ export default function PosDashboard() {
                   </tbody>
                 </table>
               </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Claimed Deals Module */}
+      {activeModule === 'claims' && (
+        <div className="space-y-6">
+          {/* Summary Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Total Claims</p>
+                    <p className="text-2xl font-bold">{claimedDeals.length}</p>
+                  </div>
+                  <Ticket className="h-8 w-8 text-muted-foreground" />
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Pending</p>
+                    <p className="text-2xl font-bold">{claimedDeals.filter((c: any) => c.status === 'pending').length}</p>
+                  </div>
+                  <AlertTriangle className="h-8 w-8 text-yellow-500" />
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Verified</p>
+                    <p className="text-2xl font-bold">{claimedDeals.filter((c: any) => c.status === 'used').length}</p>
+                  </div>
+                  <CheckCircle className="h-8 w-8 text-green-500" />
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Total Savings</p>
+                    <p className="text-2xl font-bold">₹{claimedDeals.reduce((sum: number, c: any) => sum + parseFloat(c.savingsAmount || 0), 0).toLocaleString()}</p>
+                  </div>
+                  <DollarSign className="h-8 w-8 text-green-500" />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Claimed Deals Table */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Ticket className="h-5 w-5" />
+                Claimed Deals
+              </CardTitle>
+              <CardDescription>Manage your store inventory and stock levels</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {isLoadingClaims ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                </div>
+              ) : claimedDeals.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Ticket className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                  <p>No claimed deals yet</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="border-b">
+                      <tr className="text-sm text-muted-foreground">
+                        <th className="py-3 text-left font-medium">Claim Code</th>
+                        <th className="py-3 text-left font-medium">Customer</th>
+                        <th className="py-3 text-left font-medium">Deal</th>
+                        <th className="py-3 text-right font-medium">Discount</th>
+                        <th className="py-3 text-right font-medium">Savings</th>
+                        <th className="py-3 text-left font-medium">Claimed At</th>
+                        <th className="py-3 text-left font-medium">Expires At</th>
+                        <th className="py-3 text-center font-medium">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {claimedDeals.map((claim: any) => (
+                        <tr key={claim.id} className="border-b" data-testid={`claim-row-${claim.id}`}>
+                          <td className="py-3">
+                            <div className="flex items-center gap-2">
+                              <Barcode className="h-4 w-4" />
+                              <span className="font-mono font-semibold">{claim.claimCode}</span>
+                            </div>
+                          </td>
+                          <td className="py-3">
+                            <div>
+                              <div className="font-medium">{claim.customerName}</div>
+                              <div className="text-sm text-muted-foreground">{claim.customerEmail}</div>
+                              <div className="text-xs text-muted-foreground">{claim.customerPhone}</div>
+                            </div>
+                          </td>
+                          <td className="py-3 font-medium">{claim.dealTitle}</td>
+                          <td className="py-3 text-right">{claim.discountPercentage}%</td>
+                          <td className="py-3 text-right font-semibold">₹{parseFloat(claim.savingsAmount || 0).toLocaleString()}</td>
+                          <td className="py-3 text-sm">{new Date(claim.claimedAt).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</td>
+                          <td className="py-3 text-sm">
+                            {claim.codeExpiresAt ? (
+                              <span className={new Date(claim.codeExpiresAt) < new Date() ? 'text-red-500' : ''}>
+                                {new Date(claim.codeExpiresAt).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' })}
+                              </span>
+                            ) : '-'}
+                          </td>
+                          <td className="py-3 text-center">
+                            <Badge variant={
+                              claim.status === 'used' ? 'default' : 
+                              claim.status === 'pending' ? 'secondary' : 
+                              claim.status === 'clicked' ? 'outline' : 'destructive'
+                            }>
+                              {claim.status === 'used' ? 'Verified' : 
+                               claim.status === 'pending' ? 'Pending' :
+                               claim.status === 'clicked' ? 'Clicked' : claim.status}
+                            </Badge>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>

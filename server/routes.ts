@@ -4975,6 +4975,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get all claimed deals with customer information
+  app.get('/api/pos/claimed-deals', requireAuth, requireRole(['vendor']), async (req: AuthenticatedRequest, res) => {
+    try {
+      const vendor = await storage.getVendorByUserId(req.user!.id);
+      if (!vendor) {
+        return res.status(404).json({ message: "Vendor not found" });
+      }
+
+      // Get all vendor deals
+      const deals = await storage.getDealsByVendor(vendor.id);
+      const dealIds = deals.map(d => d.id);
+
+      // Get all claims
+      const allClaims = await storage.getAllDealClaims();
+      
+      // Filter claims for vendor's deals and enrich with customer and deal information
+      const claimedDeals = await Promise.all(
+        allClaims
+          .filter(claim => dealIds.includes(claim.dealId))
+          .map(async (claim) => {
+            const customer = await storage.getUser(claim.userId);
+            const deal = deals.find(d => d.id === claim.dealId);
+            
+            return {
+              id: claim.id,
+              claimCode: claim.claimCode,
+              status: claim.status,
+              savingsAmount: claim.savingsAmount,
+              billAmount: claim.billAmount,
+              actualSavings: claim.actualSavings,
+              claimedAt: claim.claimedAt,
+              usedAt: claim.usedAt,
+              codeExpiresAt: claim.codeExpiresAt,
+              customerName: customer?.name || 'Unknown',
+              customerEmail: customer?.email || '',
+              customerPhone: customer?.phone || '',
+              customerMembership: customer?.membershipPlan || 'basic',
+              dealTitle: deal?.title || 'Unknown Deal',
+              discountPercentage: deal?.discountPercentage || 0,
+              dealId: claim.dealId,
+              customerId: claim.userId
+            };
+          })
+      );
+
+      // Sort by claimed date, newest first
+      claimedDeals.sort((a, b) => new Date(b.claimedAt).getTime() - new Date(a.claimedAt).getTime());
+      
+      res.json(claimedDeals);
+    } catch (error) {
+      Logger.error("Error fetching claimed deals:", error);
+      res.status(500).json({ message: "Failed to fetch claimed deals" });
+    }
+  });
+
   // Verify deal PIN (for offline verification)
   app.post('/api/pos/verify-pin', requireAuth, requireRole(['vendor']), async (req: AuthenticatedRequest, res) => {
     try {
