@@ -3350,6 +3350,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get('/api/admin/claimed-deals', requireAuth, requireRole(['admin', 'superadmin']), async (req: AuthenticatedRequest, res) => {
+    try {
+      const claims = await storage.getAllDealClaims();
+      const deals = await storage.getAllDeals();
+      const users = await storage.getAllUsers();
+      const vendors = await storage.getAllVendors();
+
+      const dealMap = new Map(deals.map(d => [d.id, d]));
+      const userMap = new Map(users.map(u => [u.id, u]));
+      const vendorMap = new Map(vendors.map(v => [v.id, v]));
+
+      const claimedDealsWithDetails = claims.map(claim => {
+        const deal = dealMap.get(claim.dealId);
+        const customer = userMap.get(claim.userId);
+        const vendor = deal ? vendorMap.get(deal.vendorId) : null;
+
+        const billAmount = parseFloat(claim.billAmount || '0');
+        const discountPercentage = deal?.discountPercentage || 0;
+        const totalBilledAmount = billAmount;
+
+        return {
+          claimId: claim.id,
+          claimCode: claim.claimCode,
+          claimedAt: claim.claimedAt,
+          usedAt: claim.usedAt,
+          verifiedAt: claim.verifiedAt,
+          status: claim.status,
+          vendorVerified: claim.vendorVerified,
+          
+          customerId: customer?.id,
+          customerName: customer?.name,
+          customerEmail: customer?.email,
+          customerPhone: customer?.phone,
+          customerWhatsappPhone: customer?.whatsappPhone,
+          customerMembership: customer?.membershipPlan,
+          
+          dealId: deal?.id,
+          dealTitle: deal?.title,
+          dealCategory: deal?.category,
+          dealType: deal?.dealType,
+          discountPercentage: discountPercentage,
+          
+          vendorId: vendor?.id,
+          vendorName: vendor?.businessName,
+          vendorCity: vendor?.city,
+          vendorState: vendor?.state,
+          
+          billAmount: billAmount,
+          totalBilledAmount: totalBilledAmount,
+          savingsAmount: parseFloat(claim.savingsAmount || '0'),
+          actualSavings: parseFloat(claim.actualSavings || '0'),
+        };
+      });
+
+      res.json(claimedDealsWithDetails);
+    } catch (error) {
+      console.error('Failed to fetch claimed deals:', error);
+      res.status(500).json({ message: "Failed to fetch claimed deals" });
+    }
+  });
+
   app.post('/api/admin/deals/:id/reject', requireAuth, requireRole(['admin', 'superadmin']), async (req: AuthenticatedRequest, res) => {
     try {
       const dealId = parseInt(req.params.id);
