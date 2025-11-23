@@ -68,6 +68,10 @@ export default function AdminClaimedDeals() {
     queryKey: ["/api/admin/claimed-deals"],
   });
 
+  const { data: allCategories = [] } = useQuery<Array<{ id: string; name: string }>>({
+    queryKey: ["/api/categories"],
+  });
+
   const filteredClaims = claimedDeals.filter((claim) => {
     const matchesSearch = searchQuery === "" || 
       claim.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -180,7 +184,9 @@ export default function AdminClaimedDeals() {
     a.click();
   };
 
-  const categories = Array.from(new Set(claimedDeals.map(c => c.dealCategory)));
+  const categories = allCategories.length > 0 
+    ? allCategories.map(c => c.id)
+    : Array.from(new Set(claimedDeals.map(c => c.dealCategory)));
   const totalBilledAmount = filteredClaims.reduce((sum, claim) => sum + claim.totalBilledAmount, 0);
   const totalSavings = filteredClaims.reduce((sum, claim) => sum + claim.actualSavings, 0);
 
@@ -284,7 +290,7 @@ export default function AdminClaimedDeals() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Categories</SelectItem>
-                    {categories.map((category) => (
+                    {categories.sort().map((category) => (
                       <SelectItem key={category} value={category}>
                         {category.charAt(0).toUpperCase() + category.slice(1)}
                       </SelectItem>
