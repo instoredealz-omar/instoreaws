@@ -34,6 +34,7 @@ interface ClaimedDeal {
   verifiedAt: string | null;
   status: string;
   vendorVerified: boolean;
+  storeLocation: string | null;
   customerId: number;
   customerName: string;
   customerEmail: string;
@@ -60,6 +61,8 @@ export default function AdminClaimedDeals() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [membershipFilter, setMembershipFilter] = useState("all");
+  const [vendorFilter, setVendorFilter] = useState("");
+  const [locationFilter, setLocationFilter] = useState("");
 
   const { data: claimedDeals = [], isLoading } = useQuery<ClaimedDeal[]>({
     queryKey: ["/api/admin/claimed-deals"],
@@ -76,8 +79,10 @@ export default function AdminClaimedDeals() {
     const matchesStatus = statusFilter === "all" || claim.status === statusFilter;
     const matchesCategory = categoryFilter === "all" || claim.dealCategory === categoryFilter;
     const matchesMembership = membershipFilter === "all" || claim.customerMembership === membershipFilter;
+    const matchesVendor = vendorFilter === "" || claim.vendorName?.toLowerCase().includes(vendorFilter.toLowerCase());
+    const matchesLocation = locationFilter === "" || claim.storeLocation?.toLowerCase().includes(locationFilter.toLowerCase());
     
-    return matchesSearch && matchesStatus && matchesCategory && matchesMembership;
+    return matchesSearch && matchesStatus && matchesCategory && matchesMembership && matchesVendor && matchesLocation;
   });
 
   const getStatusBadge = (status: string, verified: boolean) => {
@@ -248,7 +253,7 @@ export default function AdminClaimedDeals() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
                 <div className="relative">
                   <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input
@@ -298,6 +303,22 @@ export default function AdminClaimedDeals() {
                     <SelectItem value="ultimate">Ultimate</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <Input
+                  placeholder="Filter by vendor..."
+                  value={vendorFilter}
+                  onChange={(e) => setVendorFilter(e.target.value)}
+                  data-testid="input-vendor-filter"
+                />
+
+                <Input
+                  placeholder="Filter by store location..."
+                  value={locationFilter}
+                  onChange={(e) => setLocationFilter(e.target.value)}
+                  data-testid="input-location-filter"
+                />
 
                 <Button
                   variant="outline"
@@ -306,6 +327,8 @@ export default function AdminClaimedDeals() {
                     setStatusFilter("all");
                     setCategoryFilter("all");
                     setMembershipFilter("all");
+                    setVendorFilter("");
+                    setLocationFilter("");
                   }}
                   data-testid="button-clear-filters"
                 >
@@ -334,6 +357,7 @@ export default function AdminClaimedDeals() {
                         <TableHead>Membership</TableHead>
                         <TableHead>Deal Info</TableHead>
                         <TableHead>Vendor</TableHead>
+                        <TableHead>Store Location</TableHead>
                         <TableHead>Discount %</TableHead>
                         <TableHead>Total Billed Amount</TableHead>
                         <TableHead>Savings</TableHead>
@@ -403,6 +427,11 @@ export default function AdminClaimedDeals() {
                                   {claim.vendorCity}, {claim.vendorState}
                                 </div>
                               </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="text-sm" data-testid={`text-store-location-${claim.claimId}`}>
+                              {claim.storeLocation || '-'}
                             </div>
                           </TableCell>
                           <TableCell>

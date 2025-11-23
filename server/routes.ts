@@ -3437,6 +3437,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           verifiedAt: claim.verifiedAt,
           status: claim.status,
           vendorVerified: claim.vendorVerified,
+          storeLocation: claim.storeLocation,
           
           customerId: customer?.id,
           customerName: customer?.name,
