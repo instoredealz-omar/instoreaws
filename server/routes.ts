@@ -571,6 +571,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       state: user.state,
       phone: user.phone,
       username: user.username,
+      gender: user.gender,
+      dateOfBirth: user.dateOfBirth,
       profileImage: user.profileImage,
     });
   });
@@ -673,7 +675,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
-      const updatedUser = await storage.updateUser(userId, profileData);
+      // Convert dateOfBirth string to Date if provided
+      const updateData: any = { ...profileData };
+      if (updateData.dateOfBirth) {
+        updateData.dateOfBirth = new Date(updateData.dateOfBirth);
+      }
+      
+      const updatedUser = await storage.updateUser(userId, updateData);
       if (!updatedUser) {
         return res.status(404).json({ message: "User not found" });
       }

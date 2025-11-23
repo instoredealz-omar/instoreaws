@@ -16,16 +16,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { indianStates, getCitiesByState } from "@/lib/cities";
 import Navbar from "@/components/ui/navbar";
 import { ImageUpload } from "@/components/ui/image-upload";
-
-const updateUserProfileSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters").optional(),
-  phone: z.string().regex(/^[0-9]{10}$/, "Mobile number must be exactly 10 digits").optional(),
-  city: z.string().optional(),
-  state: z.string().optional(),
-  gender: z.enum(["male", "female", "other", "prefer_not_to_say"]).optional(),
-  dateOfBirth: z.string().optional(),
-  profileImage: z.string().optional(),
-});
+import { updateUserProfileSchema } from "@shared/schema";
 
 type UpdateUserProfile = z.infer<typeof updateUserProfileSchema>;
 

@@ -1143,7 +1143,34 @@ export const updateUserProfileSchema = z.object({
   city: z.string().optional(),
   state: z.string().optional(),
   gender: z.enum(["male", "female", "other", "prefer_not_to_say"]).optional(),
-  dateOfBirth: z.string().optional(), // Will be converted to Date on backend
+  dateOfBirth: z.preprocess(
+    (val) => {
+      if (!val || val === "") return undefined;
+      return val;
+    },
+    z
+      .string()
+      .refine((val) => {
+        if (!val) return true;
+        const date = new Date(val);
+        return !isNaN(date.getTime()) && date.toISOString().split('T')[0] === val;
+      }, { message: "Invalid date format. Use YYYY-MM-DD" })
+      .refine((val) => {
+        if (!val) return true;
+        const date = new Date(val);
+        const now = new Date();
+        now.setHours(23, 59, 59, 999); // End of today
+        return date <= now;
+      }, { message: "Date of birth cannot be in the future" })
+      .refine((val) => {
+        if (!val) return true;
+        const date = new Date(val);
+        const minDate = new Date();
+        minDate.setFullYear(minDate.getFullYear() - 120);
+        return date >= minDate;
+      }, { message: "Date of birth cannot be more than 120 years ago" })
+      .optional()
+  ),
   profileImage: z.string().optional(),
 });
 
