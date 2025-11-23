@@ -62,16 +62,7 @@ export default function AdminApiKeys() {
       return await res.json();
     },
     onSuccess: (response: any) => {
-      // The response is already the data (not wrapped in a success/data envelope)
-      const keyData = {
-        apiKey: response.apiKey,
-        apiSecret: response.apiSecret,
-        vendor: response.vendor,
-        expiresAt: response.expiresAt,
-        rateLimit: response.rateLimit,
-        createdAt: response.createdAt
-      };
-      setNewGeneratedKey(keyData);
+      setNewGeneratedKey(response);
       setShowNewKeyDialog(true);
       queryClient.invalidateQueries({ queryKey: ["/api/admin/api-keys"] });
       refetch();
