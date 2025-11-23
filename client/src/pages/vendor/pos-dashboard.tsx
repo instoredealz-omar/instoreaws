@@ -1473,7 +1473,7 @@ export default function PosDashboard() {
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">Total Savings</p>
+                    <p className="text-sm font-medium text-muted-foreground">Total Revenue</p>
                     <p className="text-2xl font-bold">₹{claimedDeals.reduce((sum: number, c: any) => sum + parseFloat(c.savingsAmount || 0), 0).toLocaleString()}</p>
                   </div>
                   <DollarSign className="h-8 w-8 text-green-500" />
@@ -1489,7 +1489,7 @@ export default function PosDashboard() {
                 <Ticket className="h-5 w-5" />
                 Claimed Deals
               </CardTitle>
-              <CardDescription>Manage your store inventory and stock levels</CardDescription>
+              <CardDescription>Track and manage customer deal claims and redemptions</CardDescription>
             </CardHeader>
             <CardContent>
               {isLoadingClaims ? (
@@ -1506,11 +1506,10 @@ export default function PosDashboard() {
                   <table className="w-full">
                     <thead className="border-b">
                       <tr className="text-sm text-muted-foreground">
-                        <th className="py-3 text-left font-medium">Claim Code</th>
                         <th className="py-3 text-left font-medium">Customer</th>
                         <th className="py-3 text-left font-medium">Deal</th>
                         <th className="py-3 text-right font-medium">Discount</th>
-                        <th className="py-3 text-right font-medium">Savings</th>
+                        <th className="py-3 text-right font-medium">Total Sales</th>
                         <th className="py-3 text-left font-medium">Claimed At</th>
                         <th className="py-3 text-left font-medium">Expires At</th>
                         <th className="py-3 text-center font-medium">Status</th>
@@ -1520,16 +1519,14 @@ export default function PosDashboard() {
                       {claimedDeals.map((claim: any) => (
                         <tr key={claim.id} className="border-b" data-testid={`claim-row-${claim.id}`}>
                           <td className="py-3">
-                            <div className="flex items-center gap-2">
-                              <Barcode className="h-4 w-4" />
-                              <span className="font-mono font-semibold">{claim.claimCode}</span>
-                            </div>
-                          </td>
-                          <td className="py-3">
                             <div>
                               <div className="font-medium">{claim.customerName}</div>
                               <div className="text-sm text-muted-foreground">{claim.customerEmail}</div>
-                              <div className="text-xs text-muted-foreground">{claim.customerPhone}</div>
+                              <div className="text-xs text-muted-foreground flex items-center gap-1">
+                                <span>{claim.customerPhone}</span>
+                                <span className="text-muted-foreground">•</span>
+                                <span className="font-mono text-xs">{claim.claimCode}</span>
+                              </div>
                             </div>
                           </td>
                           <td className="py-3 font-medium">{claim.dealTitle}</td>
