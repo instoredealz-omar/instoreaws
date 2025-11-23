@@ -53,6 +53,7 @@ export const vendors = pgTable("vendors", {
   rating: decimal("rating", { precision: 3, scale: 2 }).default("0"),
   totalDeals: integer("total_deals").default(0),
   totalRedemptions: integer("total_redemptions").default(0),
+  posModulesConfig: json("pos_modules_config").default({ inventory: false, gds: false, billing: false }), // POS module enablement
   createdAt: timestamp("created_at").defaultNow(),
 });
 

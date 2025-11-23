@@ -3204,6 +3204,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update vendor POS modules configuration
+  app.patch('/api/admin/vendors/:id/modules', requireAuth, requireRole(['admin', 'superadmin']), async (req: AuthenticatedRequest, res) => {
+    try {
+      const vendorId = parseInt(req.params.id);
+      const { inventory, gds, billing } = req.body;
+      
+      const vendor = await storage.getVendor(vendorId);
+      if (!vendor) {
+        return res.status(404).json({ message: "Vendor not found" });
+      }
+
+      // Update modules config in vendor data
+      const updatedVendor = await storage.updateVendor(vendorId, {
+        posModulesConfig: { inventory, gds, billing }
+      });
+
+      // Log the change
+      await storage.createSystemLog({
+        userId: req.user!.id,
+        action: "VENDOR_MODULES_UPDATED",
+        details: { vendorId, modulesConfig: { inventory, gds, billing } },
+        ipAddress: req.ip,
+        userAgent: req.headers['user-agent'],
+      });
+
+      res.json(updatedVendor);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update vendor modules" });
+    }
+  });
+
   app.post('/api/admin/vendors/:id/reject', requireAuth, requireRole(['admin', 'superadmin']), async (req: AuthenticatedRequest, res) => {
     try {
       const vendorId = parseInt(req.params.id);

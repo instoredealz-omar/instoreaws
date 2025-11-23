@@ -95,6 +95,12 @@ interface PosState {
   totalSavings: number;
 }
 
+interface ModulesConfig {
+  inventory: boolean;
+  gds: boolean;
+  billing: boolean;
+}
+
 export default function PosDashboard() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -115,6 +121,7 @@ export default function PosDashboard() {
   const [showQRScanner, setShowQRScanner] = useState(false);
   const [verifiedCustomer, setVerifiedCustomer] = useState<any>(null);
   const [activeModule, setActiveModule] = useState<'pos' | 'inventory' | 'gds' | 'billing' | 'claims'>('pos');
+  const [modulesConfig, setModulesConfig] = useState<ModulesConfig>({ inventory: false, gds: false, billing: false });
   const [inventoryItems, setInventoryItems] = useState([
     { id: 1, name: "Samsung Galaxy S24", sku: "SAMSUNG-S24", stock: 25, price: 75000, lowStockAlert: 5 },
     { id: 2, name: "iPhone 15 Pro", sku: "IPHONE-15P", stock: 8, price: 135000, lowStockAlert: 10 },
@@ -244,6 +251,11 @@ export default function PosDashboard() {
     gst: 0
   });
 
+  // Fetch vendor configuration
+  const { data: vendorData } = useQuery({
+    queryKey: ['/api/vendor/profile'],
+  });
+
   // Fetch available deals for POS
   const { data: deals = [], isLoading: dealsLoading } = useQuery({
     queryKey: ['/api/pos/deals'],
@@ -259,6 +271,13 @@ export default function PosDashboard() {
   const { data: claimedDeals = [], isLoading: isLoadingClaims } = useQuery({
     queryKey: ['/api/pos/claimed-deals'],
   });
+
+  // Load modules configuration from vendor data
+  useEffect(() => {
+    if (vendorData?.posModulesConfig) {
+      setModulesConfig(vendorData.posModulesConfig);
+    }
+  }, [vendorData]);
 
   // Initialize active session from existing sessions
   useEffect(() => {
@@ -640,30 +659,36 @@ export default function PosDashboard() {
           <Terminal className="h-4 w-4" />
           POS Terminal
         </Button>
-        <Button 
-          variant={activeModule === 'inventory' ? 'default' : 'outline'}
-          onClick={() => setActiveModule('inventory')}
-          className="flex items-center gap-2 min-w-fit"
-        >
-          <Package className="h-4 w-4" />
-          Inventory
-        </Button>
-        <Button 
-          variant={activeModule === 'gds' ? 'default' : 'outline'}
-          onClick={() => setActiveModule('gds')}
-          className="flex items-center gap-2 min-w-fit"
-        >
-          <Globe className="h-4 w-4" />
-          GDS Bookings
-        </Button>
-        <Button 
-          variant={activeModule === 'billing' ? 'default' : 'outline'}
-          onClick={() => setActiveModule('billing')}
-          className="flex items-center gap-2 min-w-fit"
-        >
-          <FileText className="h-4 w-4" />
-          Billing
-        </Button>
+        {modulesConfig.inventory && (
+          <Button 
+            variant={activeModule === 'inventory' ? 'default' : 'outline'}
+            onClick={() => setActiveModule('inventory')}
+            className="flex items-center gap-2 min-w-fit"
+          >
+            <Package className="h-4 w-4" />
+            Inventory
+          </Button>
+        )}
+        {modulesConfig.gds && (
+          <Button 
+            variant={activeModule === 'gds' ? 'default' : 'outline'}
+            onClick={() => setActiveModule('gds')}
+            className="flex items-center gap-2 min-w-fit"
+          >
+            <Globe className="h-4 w-4" />
+            GDS Bookings
+          </Button>
+        )}
+        {modulesConfig.billing && (
+          <Button 
+            variant={activeModule === 'billing' ? 'default' : 'outline'}
+            onClick={() => setActiveModule('billing')}
+            className="flex items-center gap-2 min-w-fit"
+          >
+            <FileText className="h-4 w-4" />
+            Billing
+          </Button>
+        )}
         <Button 
           variant={activeModule === 'claims' ? 'default' : 'outline'}
           onClick={() => setActiveModule('claims')}

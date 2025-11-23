@@ -24,8 +24,12 @@ import {
   Building,
   CreditCard,
   FileText,
-  ExternalLink
+  ExternalLink,
+  Package,
+  Globe,
+  Settings
 } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export default function AdminVendors() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -71,6 +75,30 @@ export default function AdminVendors() {
     onError: (error: any) => {
       toast({
         title: "Failed to approve vendor",
+        description: error.message || "Please try again later.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const updateModulesMutation = useMutation({
+    mutationFn: async (data: { vendorId: number; modulesConfig: any }) => {
+      return apiRequest(`/api/admin/vendors/${data.vendorId}/modules`, 'PATCH', data.modulesConfig);
+    },
+    onSuccess: async () => {
+      toast({
+        title: "Modules updated successfully!",
+        description: "POS module configuration has been updated.",
+      });
+      
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["/api/admin/vendors"] }),
+        refetchVendors()
+      ]);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to update modules",
         description: error.message || "Please try again later.",
         variant: "destructive",
       });
@@ -372,6 +400,97 @@ export default function AdminVendors() {
                                         <div>
                                           <p className="text-2xl font-bold text-warning">{selectedVendor.rating || "0.0"}</p>
                                           <p className="text-xs text-gray-500">Rating</p>
+                                        </div>
+                                      </div>
+                                    </div>
+
+                                    {/* POS Modules Configuration */}
+                                    <div className="border-t pt-6">
+                                      <h4 className="font-medium text-foreground mb-4 flex items-center gap-2">
+                                        <Settings className="h-4 w-4" />
+                                        POS Modules
+                                      </h4>
+                                      <div className="space-y-3">
+                                        <div className="flex items-center space-x-3">
+                                          <Checkbox 
+                                            id="inventory-toggle"
+                                            checked={selectedVendor.posModulesConfig?.inventory || false}
+                                            onCheckedChange={(checked) => {
+                                              updateModulesMutation.mutate({
+                                                vendorId: selectedVendor.id,
+                                                modulesConfig: {
+                                                  inventory: checked,
+                                                  gds: selectedVendor.posModulesConfig?.gds || false,
+                                                  billing: selectedVendor.posModulesConfig?.billing || false,
+                                                }
+                                              });
+                                              setSelectedVendor({
+                                                ...selectedVendor,
+                                                posModulesConfig: {
+                                                  ...selectedVendor.posModulesConfig,
+                                                  inventory: checked
+                                                }
+                                              });
+                                            }}
+                                          />
+                                          <label htmlFor="inventory-toggle" className="flex items-center gap-2 cursor-pointer">
+                                            <Package className="h-4 w-4" />
+                                            <span>Inventory</span>
+                                          </label>
+                                        </div>
+                                        <div className="flex items-center space-x-3">
+                                          <Checkbox 
+                                            id="gds-toggle"
+                                            checked={selectedVendor.posModulesConfig?.gds || false}
+                                            onCheckedChange={(checked) => {
+                                              updateModulesMutation.mutate({
+                                                vendorId: selectedVendor.id,
+                                                modulesConfig: {
+                                                  inventory: selectedVendor.posModulesConfig?.inventory || false,
+                                                  gds: checked,
+                                                  billing: selectedVendor.posModulesConfig?.billing || false,
+                                                }
+                                              });
+                                              setSelectedVendor({
+                                                ...selectedVendor,
+                                                posModulesConfig: {
+                                                  ...selectedVendor.posModulesConfig,
+                                                  gds: checked
+                                                }
+                                              });
+                                            }}
+                                          />
+                                          <label htmlFor="gds-toggle" className="flex items-center gap-2 cursor-pointer">
+                                            <Globe className="h-4 w-4" />
+                                            <span>GDS Bookings</span>
+                                          </label>
+                                        </div>
+                                        <div className="flex items-center space-x-3">
+                                          <Checkbox 
+                                            id="billing-toggle"
+                                            checked={selectedVendor.posModulesConfig?.billing || false}
+                                            onCheckedChange={(checked) => {
+                                              updateModulesMutation.mutate({
+                                                vendorId: selectedVendor.id,
+                                                modulesConfig: {
+                                                  inventory: selectedVendor.posModulesConfig?.inventory || false,
+                                                  gds: selectedVendor.posModulesConfig?.gds || false,
+                                                  billing: checked,
+                                                }
+                                              });
+                                              setSelectedVendor({
+                                                ...selectedVendor,
+                                                posModulesConfig: {
+                                                  ...selectedVendor.posModulesConfig,
+                                                  billing: checked
+                                                }
+                                              });
+                                            }}
+                                          />
+                                          <label htmlFor="billing-toggle" className="flex items-center gap-2 cursor-pointer">
+                                            <FileText className="h-4 w-4" />
+                                            <span>Billing</span>
+                                          </label>
                                         </div>
                                       </div>
                                     </div>
