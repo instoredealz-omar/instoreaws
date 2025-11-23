@@ -35,6 +35,8 @@ export default function AdminApiKeys() {
   const [selectedKey, setSelectedKey] = useState<any>(null);
   const [showSecret, setShowSecret] = useState<{ [key: number]: boolean }>({});
   const [generatingKey, setGeneratingKey] = useState<number | null>(null);
+  const [newGeneratedKey, setNewGeneratedKey] = useState<any>(null);
+  const [showNewKeyDialog, setShowNewKeyDialog] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -59,10 +61,8 @@ export default function AdminApiKeys() {
       return apiRequest("/api/admin/api-keys/generate", "POST", { vendorId });
     },
     onSuccess: (data) => {
-      toast({
-        title: "API Key Generated",
-        description: "New API key created successfully. Copy it now - you won't see it again!",
-      });
+      setNewGeneratedKey(data);
+      setShowNewKeyDialog(true);
       queryClient.invalidateQueries({ queryKey: ["/api/admin/api-keys"] });
       refetch();
     },
@@ -260,6 +260,91 @@ export default function AdminApiKeys() {
             </AlertDescription>
           </Alert>
         </div>
+
+        {/* New API Key Dialog */}
+        {showNewKeyDialog && newGeneratedKey && (
+          <Dialog open={showNewKeyDialog} onOpenChange={setShowNewKeyDialog}>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle className="text-lg">🔐 New API Key Generated</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <Alert className="border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/20">
+                  <AlertTriangle className="h-4 w-4 text-red-600" />
+                  <AlertDescription className="text-red-800 dark:text-red-200">
+                    <strong>IMPORTANT:</strong> This is the only time you'll see this API key. Copy it now and store it securely. You won't be able to retrieve it later.
+                  </AlertDescription>
+                </Alert>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">Vendor</label>
+                  <p className="text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 px-3 py-2 rounded">
+                    {newGeneratedKey.vendor?.businessName || "Unknown"}
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">API Key</label>
+                  <div className="flex gap-2">
+                    <code className="flex-1 bg-gray-900 text-gray-100 px-4 py-3 rounded font-mono text-sm break-all select-all">
+                      {newGeneratedKey.apiKey}
+                    </code>
+                    <Button
+                      onClick={() => {
+                        copyToClipboard(newGeneratedKey.apiKey, "API Key");
+                      }}
+                      className="bg-blue-600 hover:bg-blue-700"
+                    >
+                      <Copy className="h-4 w-4 mr-2" />
+                      Copy
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium">Created</label>
+                    <p className="text-gray-700 dark:text-gray-300">
+                      {new Date(newGeneratedKey.createdAt).toLocaleString()}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium">Expires</label>
+                    <p className="text-gray-700 dark:text-gray-300">
+                      {newGeneratedKey.expiresAt
+                        ? new Date(newGeneratedKey.expiresAt).toLocaleString()
+                        : "Never"}
+                    </p>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">Rate Limit</label>
+                  <p className="text-gray-700 dark:text-gray-300">
+                    {newGeneratedKey.rateLimit} requests per minute
+                  </p>
+                </div>
+
+                <div>
+                  <h4 className="font-medium mb-2">Usage Instructions</h4>
+                  <code className="block bg-gray-900 text-gray-100 p-3 rounded text-xs overflow-x-auto">
+                    {`curl -X POST https://your-domain.com/api/v1/claims/verify \\\n`}
+                    {`  -H "X-API-Key: ${newGeneratedKey.apiKey}" \\\n`}
+                    {`  -H "Content-Type: application/json" \\\n`}
+                    {`  -d '{"claimCode": "ABC123"}'`}
+                  </code>
+                </div>
+
+                <Button
+                  onClick={() => setShowNewKeyDialog(false)}
+                  className="w-full bg-blue-600 hover:bg-blue-700"
+                >
+                  Done - I've Copied the Key
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        )}
 
         {/* Filters */}
         <div className="flex flex-col sm:flex-row gap-4 mb-6">
