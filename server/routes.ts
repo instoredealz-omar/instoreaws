@@ -1148,21 +1148,95 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Calculate savings
       const savingsAmount = (billAmount * deal.discountPercentage) / 100;
 
-      // Generate claim code
-      const crypto = await import('crypto');
-      const claimCode = crypto.randomBytes(3).toString('hex').toUpperCase();
-      const codeExpiresAt = new Date(deal.validUntil);
+      // Check for existing claims (including any historical completed claims)
+      const existingClaims = await storage.getUserClaims(userId);
+      const claimsForThisDeal = existingClaims.filter(claim => claim.dealId === dealId);
 
-      // Create or update claim
-      const claim = await storage.claimDeal({
-        userId,
-        dealId,
-        savingsAmount: savingsAmount.toString(),
-        status: "used",
-        billAmount: billAmount.toString(),
-        claimCode,
-        codeExpiresAt,
-      });
+      // Find the most recent pending claim if any
+      const pendingClaim = claimsForThisDeal.find(claim => claim.status === "pending");
+      
+      // Find completed claims
+      const completedClaims = claimsForThisDeal.filter(
+        claim => claim.status === "used" || claim.vendorVerified
+      );
+
+      // If there are completed claims and no pending claim to reconcile, reject
+      // This prevents creating new duplicate claims
+      if (completedClaims.length > 0 && !pendingClaim) {
+        return res.status(400).json({
+          success: false,
+          message: "This deal has already been claimed and completed"
+        });
+      }
+
+      // If there are completed claims AND a pending claim, reconcile by cancelling pending
+      // This handles legacy duplicates without incrementing counters or creating new claims
+      if (completedClaims.length > 0 && pendingClaim) {
+        // Cancel the pending claim(s) to clean up the duplicate
+        await storage.updateDealClaim(pendingClaim.id, {
+          status: "cancelled",
+        });
+        
+        // Also cancel any other pending claims
+        const otherPendingClaims = claimsForThisDeal.filter(
+          c => c.status === "pending" && c.id !== pendingClaim.id
+        );
+        for (const staleClaim of otherPendingClaims) {
+          await storage.updateDealClaim(staleClaim.id, {
+            status: "cancelled",
+          });
+        }
+
+        return res.status(200).json({
+          message: "Deal was already completed. Pending duplicate claims have been cleaned up.",
+          completedClaim: completedClaims[0]
+        });
+      }
+
+      let claim;
+
+      if (pendingClaim) {
+        // Update existing pending claim with full vendor verification
+        claim = await storage.updateDealClaim(pendingClaim.id, {
+          savingsAmount: savingsAmount.toString(),
+          status: "used",
+          billAmount: billAmount.toString(),
+          usedAt: new Date(),
+          vendorVerified: true,
+          verifiedAt: new Date(),
+        });
+
+        // Clean up any other stale pending claims for this deal/user
+        // This handles legacy duplicates and prevents dashboard confusion
+        const otherPendingClaims = claimsForThisDeal.filter(
+          c => c.status === "pending" && c.id !== pendingClaim.id
+        );
+        for (const staleClaim of otherPendingClaims) {
+          await storage.updateDealClaim(staleClaim.id, {
+            status: "cancelled",
+          });
+        }
+      } else {
+        // If no pending claim exists and no completed claim exists, create new verified claim
+        // This path should only be hit if user never claimed via app
+        const crypto = await import('crypto');
+        const claimCode = crypto.randomBytes(3).toString('hex').toUpperCase();
+        const codeExpiresAt = new Date(deal.validUntil);
+        const now = new Date();
+
+        claim = await storage.claimDeal({
+          userId,
+          dealId,
+          savingsAmount: savingsAmount.toString(),
+          status: "used",
+          billAmount: billAmount.toString(),
+          claimCode,
+          codeExpiresAt,
+          vendorVerified: true,
+          verifiedAt: now,
+          usedAt: now,
+        });
+      }
 
       // Update user's total savings
       const currentTotalSavings = parseFloat(user.totalSavings || "0");
@@ -1172,6 +1246,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         totalSavings: newTotalSavings.toString(),
       });
 
+      // Always increment counters since we've already verified no completed claim exists
+      // The guard above (line 1160) ensures we never reach this point for already-completed claims
       // Atomic increment for deal redemptions
       await storage.incrementDealRedemptions(dealId);
 
@@ -1342,7 +1418,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Get the most recent pending claim for this deal and user, or create new one
+      // Get the most recent pending claim for this deal and user
       const existingClaims = await storage.getUserClaims(userId);
       const pendingClaim = existingClaims.find(claim => claim.dealId === dealId && claim.status === "pending");
       
@@ -1354,32 +1430,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         allClaims: existingClaims.map(c => ({ dealId: c.dealId, status: c.status }))
       });
 
-      // Use existing pending claim or create new one (allow multiple claims)
-      let currentClaim = pendingClaim;
-      if (!currentClaim) {
-        // Generate a unique claim code for the new claim
-        const { generateSecurePin } = await import('./pin-security');
-        const claimCode = generateSecurePin();
-        
-        // Set expiration to 24 hours from now
-        const codeExpiresAt = new Date();
-        codeExpiresAt.setHours(codeExpiresAt.getHours() + 24);
-        
-        currentClaim = await storage.claimDeal({
-          dealId,
-          userId,
-          status: "pending",
-          savingsAmount: "0",
-          claimCode,
-          codeExpiresAt
-        });
-        Logger.debug("Auto-created new claim for PIN verification", {
-          claimId: currentClaim.id,
-          claimCode,
-          dealId,
-          userId
+      // Require existing pending claim - customer must claim the deal first
+      if (!pendingClaim) {
+        return res.status(400).json({
+          success: false,
+          error: "You must claim this deal first before verifying the PIN. Please claim the deal in the app and try again."
         });
       }
+      
+      const currentClaim = pendingClaim;
 
       // Check redemption limits
       if (deal.maxRedemptions && (deal.currentRedemptions || 0) >= deal.maxRedemptions) {
@@ -1408,8 +1467,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Increment deal redemption count when PIN is verified
-      await storage.incrementDealRedemptions(dealId);
+      // NOTE: Do NOT increment deal redemptions here - only increment when transaction is completed
+      // via POS complete-claim-transaction endpoint to avoid double counting
 
       // Log the PIN verification (not full redemption yet)
       await storage.createSystemLog({
