@@ -60,8 +60,17 @@ export default function AdminApiKeys() {
     mutationFn: async (vendorId: number) => {
       return apiRequest("/api/admin/api-keys/generate", "POST", { vendorId });
     },
-    onSuccess: (data) => {
-      setNewGeneratedKey(data);
+    onSuccess: (response: any) => {
+      // The response is already the data (not wrapped in a success/data envelope)
+      const keyData = {
+        apiKey: response.apiKey,
+        apiSecret: response.apiSecret,
+        vendor: response.vendor,
+        expiresAt: response.expiresAt,
+        rateLimit: response.rateLimit,
+        createdAt: response.createdAt
+      };
+      setNewGeneratedKey(keyData);
       setShowNewKeyDialog(true);
       queryClient.invalidateQueries({ queryKey: ["/api/admin/api-keys"] });
       refetch();
@@ -279,7 +288,7 @@ export default function AdminApiKeys() {
                 <div>
                   <label className="block text-sm font-medium mb-2">Vendor</label>
                   <p className="text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 px-3 py-2 rounded">
-                    {newGeneratedKey.vendor?.businessName || "Unknown"}
+                    {newGeneratedKey?.vendor?.businessName || newGeneratedKey?.businessName || "Unknown"}
                   </p>
                 </div>
 
@@ -327,11 +336,8 @@ export default function AdminApiKeys() {
 
                 <div>
                   <h4 className="font-medium mb-2">Usage Instructions</h4>
-                  <code className="block bg-gray-900 text-gray-100 p-3 rounded text-xs overflow-x-auto">
-                    {`curl -X POST https://your-domain.com/api/v1/claims/verify \\\n`}
-                    {`  -H "X-API-Key: ${newGeneratedKey.apiKey}" \\\n`}
-                    {`  -H "Content-Type: application/json" \\\n`}
-                    {`  -d '{"claimCode": "ABC123"}'`}
+                  <code className="block bg-gray-900 text-gray-100 p-3 rounded text-xs overflow-x-auto whitespace-pre-wrap break-words">
+                    {`curl -X POST https://your-domain.com/api/v1/claims/verify \\\n  -H "X-API-Key: ${newGeneratedKey?.apiKey || ''}" \\\n  -H "Content-Type: application/json" \\\n  -d '{"claimCode": "ABC123"}'`}
                   </code>
                 </div>
 

@@ -8443,8 +8443,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // ===== THIRD-PARTY VENDOR API ENDPOINTS =====
-  
+  // ===== ADMIN API KEY MANAGEMENT ENDPOINTS =====
+
   // Helper function to generate API keys
   const generateApiKey = (): string => {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -8454,6 +8454,73 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
     return key;
   };
+
+  // POST /api/admin/api-keys/generate - Generate new API key for vendor
+  app.post('/api/admin/api-keys/generate', requireAuth, requireRole(['admin', 'superadmin']), async (req: AuthenticatedRequest, res) => {
+    try {
+      const { vendorId } = req.body;
+
+      if (!vendorId) {
+        return res.status(400).json({
+          success: false,
+          message: "vendorId is required"
+        });
+      }
+
+      const vendor = await storage.getVendor(vendorId);
+      if (!vendor) {
+        return res.status(404).json({
+          success: false,
+          message: "Vendor not found"
+        });
+      }
+
+      if (!vendor.isApproved || vendor.status !== 'approved') {
+        return res.status(403).json({
+          success: false,
+          message: "Vendor account is not approved"
+        });
+      }
+
+      const apiKey = generateApiKey();
+      const apiSecret = generateApiKey();
+
+      const newApiKey = await storage.createVendorApiKey(
+        {
+          vendorId: vendor.id,
+          keyName: `API Key - ${new Date().toLocaleDateString()}`,
+          isActive: true,
+          rateLimit: 1000,
+          description: 'Auto-generated API key for third-party integration',
+          createdBy: req.user.id
+        },
+        apiKey,
+        apiSecret
+      );
+
+      Logger.info('API key generated for vendor by admin', { vendorId: vendor.id, businessName: vendor.businessName, adminId: req.user.id });
+
+      res.status(201).json({
+        apiKey: newApiKey.apiKey,
+        apiSecret: newApiKey.apiSecret,
+        vendor: {
+          id: vendor.id,
+          businessName: vendor.businessName
+        },
+        expiresAt: newApiKey.expiresAt,
+        rateLimit: newApiKey.rateLimit,
+        createdAt: newApiKey.createdAt
+      });
+    } catch (error) {
+      Logger.error('Failed to generate API key', error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to generate API key"
+      });
+    }
+  });
+
+  // ===== THIRD-PARTY VENDOR API ENDPOINTS =====
 
   // POST /api/v1/vendor/authenticate - Get API key
   app.post('/api/v1/vendor/authenticate', async (req, res) => {
