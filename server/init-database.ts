@@ -37,6 +37,14 @@ export async function initializeDatabase() {
     `);
     console.log('[MIGRATION] Contact fields added to vendors table');
     
+    // Add POS modules config column to vendors table if it doesn't exist
+    console.log('[MIGRATION] Adding POS modules config to vendors table...');
+    await db.execute(sql`
+      ALTER TABLE vendors 
+      ADD COLUMN IF NOT EXISTS pos_modules_config JSON DEFAULT '{"inventory": false, "gds": false, "billing": false}'::json
+    `);
+    console.log('[MIGRATION] POS modules config added to vendors table');
+    
     // Create vendor_approvals table if it doesn't exist
     await db.execute(sql`
       CREATE TABLE IF NOT EXISTS vendor_approvals (
