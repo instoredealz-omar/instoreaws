@@ -1148,50 +1148,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Calculate savings
       const savingsAmount = (billAmount * deal.discountPercentage) / 100;
 
-      // Check for existing claims (including any historical completed claims)
+      // Check for existing claims
       const existingClaims = await storage.getUserClaims(userId);
       const claimsForThisDeal = existingClaims.filter(claim => claim.dealId === dealId);
 
-      // Find the most recent pending claim if any
+      // Find any pending claims to prevent duplicate pending entries
       const pendingClaim = claimsForThisDeal.find(claim => claim.status === "pending");
-      
-      // Find completed claims
-      const completedClaims = claimsForThisDeal.filter(
-        claim => claim.status === "used" || claim.vendorVerified
-      );
-
-      // If there are completed claims and no pending claim to reconcile, reject
-      // This prevents creating new duplicate claims
-      if (completedClaims.length > 0 && !pendingClaim) {
-        return res.status(400).json({
-          success: false,
-          message: "This deal has already been claimed and completed"
-        });
-      }
-
-      // If there are completed claims AND a pending claim, reconcile by cancelling pending
-      // This handles legacy duplicates without incrementing counters or creating new claims
-      if (completedClaims.length > 0 && pendingClaim) {
-        // Cancel the pending claim(s) to clean up the duplicate
-        await storage.updateDealClaim(pendingClaim.id, {
-          status: "cancelled",
-        });
-        
-        // Also cancel any other pending claims
-        const otherPendingClaims = claimsForThisDeal.filter(
-          c => c.status === "pending" && c.id !== pendingClaim.id
-        );
-        for (const staleClaim of otherPendingClaims) {
-          await storage.updateDealClaim(staleClaim.id, {
-            status: "cancelled",
-          });
-        }
-
-        return res.status(200).json({
-          message: "Deal was already completed. Pending duplicate claims have been cleaned up.",
-          completedClaim: completedClaims[0]
-        });
-      }
 
       let claim;
 
@@ -1207,7 +1169,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
 
         // Clean up any other stale pending claims for this deal/user
-        // This handles legacy duplicates and prevents dashboard confusion
         const otherPendingClaims = claimsForThisDeal.filter(
           c => c.status === "pending" && c.id !== pendingClaim.id
         );
@@ -1217,8 +1178,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         }
       } else {
-        // If no pending claim exists and no completed claim exists, create new verified claim
-        // This path should only be hit if user never claimed via app
+        // No pending claim exists, create a new verified claim
+        // Customer can claim the same deal multiple times
         const crypto = await import('crypto');
         const claimCode = crypto.randomBytes(3).toString('hex').toUpperCase();
         const codeExpiresAt = new Date(deal.validUntil);
