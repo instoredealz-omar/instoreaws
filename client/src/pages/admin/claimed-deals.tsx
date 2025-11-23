@@ -352,7 +352,6 @@ export default function AdminClaimedDeals() {
                     <TableHeader>
                       <TableRow>
                         <TableHead className="cursor-pointer hover:bg-muted" onClick={() => setSearchQuery(searchQuery)}>Customer Info</TableHead>
-                        <TableHead className="cursor-pointer hover:bg-muted" onClick={() => setSearchQuery(searchQuery)}>Contact</TableHead>
                         <TableHead className="cursor-pointer hover:bg-muted" onClick={() => setMembershipFilter(membershipFilter)}>Membership</TableHead>
                         <TableHead className="cursor-pointer hover:bg-muted" onClick={() => setCategoryFilter(categoryFilter)}>Deal Info</TableHead>
                         <TableHead className="cursor-pointer hover:bg-muted" onClick={() => setVendorFilter(vendorFilter)}>Vendor</TableHead>
@@ -376,29 +375,24 @@ export default function AdminClaimedDeals() {
                                   <Mail className="h-3 w-3" />
                                   {claim.customerEmail}
                                 </div>
-                                <div className="text-xs text-muted-foreground mt-1 font-mono" data-testid={`text-customer-id-${claim.claimId}`}>
-                                  ID: {claim.customerId}
+                                <div className="text-xs text-muted-foreground mt-1 space-y-1">
+                                  {claim.customerPhone && (
+                                    <div className="flex items-center gap-1" data-testid={`text-customer-phone-${claim.claimId}`}>
+                                      <Phone className="h-3 w-3 text-muted-foreground" />
+                                      <span>{claim.customerPhone}</span>
+                                    </div>
+                                  )}
+                                  {claim.customerWhatsappPhone && (
+                                    <div className="flex items-center gap-1" data-testid={`text-customer-whatsapp-${claim.claimId}`}>
+                                      <Phone className="h-3 w-3 text-success" />
+                                      <span>{claim.customerWhatsappPhone}</span>
+                                    </div>
+                                  )}
+                                  <div className="font-mono" data-testid={`text-customer-id-${claim.claimId}`}>
+                                    ID: {claim.customerId}
+                                  </div>
                                 </div>
                               </div>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="text-sm space-y-1">
-                              {claim.customerPhone && (
-                                <div className="flex items-center gap-1" data-testid={`text-customer-phone-${claim.claimId}`}>
-                                  <Phone className="h-3 w-3 text-muted-foreground" />
-                                  <span className="text-xs">{claim.customerPhone}</span>
-                                </div>
-                              )}
-                              {claim.customerWhatsappPhone && (
-                                <div className="flex items-center gap-1" data-testid={`text-customer-whatsapp-${claim.claimId}`}>
-                                  <Phone className="h-3 w-3 text-success" />
-                                  <span className="text-xs">{claim.customerWhatsappPhone}</span>
-                                </div>
-                              )}
-                              {!claim.customerPhone && !claim.customerWhatsappPhone && (
-                                <span className="text-xs text-muted-foreground">No contact</span>
-                              )}
                             </div>
                           </TableCell>
                           <TableCell>
