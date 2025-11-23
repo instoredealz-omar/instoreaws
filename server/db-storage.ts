@@ -1338,4 +1338,57 @@ export class DatabaseStorage implements IStorage {
       };
     });
   }
+
+  // Vendor API Key operations
+  async createVendorApiKey(apiKeyData: InsertVendorApiKey, generatedApiKey: string, apiSecret?: string): Promise<VendorApiKey> {
+    const result = await db.insert(schema.vendorApiKeys).values({
+      ...apiKeyData,
+      apiKey: generatedApiKey,
+      apiSecret: apiSecret || null,
+    }).returning();
+    return result[0];
+  }
+
+  async getVendorApiKey(apiKey: string): Promise<VendorApiKey | undefined> {
+    const result = await db.select()
+      .from(schema.vendorApiKeys)
+      .where(eq(schema.vendorApiKeys.apiKey, apiKey));
+    return result[0];
+  }
+
+  async getVendorApiKeysByVendor(vendorId: number): Promise<VendorApiKey[]> {
+    return await db.select()
+      .from(schema.vendorApiKeys)
+      .where(eq(schema.vendorApiKeys.vendorId, vendorId))
+      .orderBy(desc(schema.vendorApiKeys.createdAt));
+  }
+
+  async getVendorApiKeyById(id: number): Promise<VendorApiKey | undefined> {
+    const result = await db.select()
+      .from(schema.vendorApiKeys)
+      .where(eq(schema.vendorApiKeys.id, id));
+    return result[0];
+  }
+
+  async updateVendorApiKey(id: number, updates: Partial<VendorApiKey>): Promise<VendorApiKey | undefined> {
+    const result = await db.update(schema.vendorApiKeys)
+      .set(updates)
+      .where(eq(schema.vendorApiKeys.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deactivateVendorApiKey(id: number): Promise<VendorApiKey | undefined> {
+    const result = await db.update(schema.vendorApiKeys)
+      .set({ isActive: false })
+      .where(eq(schema.vendorApiKeys.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async updateApiKeyLastUsed(apiKey: string): Promise<void> {
+    await db.update(schema.vendorApiKeys)
+      .set({ lastUsedAt: new Date() })
+      .where(eq(schema.vendorApiKeys.apiKey, apiKey));
+  }
 }

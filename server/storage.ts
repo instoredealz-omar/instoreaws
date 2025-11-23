@@ -45,6 +45,8 @@ import {
   InsertCommissionTransaction,
   CommissionPayoutBatch,
   InsertCommissionPayoutBatch,
+  VendorApiKey,
+  InsertVendorApiKey,
 } from "../shared/schema";
 
 export interface IStorage {
@@ -281,6 +283,15 @@ export interface IStorage {
       totalCommission: number;
     }>;
   }>;
+
+  // Vendor API Key operations
+  createVendorApiKey(apiKeyData: InsertVendorApiKey, generatedApiKey: string, apiSecret?: string): Promise<VendorApiKey>;
+  getVendorApiKey(apiKey: string): Promise<VendorApiKey | undefined>;
+  getVendorApiKeysByVendor(vendorId: number): Promise<VendorApiKey[]>;
+  getVendorApiKeyById(id: number): Promise<VendorApiKey | undefined>;
+  updateVendorApiKey(id: number, updates: Partial<VendorApiKey>): Promise<VendorApiKey | undefined>;
+  deactivateVendorApiKey(id: number): Promise<VendorApiKey | undefined>;
+  updateApiKeyLastUsed(apiKey: string): Promise<void>;
 }
 
 export class MemStorage implements IStorage {

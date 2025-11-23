@@ -131,6 +131,11 @@ interface AuthenticatedRequest extends Request {
     user: any;
     membershipTier: string;
   };
+  vendor?: {
+    id: number;
+    businessName: string;
+  };
+  apiKey?: string;
 }
 
 // Middleware to check authentication
@@ -155,6 +160,81 @@ const requireRole = (roles: string[]) => (req: AuthenticatedRequest, res: Respon
     });
   }
   next();
+};
+
+// Middleware to authenticate API key for vendor API endpoints
+const requireApiKey = async (req: AuthenticatedRequest, res: Response, next: any) => {
+  try {
+    const apiKey = req.headers['x-api-key'] as string;
+    
+    if (!apiKey) {
+      return res.status(401).json({ 
+        success: false,
+        code: "API_KEY_REQUIRED",
+        message: "API key is required. Include it in the X-API-Key header." 
+      });
+    }
+
+    const apiKeyData = await storage.getVendorApiKey(apiKey);
+    
+    if (!apiKeyData) {
+      return res.status(401).json({ 
+        success: false,
+        code: "INVALID_API_KEY",
+        message: "Invalid API key" 
+      });
+    }
+
+    if (!apiKeyData.isActive) {
+      return res.status(403).json({ 
+        success: false,
+        code: "API_KEY_INACTIVE",
+        message: "This API key has been deactivated" 
+      });
+    }
+
+    if (apiKeyData.expiresAt && new Date(apiKeyData.expiresAt) < new Date()) {
+      return res.status(403).json({ 
+        success: false,
+        code: "API_KEY_EXPIRED",
+        message: "This API key has expired" 
+      });
+    }
+
+    const vendor = await storage.getVendor(apiKeyData.vendorId);
+    if (!vendor) {
+      return res.status(404).json({ 
+        success: false,
+        code: "VENDOR_NOT_FOUND",
+        message: "Associated vendor not found" 
+      });
+    }
+
+    if (!vendor.isApproved || vendor.status !== 'approved') {
+      return res.status(403).json({ 
+        success: false,
+        code: "VENDOR_NOT_APPROVED",
+        message: "Vendor account is not approved" 
+      });
+    }
+
+    req.vendor = {
+      id: vendor.id,
+      businessName: vendor.businessName
+    };
+    req.apiKey = apiKey;
+
+    await storage.updateApiKeyLastUsed(apiKey);
+    
+    next();
+  } catch (error) {
+    Logger.error('API key authentication error', error);
+    return res.status(500).json({ 
+      success: false,
+      code: "AUTHENTICATION_ERROR",
+      message: "Failed to authenticate API key" 
+    });
+  }
 };
 
 // Middleware to check membership tier access for deals
@@ -8361,6 +8441,602 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error('Error fetching POS analytics:', error);
       res.status(500).json({ error: 'Failed to fetch POS analytics' });
     }
+  });
+
+  // ===== THIRD-PARTY VENDOR API ENDPOINTS =====
+  
+  // Helper function to generate API keys
+  const generateApiKey = (): string => {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let key = 'sk_';
+    for (let i = 0; i < 48; i++) {
+      key += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return key;
+  };
+
+  // POST /api/v1/vendor/authenticate - Get API key
+  app.post('/api/v1/vendor/authenticate', async (req, res) => {
+    try {
+      const { vendorId, vendorEmail, password } = req.body;
+
+      if (!vendorId || !vendorEmail || !password) {
+        return res.status(400).json({
+          success: false,
+          code: "MISSING_CREDENTIALS",
+          message: "vendorId, vendorEmail, and password are required"
+        });
+      }
+
+      const vendor = await storage.getVendor(vendorId);
+      if (!vendor) {
+        return res.status(401).json({
+          success: false,
+          code: "INVALID_CREDENTIALS",
+          message: "Invalid vendor credentials"
+        });
+      }
+
+      const user = await storage.getUser(vendor.userId);
+      if (!user || user.email.toLowerCase() !== vendorEmail.toLowerCase() || user.password !== password) {
+        return res.status(401).json({
+          success: false,
+          code: "INVALID_CREDENTIALS",
+          message: "Invalid vendor credentials"
+        });
+      }
+
+      if (!vendor.isApproved || vendor.status !== 'approved') {
+        return res.status(403).json({
+          success: false,
+          code: "VENDOR_NOT_APPROVED",
+          message: "Vendor account is not approved"
+        });
+      }
+
+      const apiKey = generateApiKey();
+      const apiSecret = generateApiKey();
+
+      const newApiKey = await storage.createVendorApiKey(
+        {
+          vendorId: vendor.id,
+          keyName: `API Key - ${new Date().toLocaleDateString()}`,
+          isActive: true,
+          rateLimit: 1000,
+          description: 'Auto-generated API key for third-party integration',
+          createdBy: user.id
+        },
+        apiKey,
+        apiSecret
+      );
+
+      Logger.info('API key generated for vendor', { vendorId: vendor.id, businessName: vendor.businessName });
+
+      res.status(201).json({
+        success: true,
+        data: {
+          apiKey: newApiKey.apiKey,
+          apiSecret: newApiKey.apiSecret,
+          vendorId: vendor.id,
+          businessName: vendor.businessName,
+          expiresAt: newApiKey.expiresAt,
+          rateLimit: newApiKey.rateLimit,
+          createdAt: newApiKey.createdAt
+        },
+        message: "API key generated successfully. Store this securely - it won't be shown again."
+      });
+    } catch (error) {
+      Logger.error('Vendor authentication error', error);
+      res.status(500).json({
+        success: false,
+        code: "AUTHENTICATION_ERROR",
+        message: "Failed to authenticate vendor"
+      });
+    }
+  });
+
+  // POST /api/v1/claims/verify - Verify claim codes
+  app.post('/api/v1/claims/verify', requireApiKey, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { claimCode } = req.body;
+
+      if (!claimCode) {
+        return res.status(400).json({
+          success: false,
+          code: "MISSING_CLAIM_CODE",
+          message: "claimCode is required"
+        });
+      }
+
+      const claims = await storage.getAllDealClaims();
+      const claim = claims.find(c => c.claimCode === claimCode);
+
+      if (!claim) {
+        return res.status(404).json({
+          success: false,
+          code: "CLAIM_NOT_FOUND",
+          message: "Claim code not found"
+        });
+      }
+
+      const deal = await storage.getDeal(claim.dealId);
+      if (!deal) {
+        return res.status(404).json({
+          success: false,
+          code: "DEAL_NOT_FOUND",
+          message: "Associated deal not found"
+        });
+      }
+
+      if (deal.vendorId !== req.vendor!.id) {
+        return res.status(403).json({
+          success: false,
+          code: "UNAUTHORIZED_ACCESS",
+          message: "This claim belongs to a different vendor"
+        });
+      }
+
+      const customer = await storage.getUser(claim.userId);
+      
+      if (claim.codeExpiresAt && new Date(claim.codeExpiresAt) < new Date()) {
+        return res.status(400).json({
+          success: false,
+          code: "CLAIM_EXPIRED",
+          message: "This claim code has expired",
+          data: {
+            claimCode: claim.claimCode,
+            status: 'expired',
+            expiresAt: claim.codeExpiresAt
+          }
+        });
+      }
+
+      if (claim.vendorVerified) {
+        return res.status(400).json({
+          success: false,
+          code: "ALREADY_VERIFIED",
+          message: "This claim has already been verified",
+          data: {
+            claimCode: claim.claimCode,
+            status: claim.status,
+            verifiedAt: claim.verifiedAt
+          }
+        });
+      }
+
+      res.json({
+        success: true,
+        data: {
+          claimId: claim.id,
+          claimCode: claim.claimCode,
+          status: claim.status,
+          dealId: deal.id,
+          dealTitle: deal.title,
+          discountPercentage: deal.discountPercentage,
+          customer: {
+            id: customer?.id,
+            name: customer?.name,
+            membershipPlan: customer?.membershipPlan
+          },
+          claimedAt: claim.claimedAt,
+          expiresAt: claim.codeExpiresAt,
+          savingsAmount: claim.savingsAmount
+        },
+        message: "Claim verified successfully"
+      });
+    } catch (error) {
+      Logger.error('Claim verification error', error);
+      res.status(500).json({
+        success: false,
+        code: "VERIFICATION_ERROR",
+        message: "Failed to verify claim"
+      });
+    }
+  });
+
+  // POST /api/v1/claims/complete - Complete transactions
+  app.post('/api/v1/claims/complete', requireApiKey, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { claimCode, billAmount, notes } = req.body;
+
+      if (!claimCode || !billAmount) {
+        return res.status(400).json({
+          success: false,
+          code: "MISSING_REQUIRED_FIELDS",
+          message: "claimCode and billAmount are required"
+        });
+      }
+
+      if (billAmount <= 0) {
+        return res.status(400).json({
+          success: false,
+          code: "INVALID_AMOUNT",
+          message: "billAmount must be greater than 0"
+        });
+      }
+
+      const claims = await storage.getAllDealClaims();
+      const claim = claims.find(c => c.claimCode === claimCode);
+
+      if (!claim) {
+        return res.status(404).json({
+          success: false,
+          code: "CLAIM_NOT_FOUND",
+          message: "Claim code not found"
+        });
+      }
+
+      const deal = await storage.getDeal(claim.dealId);
+      if (!deal || deal.vendorId !== req.vendor!.id) {
+        return res.status(403).json({
+          success: false,
+          code: "UNAUTHORIZED_ACCESS",
+          message: "This claim belongs to a different vendor"
+        });
+      }
+
+      if (claim.vendorVerified) {
+        return res.status(400).json({
+          success: false,
+          code: "ALREADY_COMPLETED",
+          message: "This transaction has already been completed"
+        });
+      }
+
+      const actualSavings = (parseFloat(billAmount.toString()) * deal.discountPercentage) / 100;
+
+      const updatedClaim = await storage.updateDealClaim(claim.id, {
+        vendorVerified: true,
+        verifiedAt: new Date(),
+        billAmount: billAmount.toString(),
+        actualSavings: actualSavings.toString(),
+        status: 'completed',
+        usedAt: new Date()
+      });
+
+      await storage.incrementDealRedemptions(deal.id);
+      await storage.incrementVendorRedemptions(req.vendor!.id);
+      await storage.incrementUserDealsClaimed(claim.userId);
+
+      const customer = await storage.getUser(claim.userId);
+      if (customer) {
+        const newTotalSavings = parseFloat(customer.totalSavings || '0') + actualSavings;
+        await storage.updateUser(customer.id, {
+          totalSavings: newTotalSavings.toString()
+        });
+      }
+
+      Logger.info('Claim completed', {
+        claimId: claim.id,
+        vendorId: req.vendor!.id,
+        billAmount,
+        actualSavings
+      });
+
+      res.json({
+        success: true,
+        data: {
+          claimId: updatedClaim?.id,
+          claimCode: updatedClaim?.claimCode,
+          status: updatedClaim?.status,
+          billAmount: updatedClaim?.billAmount,
+          actualSavings: updatedClaim?.actualSavings,
+          verifiedAt: updatedClaim?.verifiedAt,
+          dealTitle: deal.title,
+          discountPercentage: deal.discountPercentage
+        },
+        message: "Transaction completed successfully"
+      });
+    } catch (error) {
+      Logger.error('Transaction completion error', error);
+      res.status(500).json({
+        success: false,
+        code: "COMPLETION_ERROR",
+        message: "Failed to complete transaction"
+      });
+    }
+  });
+
+  // GET /api/v1/claims/status - Check claim status
+  app.get('/api/v1/claims/status', requireApiKey, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { claimCode, claimId } = req.query;
+
+      if (!claimCode && !claimId) {
+        return res.status(400).json({
+          success: false,
+          code: "MISSING_IDENTIFIER",
+          message: "Either claimCode or claimId is required"
+        });
+      }
+
+      const claims = await storage.getAllDealClaims();
+      const claim = claimCode 
+        ? claims.find(c => c.claimCode === claimCode)
+        : claims.find(c => c.id === parseInt(claimId as string));
+
+      if (!claim) {
+        return res.status(404).json({
+          success: false,
+          code: "CLAIM_NOT_FOUND",
+          message: "Claim not found"
+        });
+      }
+
+      const deal = await storage.getDeal(claim.dealId);
+      if (!deal || deal.vendorId !== req.vendor!.id) {
+        return res.status(403).json({
+          success: false,
+          code: "UNAUTHORIZED_ACCESS",
+          message: "This claim belongs to a different vendor"
+        });
+      }
+
+      const customer = await storage.getUser(claim.userId);
+
+      res.json({
+        success: true,
+        data: {
+          claimId: claim.id,
+          claimCode: claim.claimCode,
+          status: claim.status,
+          dealId: deal.id,
+          dealTitle: deal.title,
+          discountPercentage: deal.discountPercentage,
+          customer: {
+            id: customer?.id,
+            name: customer?.name,
+            membershipPlan: customer?.membershipPlan
+          },
+          claimedAt: claim.claimedAt,
+          verifiedAt: claim.verifiedAt,
+          vendorVerified: claim.vendorVerified,
+          billAmount: claim.billAmount,
+          actualSavings: claim.actualSavings,
+          savingsAmount: claim.savingsAmount,
+          expiresAt: claim.codeExpiresAt,
+          isExpired: claim.codeExpiresAt ? new Date(claim.codeExpiresAt) < new Date() : false
+        }
+      });
+    } catch (error) {
+      Logger.error('Claim status check error', error);
+      res.status(500).json({
+        success: false,
+        code: "STATUS_CHECK_ERROR",
+        message: "Failed to check claim status"
+      });
+    }
+  });
+
+  // GET /api/v1/vendor/analytics - Merchant analytics
+  app.get('/api/v1/vendor/analytics', requireApiKey, async (req: AuthenticatedRequest, res) => {
+    try {
+      const { startDate, endDate, dealId } = req.query;
+
+      const allClaims = await storage.getAllDealClaims();
+      const vendorDeals = await storage.getDealsByVendor(req.vendor!.id);
+      const vendorDealIds = vendorDeals.map(d => d.id);
+      
+      let vendorClaims = allClaims.filter(c => vendorDealIds.includes(c.dealId));
+
+      if (startDate) {
+        const start = new Date(startDate as string);
+        vendorClaims = vendorClaims.filter(c => new Date(c.claimedAt) >= start);
+      }
+
+      if (endDate) {
+        const end = new Date(endDate as string);
+        vendorClaims = vendorClaims.filter(c => new Date(c.claimedAt) <= end);
+      }
+
+      if (dealId) {
+        vendorClaims = vendorClaims.filter(c => c.dealId === parseInt(dealId as string));
+      }
+
+      const totalClaims = vendorClaims.length;
+      const completedClaims = vendorClaims.filter(c => c.vendorVerified).length;
+      const pendingClaims = vendorClaims.filter(c => !c.vendorVerified && c.status === 'claimed').length;
+      const expiredClaims = vendorClaims.filter(c => 
+        c.codeExpiresAt && new Date(c.codeExpiresAt) < new Date() && !c.vendorVerified
+      ).length;
+
+      const totalRevenue = vendorClaims
+        .filter(c => c.vendorVerified && c.billAmount)
+        .reduce((sum, c) => sum + parseFloat(c.billAmount || '0'), 0);
+
+      const totalSavingsProvided = vendorClaims
+        .filter(c => c.vendorVerified && c.actualSavings)
+        .reduce((sum, c) => sum + parseFloat(c.actualSavings || '0'), 0);
+
+      const averageTransactionValue = completedClaims > 0 ? totalRevenue / completedClaims : 0;
+
+      const dealPerformance = vendorDeals.map(deal => {
+        const dealClaims = vendorClaims.filter(c => c.dealId === deal.id);
+        const dealCompleted = dealClaims.filter(c => c.vendorVerified);
+        const dealRevenue = dealCompleted.reduce((sum, c) => sum + parseFloat(c.billAmount || '0'), 0);
+        
+        return {
+          dealId: deal.id,
+          dealTitle: deal.title,
+          totalClaims: dealClaims.length,
+          completedClaims: dealCompleted.length,
+          revenue: dealRevenue,
+          savingsProvided: dealCompleted.reduce((sum, c) => sum + parseFloat(c.actualSavings || '0'), 0),
+          conversionRate: dealClaims.length > 0 ? (dealCompleted.length / dealClaims.length) * 100 : 0
+        };
+      });
+
+      res.json({
+        success: true,
+        data: {
+          overview: {
+            vendorId: req.vendor!.id,
+            businessName: req.vendor!.businessName,
+            totalDeals: vendorDeals.length,
+            activeDeals: vendorDeals.filter(d => d.isActive && d.isApproved).length,
+            totalClaims,
+            completedClaims,
+            pendingClaims,
+            expiredClaims,
+            conversionRate: totalClaims > 0 ? (completedClaims / totalClaims) * 100 : 0
+          },
+          financial: {
+            totalRevenue: Math.round(totalRevenue * 100) / 100,
+            totalSavingsProvided: Math.round(totalSavingsProvided * 100) / 100,
+            averageTransactionValue: Math.round(averageTransactionValue * 100) / 100,
+            currency: 'INR'
+          },
+          dealPerformance: dealPerformance
+            .sort((a, b) => b.revenue - a.revenue)
+            .slice(0, 10),
+          period: {
+            startDate: startDate || null,
+            endDate: endDate || null
+          }
+        }
+      });
+    } catch (error) {
+      Logger.error('Vendor analytics error', error);
+      res.status(500).json({
+        success: false,
+        code: "ANALYTICS_ERROR",
+        message: "Failed to retrieve analytics"
+      });
+    }
+  });
+
+  // GET /api/v1/docs - API documentation
+  app.get('/api/v1/docs', (req, res) => {
+    res.json({
+      success: true,
+      version: "1.0.0",
+      baseUrl: "/api/v1",
+      authentication: {
+        method: "API Key",
+        header: "X-API-Key",
+        description: "Include your API key in the X-API-Key header for all authenticated requests"
+      },
+      endpoints: [
+        {
+          method: "POST",
+          path: "/vendor/authenticate",
+          description: "Authenticate vendor and obtain API key",
+          authentication: false,
+          requestBody: {
+            vendorId: "number (required)",
+            vendorEmail: "string (required)",
+            password: "string (required)"
+          },
+          response: {
+            apiKey: "string",
+            apiSecret: "string",
+            vendorId: "number",
+            businessName: "string",
+            expiresAt: "date",
+            rateLimit: "number"
+          }
+        },
+        {
+          method: "POST",
+          path: "/claims/verify",
+          description: "Verify a customer's claim code",
+          authentication: true,
+          requestBody: {
+            claimCode: "string (required)"
+          },
+          response: {
+            claimId: "number",
+            claimCode: "string",
+            status: "string",
+            dealId: "number",
+            dealTitle: "string",
+            discountPercentage: "number",
+            customer: "object",
+            claimedAt: "date",
+            expiresAt: "date"
+          }
+        },
+        {
+          method: "POST",
+          path: "/claims/complete",
+          description: "Complete a transaction and mark claim as verified",
+          authentication: true,
+          requestBody: {
+            claimCode: "string (required)",
+            billAmount: "number (required)",
+            notes: "string (optional)"
+          },
+          response: {
+            claimId: "number",
+            claimCode: "string",
+            status: "string",
+            billAmount: "number",
+            actualSavings: "number",
+            verifiedAt: "date"
+          }
+        },
+        {
+          method: "GET",
+          path: "/claims/status",
+          description: "Check the status of a claim",
+          authentication: true,
+          queryParameters: {
+            claimCode: "string (optional)",
+            claimId: "number (optional)"
+          },
+          response: {
+            claimId: "number",
+            claimCode: "string",
+            status: "string",
+            vendorVerified: "boolean",
+            billAmount: "number",
+            actualSavings: "number"
+          }
+        },
+        {
+          method: "GET",
+          path: "/vendor/analytics",
+          description: "Retrieve vendor analytics and performance metrics",
+          authentication: true,
+          queryParameters: {
+            startDate: "date (optional, ISO 8601)",
+            endDate: "date (optional, ISO 8601)",
+            dealId: "number (optional)"
+          },
+          response: {
+            overview: "object",
+            financial: "object",
+            dealPerformance: "array"
+          }
+        },
+        {
+          method: "GET",
+          path: "/docs",
+          description: "API documentation (this endpoint)",
+          authentication: false
+        }
+      ],
+      errorCodes: {
+        API_KEY_REQUIRED: "API key is missing from request headers",
+        INVALID_API_KEY: "The provided API key is invalid",
+        API_KEY_INACTIVE: "This API key has been deactivated",
+        API_KEY_EXPIRED: "This API key has expired",
+        VENDOR_NOT_APPROVED: "Vendor account is not approved",
+        CLAIM_NOT_FOUND: "Claim code not found",
+        CLAIM_EXPIRED: "This claim code has expired",
+        ALREADY_VERIFIED: "This claim has already been verified",
+        UNAUTHORIZED_ACCESS: "Access denied to this resource",
+        MISSING_REQUIRED_FIELDS: "Required fields are missing from the request"
+      },
+      rateLimit: {
+        default: "1000 requests per minute",
+        exceeded: "HTTP 429 Too Many Requests"
+      },
+      contact: {
+        support: "support@instoredealz.com",
+        documentation: "https://docs.instoredealz.com/api"
+      }
+    });
   });
 
   // Add the error handling middleware at the end
