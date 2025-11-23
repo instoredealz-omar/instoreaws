@@ -15,6 +15,8 @@ export const users = pgTable("users", {
   whatsappPhone: text("whatsapp_phone"), // WhatsApp-enabled phone number for notifications
   city: text("city"),
   state: text("state"),
+  gender: text("gender"), // male, female, other, prefer_not_to_say
+  dateOfBirth: timestamp("date_of_birth"), // Date of birth
   profileImage: text("profile_image"), // URL or base64 data for profile photo
   membershipPlan: text("membership_plan").default("basic"), // basic, premium, ultimate
   membershipExpiry: timestamp("membership_expiry"),
@@ -1140,6 +1142,8 @@ export const updateUserProfileSchema = z.object({
   phone: z.string().regex(/^[0-9]{10}$/, "Mobile number must be exactly 10 digits").optional(),
   city: z.string().optional(),
   state: z.string().optional(),
+  gender: z.enum(["male", "female", "other", "prefer_not_to_say"]).optional(),
+  dateOfBirth: z.string().optional(), // Will be converted to Date on backend
   profileImage: z.string().optional(),
 });
 
