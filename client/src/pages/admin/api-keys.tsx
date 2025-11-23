@@ -44,7 +44,7 @@ export default function AdminApiKeys() {
   const { data: apiKeys = [], isLoading, refetch } = useQuery({
     queryKey: ["/api/admin/api-keys"],
     staleTime: 0,
-    cacheTime: 0,
+    gcTime: 0,
     refetchOnMount: "always",
     refetchOnWindowFocus: false,
   });
@@ -58,7 +58,8 @@ export default function AdminApiKeys() {
   // Generate new API key mutation
   const generateKeyMutation = useMutation({
     mutationFn: async (vendorId: number) => {
-      return apiRequest("/api/admin/api-keys/generate", "POST", { vendorId });
+      const res = await apiRequest("/api/admin/api-keys/generate", "POST", { vendorId });
+      return await res.json();
     },
     onSuccess: (response: any) => {
       // The response is already the data (not wrapped in a success/data envelope)
@@ -87,7 +88,8 @@ export default function AdminApiKeys() {
   // Deactivate API key mutation
   const deactivateKeyMutation = useMutation({
     mutationFn: async (apiKeyId: number) => {
-      return apiRequest(`/api/admin/api-keys/${apiKeyId}/deactivate`, "PATCH");
+      const res = await apiRequest(`/api/admin/api-keys/${apiKeyId}/deactivate`, "PATCH");
+      return await res.json();
     },
     onSuccess: () => {
       toast({
@@ -109,7 +111,8 @@ export default function AdminApiKeys() {
   // Delete API key mutation
   const deleteKeyMutation = useMutation({
     mutationFn: async (apiKeyId: number) => {
-      return apiRequest(`/api/admin/api-keys/${apiKeyId}`, "DELETE");
+      const res = await apiRequest(`/api/admin/api-keys/${apiKeyId}`, "DELETE");
+      return await res.json();
     },
     onSuccess: () => {
       toast({
