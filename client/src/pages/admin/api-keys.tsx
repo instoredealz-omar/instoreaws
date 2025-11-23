@@ -66,6 +66,12 @@ export default function AdminApiKeys() {
       setShowNewKeyDialog(true);
       queryClient.invalidateQueries({ queryKey: ["/api/admin/api-keys"] });
       refetch();
+      
+      // Show success notification about email
+      toast({
+        title: "✅ API Key Generated Successfully",
+        description: `Email notification sent to vendor with API key details, rate limits, and security information.`,
+      });
     },
     onError: (error: any) => {
       toast({
