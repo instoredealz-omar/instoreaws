@@ -1413,3 +1413,36 @@ export const insertWhatsappMessageRecipientSchema = createInsertSchema(whatsappM
 
 export type WhatsappMessageRecipient = typeof whatsappMessageRecipients.$inferSelect;
 export type InsertWhatsappMessageRecipient = z.infer<typeof insertWhatsappMessageRecipientSchema>;
+
+// Vendor API Keys table for third-party integrations
+export const vendorApiKeys = pgTable("vendor_api_keys", {
+  id: serial("id").primaryKey(),
+  vendorId: integer("vendor_id").references(() => vendors.id).notNull(),
+  keyName: text("key_name").notNull(), // e.g., "POS System Key"
+  apiKey: text("api_key").notNull().unique(), // Hashed API key
+  apiSecret: text("api_secret"), // Optional API secret for additional security
+  isActive: boolean("is_active").default(true),
+  lastUsedAt: timestamp("last_used_at"),
+  expiresAt: timestamp("expires_at"), // Optional expiration date
+  rateLimit: integer("rate_limit").default(1000), // Requests per minute
+  allowedEndpoints: text("allowed_endpoints").array().default(null), // null = all endpoints
+  description: text("description"),
+  createdAt: timestamp("created_at").defaultNow(),
+  createdBy: integer("created_by").references(() => users.id),
+});
+
+export const vendorApiKeysRelations = relations(vendorApiKeys, ({ one }) => ({
+  vendor: one(vendors, { fields: [vendorApiKeys.vendorId], references: [vendors.id] }),
+  creator: one(users, { fields: [vendorApiKeys.createdBy], references: [users.id] }),
+}));
+
+export const insertVendorApiKeySchema = createInsertSchema(vendorApiKeys).omit({
+  id: true,
+  createdAt: true,
+  apiKey: true,
+  apiSecret: true,
+  lastUsedAt: true,
+});
+
+export type VendorApiKey = typeof vendorApiKeys.$inferSelect;
+export type InsertVendorApiKey = z.infer<typeof insertVendorApiKeySchema>;

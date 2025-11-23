@@ -49,6 +49,8 @@ import type {
   InsertWhatsappMessage,
   WhatsappMessageRecipient,
   InsertWhatsappMessageRecipient,
+  VendorApiKey,
+  InsertVendorApiKey,
 } from "@shared/schema";
 
 export class DatabaseStorage implements IStorage {
