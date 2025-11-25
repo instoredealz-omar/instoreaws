@@ -1,28 +1,29 @@
-import { Resend } from 'resend';
+import { SendMailClient } from 'zeptomail';
 
-let resendClient: Resend | null = null;
+let zeptoClient: SendMailClient | null = null;
 let fromEmail: string = 'noreply@instoredealz.com';
 
-async function getResendClient() {
-  if (resendClient) {
-    return { client: resendClient, fromEmail };
+async function getZeptoClient() {
+  if (zeptoClient) {
+    return { client: zeptoClient, fromEmail };
   }
 
   try {
-    const apiKey = process.env.RESEND_API_KEY;
+    const token = process.env.ZMPT_TOKEN;
     
-    if (!apiKey) {
-      throw new Error('RESEND_API_KEY not found in environment');
+    if (!token) {
+      throw new Error('ZMPT_TOKEN not found in environment');
     }
 
-    resendClient = new Resend(apiKey);
+    const url = "api.zeptomail.com/";
+    zeptoClient = new SendMailClient({ url, token });
     fromEmail = 'customersupport@instoredealz.com';
-    console.log('[EMAIL] Resend email service enabled');
+    console.log('[EMAIL] ZeptoMail email service enabled');
     console.log(`[EMAIL] Using sender email: ${fromEmail}`);
     
-    return { client: resendClient, fromEmail };
+    return { client: zeptoClient, fromEmail };
   } catch (error) {
-    console.error('[EMAIL] Failed to initialize Resend:', error);
+    console.error('[EMAIL] Failed to initialize ZeptoMail:', error);
     console.warn('[EMAIL] Email notifications will be disabled.');
     return { client: null, fromEmail: 'noreply@instoredealz.com' };
   }
@@ -38,42 +39,43 @@ interface EmailParams {
 
 export async function sendEmail(params: EmailParams): Promise<boolean> {
   try {
-    const { client } = await getResendClient();
+    const { client } = await getZeptoClient();
     
     if (!client) {
       console.log(`[EMAIL] Email sending disabled - would have sent: ${params.subject} to ${params.to}`);
       return true;
     }
 
-    const emailData: any = {
-      to: params.to,
-      from: params.from,
+    const emailPayload = {
+      from: {
+        address: params.from,
+        name: "Instoredealz"
+      },
+      to: [
+        {
+          email_address: {
+            address: params.to,
+            name: params.to.split('@')[0]
+          }
+        }
+      ],
       subject: params.subject,
+      htmlbody: params.html || params.text || '',
+      textbody: params.text || ''
     };
     
-    if (params.html) {
-      emailData.html = params.html;
-    } else if (params.text) {
-      emailData.text = params.text;
-    }
-    
-    const response = await client.emails.send(emailData);
-    
-    if (response.error) {
-      console.error('Resend email error:', response.error);
-      return false;
-    }
+    await client.sendMail(emailPayload);
     
     console.log(`Email sent successfully to ${params.to}`);
     return true;
   } catch (error) {
-    console.error('Resend email error:', error);
+    console.error('ZeptoMail email error:', error);
     return false;
   }
 }
 
 export async function getFromEmail(): Promise<string> {
-  const { fromEmail: email } = await getResendClient();
+  const { fromEmail: email } = await getZeptoClient();
   return email;
 }
 
@@ -442,7 +444,7 @@ export function getDealApprovalEmail(dealTitle: string, businessName: string, ve
 }
 
 export async function getApiKeyGeneratedEmail(businessName: string, vendorName: string, email: string, apiKey: string, createdAt: string, rateLimit: number, expiresAt: string | null) {
-  const { fromEmail: senderEmail } = await getResendClient();
+  const { fromEmail: senderEmail } = await getZeptoClient();
   const expiryInfo = expiresAt 
     ? `<p><strong>Expires:</strong> ${new Date(expiresAt).toLocaleDateString()}</p>`
     : `<p><strong>Expires:</strong> Never</p>`;
@@ -512,34 +514,34 @@ export async function getApiKeyGeneratedEmail(businessName: string, vendorName: 
             <p>Example API call to verify a claim:</p>
             <div style="background: #1a1a1a; color: #0f0; padding: 15px; border-radius: 5px; font-family: monospace; font-size: 11px; overflow-x: auto; margin: 10px 0;">
 curl -X POST https://your-domain.com/api/v1/claims/verify \\<br>
-  -H "X-API-Key: ${apiKey.substring(0, 20)}..." \\<br>
+  -H "Authorization: Bearer YOUR_API_KEY" \\<br>
   -H "Content-Type: application/json" \\<br>
-  -d '{"claimCode": "ABC123"}'
+  -d '{"pin": "123456"}'
             </div>
           </div>
           
           <div style="text-align: center; margin: 30px 0;">
-            <a href="https://instoredealz.com/vendor/api-keys" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
-              View API Keys Dashboard
+            <a href="https://instoredealz.com/vendor/api-settings" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
+              View API Documentation
             </a>
           </div>
           
           <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
           
           <p style="color: #666; font-size: 14px; margin: 0;">
-            Need help with integration? Check our <a href="https://instoredealz.com/docs/api" style="color: #667eea;">API Documentation</a> or contact our support team at <a href="mailto:support@instoredealz.com" style="color: #667eea;">support@instoredealz.com</a>
+            Need help with integration? Contact our technical support team at <a href="mailto:api-support@instoredealz.com" style="color: #667eea;">api-support@instoredealz.com</a>
           </p>
           
           <p style="color: #666; font-size: 14px; margin: 10px 0 0 0;">
             Happy integrating!<br>
-            The Instoredealz Integration Team
+            The Instoredealz Development Team
           </p>
         </div>
       </body>
       </html>
     `,
     text: `
-      API Key Generated - Instoredealz POS Integration
+      API Key Generated - Instoredealz
       
       Hi ${vendorName}!
       
@@ -553,132 +555,33 @@ curl -X POST https://your-domain.com/api/v1/claims/verify \\<br>
       - Store it securely in your POS system configuration
       - Contact support immediately if compromised
       
-      Your API Credentials:
+      🔑 Your API Credentials
       Business: ${businessName}
       API Key: ${apiKey}
       Generated: ${new Date(createdAt).toLocaleString()}
       ${expiryText}
       Rate Limit: ${rateLimit} requests per minute
       
-      Next Steps:
+      🚀 Next Steps
       1. Copy & Save: Copy your API key to a secure location
       2. Configure POS: Add the API key to your POS system settings
       3. Test Integration: Make a test API call to verify connectivity
       4. Go Live: Start accepting automated claim verifications
       
-      Example API Call:
+      📖 Integration Guide
+      Example API call to verify a claim:
+      
       curl -X POST https://your-domain.com/api/v1/claims/verify \\
-        -H "X-API-Key: ${apiKey}" \\
+        -H "Authorization: Bearer YOUR_API_KEY" \\
         -H "Content-Type: application/json" \\
-        -d '{"claimCode": "ABC123"}'
+        -d '{"pin": "123456"}'
       
-      View API Keys Dashboard: https://instoredealz.com/vendor/api-keys
+      View API Documentation: https://instoredealz.com/vendor/api-settings
       
-      Need help with integration? Check our API Documentation or contact our support team at support@instoredealz.com
+      Need help with integration? Contact our technical support team at api-support@instoredealz.com
       
       Happy integrating!
-      The Instoredealz Integration Team
-    `
-  };
-}
-
-export function getDealRejectionEmail(dealTitle: string, businessName: string, vendorName: string, email: string, reason: string) {
-  return {
-    to: email,
-    from: 'noreply@instoredealz.com',
-    subject: 'Deal Rejected - Action Required',
-    html: `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Deal Rejected</title>
-      </head>
-      <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-        <div style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
-          <h1 style="color: white; margin: 0; font-size: 28px;">Deal Rejected</h1>
-          <p style="color: white; margin: 10px 0 0 0; font-size: 16px;">Your deal requires modifications before approval</p>
-        </div>
-        
-        <div style="background: white; padding: 30px; border-radius: 0 0 10px 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
-          <h2 style="color: #333; margin-top: 0;">Hello ${vendorName}!</h2>
-          
-          <p>We've reviewed your deal "<strong>${dealTitle}</strong>" and unfortunately it doesn't meet our current approval criteria. But don't worry - you can resubmit after making the necessary changes!</p>
-          
-          <div style="background: #fef2f2; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #ef4444;">
-            <h3 style="color: #ef4444; margin-top: 0;">❌ Deal Details</h3>
-            <p><strong>Deal Title:</strong> ${dealTitle}</p>
-            <p><strong>Business:</strong> ${businessName}</p>
-            <p><strong>Status:</strong> <span style="color: #ef4444; font-weight: bold;">REJECTED</span></p>
-            <p><strong>Action Required:</strong> Modification needed</p>
-          </div>
-          
-          <div style="background: #fff7ed; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #f59e0b;">
-            <h3 style="color: #f59e0b; margin-top: 0;">⚠️ Reason for Rejection</h3>
-            <p><strong>${reason}</strong></p>
-          </div>
-          
-          <div style="background: #f0f8ff; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <h3 style="color: #667eea; margin-top: 0;">🔧 What You Can Do</h3>
-            <p>To get your deal approved:</p>
-            <ul style="margin: 10px 0; padding-left: 20px;">
-              <li>Address the specific issue mentioned in the rejection reason</li>
-              <li>Review our deal guidelines</li>
-              <li>Make the necessary modifications to your deal</li>
-              <li>Resubmit your deal for review</li>
-            </ul>
-          </div>
-          
-          <div style="text-align: center; margin: 30px 0;">
-            <a href="https://instoredealz.com/vendor/deals" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
-              Edit & Resubmit Deal
-            </a>
-          </div>
-          
-          <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
-          
-          <p style="color: #666; font-size: 14px; margin: 0;">
-            Questions about your deal rejection? Contact our support team at <a href="mailto:support@instoredealz.com" style="color: #667eea;">support@instoredealz.com</a>
-          </p>
-          
-          <p style="color: #666; font-size: 14px; margin: 10px 0 0 0;">
-            We're here to help you succeed!<br>
-            The Instoredealz Team
-          </p>
-        </div>
-      </body>
-      </html>
-    `,
-    text: `
-      Deal Rejected
-      
-      Hello ${vendorName}!
-      
-      We've reviewed your deal "${dealTitle}" and unfortunately it doesn't meet our current approval criteria. But don't worry - you can resubmit after making the necessary changes!
-      
-      Deal Details:
-      - Deal Title: ${dealTitle}
-      - Business: ${businessName}
-      - Status: REJECTED
-      - Action Required: Modification needed
-      
-      Reason for Rejection:
-      ${reason}
-      
-      What You Can Do:
-      To get your deal approved:
-      - Address the specific issue mentioned in the rejection reason
-      - Review our deal guidelines
-      - Make the necessary modifications to your deal
-      - Resubmit your deal for review
-      
-      Edit & resubmit your deal: https://instoredealz.com/vendor/deals
-      
-      Questions about your deal rejection? Contact our support team at support@instoredealz.com
-      
-      We're here to help you succeed!
-      The Instoredealz Team
+      The Instoredealz Development Team
     `
   };
 }
