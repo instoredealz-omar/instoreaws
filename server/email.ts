@@ -1,3 +1,4 @@
+// @ts-expect-error - ZeptoMail package has types but they're not resolved correctly in package.json exports
 import { SendMailClient } from 'zeptomail';
 
 let zeptoClient: SendMailClient | null = null;
@@ -438,6 +439,91 @@ export function getDealApprovalEmail(dealTitle: string, businessName: string, ve
       Need help managing your deal? Contact our support team at support@instoredealz.com
       
       Congratulations on your approved deal!
+      The Instoredealz Team
+    `
+  };
+}
+
+export function getDealRejectionEmail(dealTitle: string, businessName: string, vendorName: string, email: string, reason: string) {
+  return {
+    to: email,
+    from: 'noreply@instoredealz.com',
+    subject: 'Deal Submission Update - Instoredealz',
+    html: `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Deal Submission Update</title>
+      </head>
+      <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="background: linear-gradient(135deg, #f5576c 0%, #f093fb 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
+          <h1 style="color: white; margin: 0; font-size: 28px;">Deal Submission Update</h1>
+          <p style="color: white; margin: 10px 0 0 0; font-size: 16px;">Regarding your submitted deal</p>
+        </div>
+        
+        <div style="background: white; padding: 30px; border-radius: 0 0 10px 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+          <h2 style="color: #333; margin-top: 0;">Hello ${vendorName},</h2>
+          
+          <p>Thank you for submitting your deal "<strong>${dealTitle}</strong>" for ${businessName}. After careful review, we're unable to approve this deal at this time.</p>
+          
+          <div style="background: #fff5f5; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #f5576c;">
+            <h3 style="color: #f5576c; margin-top: 0;">📋 Feedback</h3>
+            <p style="margin: 0;">${reason}</p>
+          </div>
+          
+          <div style="background: #f8f9ff; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <h3 style="color: #667eea; margin-top: 0;">💡 What You Can Do</h3>
+            <ul style="margin: 10px 0; padding-left: 20px;">
+              <li>Review the feedback provided above</li>
+              <li>Make necessary adjustments to your deal</li>
+              <li>Resubmit your deal for approval</li>
+              <li>Contact our vendor support team if you need assistance</li>
+            </ul>
+          </div>
+          
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="https://instoredealz.com/vendor/dashboard" style="background: linear-gradient(135deg, #f5576c 0%, #f093fb 100%); color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
+              View Vendor Dashboard
+            </a>
+          </div>
+          
+          <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
+          
+          <p style="color: #666; font-size: 14px; margin: 0;">
+            Questions or need help? Contact our vendor support team at <a href="mailto:vendor-support@instoredealz.com" style="color: #667eea;">vendor-support@instoredealz.com</a>
+          </p>
+          
+          <p style="color: #666; font-size: 14px; margin: 10px 0 0 0;">
+            We're here to help you succeed!<br>
+            The Instoredealz Team
+          </p>
+        </div>
+      </body>
+      </html>
+    `,
+    text: `
+      Deal Submission Update
+      
+      Hello ${vendorName},
+      
+      Thank you for submitting your deal "${dealTitle}" for ${businessName}. After careful review, we're unable to approve this deal at this time.
+      
+      Feedback:
+      ${reason}
+      
+      What You Can Do:
+      - Review the feedback provided above
+      - Make necessary adjustments to your deal
+      - Resubmit your deal for approval
+      - Contact our vendor support team if you need assistance
+      
+      View your vendor dashboard: https://instoredealz.com/vendor/dashboard
+      
+      Questions or need help? Contact our vendor support team at vendor-support@instoredealz.com
+      
+      We're here to help you succeed!
       The Instoredealz Team
     `
   };
