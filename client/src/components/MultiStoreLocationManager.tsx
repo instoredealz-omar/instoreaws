@@ -235,17 +235,26 @@ export default function MultiStoreLocationManager({ locations, onChange }: Multi
               </div>
 
               <div>
-                <Label htmlFor={`phone-${location.id}`}>Store Phone</Label>
+                <Label htmlFor={`phone-${location.id}`}>Store Phone *</Label>
                 <div className="relative mt-1">
                   <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     id={`phone-${location.id}`}
-                    placeholder="e.g., +91 9876543210"
+                    placeholder="10-digit number (e.g., 9876543210)"
+                    type="tel"
+                    inputMode="numeric"
                     value={location.phone}
-                    onChange={(e) => updateLocation(location.id, 'phone', e.target.value)}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/\D/g, '').slice(0, 10);
+                      updateLocation(location.id, 'phone', value);
+                    }}
+                    maxLength={10}
                     className="pl-10"
                   />
                 </div>
+                {location.phone && location.phone.length !== 10 && (
+                  <p className="text-xs text-red-500 mt-1">Phone must be 10 digits</p>
+                )}
               </div>
             </div>
           </CardContent>

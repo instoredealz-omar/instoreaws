@@ -35,8 +35,6 @@ import ImageUpload from "@/components/ui/image-upload";
 import PinTracker from "@/components/ui/pin-tracker";
 import RotatingPinDisplay from "@/components/ui/rotating-pin-display";
 import MultiStoreLocationManager from "@/components/MultiStoreLocationManager";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { indianStates, getCitiesByState } from "@/lib/cities";
 
 const dealSchema = z.object({
   title: z.string().min(5, "Title must be at least 5 characters"),
@@ -57,25 +55,7 @@ const dealSchema = z.object({
   dealAvailability: z.enum(["selected-locations"]).default("selected-locations"),
   dealType: z.enum(['offline', 'online']).default('offline'),
   affiliateLink: z.string().optional(),
-  state: z.string().min(1, "Please select a state"),
-  city: z.string().min(1, "Please select a city"),
-  sublocation: z.string().optional(),
-  pincode: z.string().min(1, "Pincode is required"),
-  contactPhone: z.string().min(1, "Contact number is required"),
 }).refine(
-  (data) => {
-    // Validate phone number for India (10 digits)
-    const phoneDigits = data.contactPhone.replace(/\D/g, '');
-    if (phoneDigits.length !== 10) {
-      return false;
-    }
-    return true;
-  },
-  {
-    message: 'Contact number must be 10 digits',
-    path: ['contactPhone'],
-  }
-).refine(
   (data) => {
     if (data.dealType === 'online' && !data.affiliateLink) {
       return false;
@@ -257,7 +237,7 @@ export default function VendorDeals() {
       discountPercentage: 10,
       verificationPin: "",
       validUntil: "",
-      dealAvailability: "all-stores",
+      dealAvailability: "selected-locations",
       dealType: "offline",
       affiliateLink: "",
       maxRedemptions: undefined,
@@ -266,11 +246,6 @@ export default function VendorDeals() {
       latitude: undefined,
       longitude: undefined,
       useCurrentLocation: false,
-      state: "",
-      city: "",
-      sublocation: "",
-      pincode: "",
-      contactPhone: "",
     },
   });
 
@@ -403,6 +378,30 @@ export default function VendorDeals() {
   });
 
   const handleSubmit = (data: DealForm) => {
+    // Validate that at least one location is added
+    if (storeLocations.length === 0) {
+      toast({
+        title: "Locations Required",
+        description: "Please add at least one store location for this deal.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate all locations have required fields
+    const invalidLocations = storeLocations.filter(
+      loc => !loc.storeName || !loc.address || !loc.state || !loc.city || !loc.pincode || loc.phone.length !== 10
+    );
+    
+    if (invalidLocations.length > 0) {
+      toast({
+        title: "Incomplete Locations",
+        description: "Please ensure all store locations have complete information and a valid 10-digit phone number.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (editingDeal) {
       updateDealMutation.mutate(data);
     } else {
