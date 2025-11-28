@@ -896,6 +896,12 @@ export const insertDealSchema = createInsertSchema(deals).omit({
   createdAt: true,
   currentRedemptions: true,
   viewCount: true,
+}).extend({
+  state: z.string().optional(),
+  city: z.string().optional(),
+  sublocation: z.string().optional(),
+  pincode: z.string().optional(),
+  contactPhone: z.string().optional(),
 });
 
 export const insertDealLocationSchema = createInsertSchema(dealLocations).omit({

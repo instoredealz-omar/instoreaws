@@ -2080,22 +2080,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         contactPhone: req.body.contactPhone,
       };
       
-      Logger.debug('Deal creation data received:', {
-        hasState: !!transformedData.state,
-        hasCity: !!transformedData.city,
-        hasSublocation: !!transformedData.sublocation,
-        hasPincode: !!transformedData.pincode,
-        hasContactPhone: !!transformedData.contactPhone,
-        state: transformedData.state,
-        city: transformedData.city,
-        sublocation: transformedData.sublocation,
-        pincode: transformedData.pincode,
-        contactPhone: transformedData.contactPhone,
+      const dealData = insertDealSchema.parse(transformedData);
+      Logger.debug('Deal data after schema parse:', {
+        state: dealData.state,
+        city: dealData.city,
+        sublocation: dealData.sublocation,
+        pincode: dealData.pincode,
+        contactPhone: dealData.contactPhone,
       });
       
-      const dealData = insertDealSchema.parse(transformedData);
-      
       const deal = await storage.createDeal(dealData);
+      Logger.info('Deal created with location data:', {
+        dealId: deal.id,
+        state: deal.state,
+        city: deal.city,
+        sublocation: deal.sublocation,
+        pincode: deal.pincode,
+        contactPhone: deal.contactPhone,
+      });
       
       // Handle multi-store locations if provided
       if (req.body.locations && Array.isArray(req.body.locations) && req.body.locations.length > 0) {
