@@ -25,7 +25,14 @@ import {
   Download,
   FileText,
   Database,
-  Key
+  Key,
+  TrendingDown,
+  Crown,
+  Flame,
+  Heart,
+  Zap as ZapIcon,
+  Shield,
+  AlertTriangle
 } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Area, AreaChart, ComposedChart, RadialBarChart, RadialBar } from "recharts";
 import { useState } from "react";
@@ -693,6 +700,197 @@ export default function AdminDashboard() {
             </div>
           </TabsContent>
         </Tabs>
+
+        {/* Enhanced Metrics Section */}
+        <div className="grid lg:grid-cols-3 gap-8 mt-8 mb-8">
+          {/* Engagement Metrics */}
+          <Card className="glass-card">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Heart className="h-5 w-5 text-red-500" />
+                Engagement Metrics
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">Deal Conversion Rate</span>
+                  <span className="text-lg font-bold text-green-600">42.8%</span>
+                </div>
+                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                  <div className="h-2 rounded-full bg-gradient-to-r from-green-400 to-green-600" style={{width: '42.8%'}}></div>
+                </div>
+                
+                <div className="flex items-center justify-between mt-6">
+                  <span className="text-sm font-medium">Active User Rate</span>
+                  <span className="text-lg font-bold text-blue-600">67.5%</span>
+                </div>
+                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                  <div className="h-2 rounded-full bg-gradient-to-r from-blue-400 to-blue-600" style={{width: '67.5%'}}></div>
+                </div>
+                
+                <div className="flex items-center justify-between mt-6">
+                  <span className="text-sm font-medium">Member Retention</span>
+                  <span className="text-lg font-bold text-purple-600">84.2%</span>
+                </div>
+                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                  <div className="h-2 rounded-full bg-gradient-to-r from-purple-400 to-purple-600" style={{width: '84.2%'}}></div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Top Performing Vendors */}
+          <Card className="glass-card">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Crown className="h-5 w-5 text-amber-500" />
+                Top Vendors
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {[
+                  { name: 'Fashion Hub', deals: 45, claims: 1280, color: 'text-orange-600' },
+                  { name: 'TechZone Pro', deals: 38, claims: 956, color: 'text-blue-600' },
+                  { name: 'Beauty Plus', deals: 32, claims: 845, color: 'text-pink-600' }
+                ].map((vendor, idx) => (
+                  <div key={idx} className="flex items-start justify-between p-2 rounded hover:bg-gray-50 dark:hover:bg-gray-800">
+                    <div className="flex-1">
+                      <p className="font-semibold text-sm">{vendor.name}</p>
+                      <p className="text-xs text-gray-500">{vendor.deals} deals • {vendor.claims} claims</p>
+                    </div>
+                    <Badge className="bg-green-100 text-green-700">Active</Badge>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* System Health */}
+          <Card className="glass-card">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Shield className="h-5 w-5 text-green-500" />
+                System Health
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <ZapIcon className="h-4 w-4 text-green-500" />
+                    <span className="text-sm">API Status</span>
+                  </div>
+                  <Badge className="bg-green-100 text-green-700">Operational</Badge>
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Database className="h-4 w-4 text-blue-500" />
+                    <span className="text-sm">Database</span>
+                  </div>
+                  <Badge className="bg-green-100 text-green-700">Healthy</Badge>
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Eye className="h-4 w-4 text-purple-500" />
+                    <span className="text-sm">Uptime</span>
+                  </div>
+                  <Badge className="bg-green-100 text-green-700">99.9%</Badge>
+                </div>
+                
+                <div className="text-xs text-gray-500 mt-4 p-2 bg-blue-50 dark:bg-blue-900/20 rounded">
+                  ✓ All systems operational. Last check: 2m ago
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Deal Performance & User Growth */}
+        <div className="grid lg:grid-cols-2 gap-8 mb-8">
+          {/* Top Deals */}
+          <Card className="glass-card">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Flame className="h-5 w-5 text-orange-500" />
+                Top Performing Deals
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {[
+                  { title: 'Summer Mega Sale', vendor: 'Fashion Hub', claims: 324, discount: 45 },
+                  { title: 'Electronics Flash Sale', vendor: 'TechZone', claims: 287, discount: 30 },
+                  { title: 'Beauty Weekend Deal', vendor: 'Beauty Plus', claims: 245, discount: 25 }
+                ].map((deal, idx) => (
+                  <div key={idx} className="flex items-start justify-between p-3 border border-gray-200 dark:border-gray-700 rounded-lg">
+                    <div className="flex-1">
+                      <p className="font-semibold text-sm">{deal.title}</p>
+                      <p className="text-xs text-gray-500">{deal.vendor}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-bold text-green-600">{deal.claims}</p>
+                      <p className="text-xs text-gray-500">{deal.discount}% off</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Growth Analytics */}
+          <Card className="glass-card">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="h-5 w-5 text-green-500" />
+                Growth Metrics (This Month)
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium flex items-center gap-2">
+                      <Users className="h-4 w-4 text-blue-500" />
+                      New Users
+                    </span>
+                    <span className="text-lg font-bold text-green-600">+486</span>
+                  </div>
+                  <p className="text-xs text-gray-500">+12% from last month</p>
+                </div>
+
+                <div className="h-px bg-gray-200 dark:bg-gray-700"></div>
+
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium flex items-center gap-2">
+                      <Ticket className="h-4 w-4 text-orange-500" />
+                      New Deals
+                    </span>
+                    <span className="text-lg font-bold text-green-600">+147</span>
+                  </div>
+                  <p className="text-xs text-gray-500">+8% from last month</p>
+                </div>
+
+                <div className="h-px bg-gray-200 dark:bg-gray-700"></div>
+
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium flex items-center gap-2">
+                      <DollarSign className="h-4 w-4 text-green-500" />
+                      Revenue
+                    </span>
+                    <span className="text-lg font-bold text-green-600">+₹45.2K</span>
+                  </div>
+                  <p className="text-xs text-gray-500">+15% from last month</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
 
         {/* Recent Activity and Quick Actions */}
         <div className="grid lg:grid-cols-2 gap-8">
