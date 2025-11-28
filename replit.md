@@ -6,6 +6,13 @@ Instoredealz is a full-stack deal discovery platform designed to connect custome
 ## User Preferences
 Preferred communication style: Simple, everyday language.
 
+## Recent Changes (November 28, 2025 - Current Session)
+- **Fixed Store Location Data Capture**: Added state, city, sublocation, pincode, and contactPhone fields to deals table schema for capturing store location info during deal creation
+- **Simplified Country Selection to India-Only**: Removed multi-country phone validation dropdown since app will be used in India exclusively, hardcoded to 10-digit Indian phone numbers
+- **Location Fields Now Always Visible**: Made state, city, sublocation, pincode, and contact number fields permanently visible in deal creation form instead of conditional display
+- **Admin Claimed Deals Now Shows Store Location**: Updated `/api/admin/claimed-deals` endpoint to build store location from deal's location fields and display in claimed deals table
+- **Store Location Format**: Store locations now display as "Sublocation, City, State, Pincode" format in admin panel
+
 ## Recent Changes (October 2025)
 - **Separated online and offline deal claim flows**: Online deals now bypass store verification, providing immediate claim codes and affiliate link redirects. Offline deals continue to require in-store PIN verification with bill amount.
 - **Enhanced security for online claims**: Implemented crypto-grade randomness (crypto.randomBytes) for generating claim codes instead of Math.random()

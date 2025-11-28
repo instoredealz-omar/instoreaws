@@ -2072,6 +2072,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Ensure latitude and longitude are strings if provided
         latitude: req.body.latitude ? String(req.body.latitude) : undefined,
         longitude: req.body.longitude ? String(req.body.longitude) : undefined,
+        // Store location fields
+        state: req.body.state,
+        city: req.body.city,
+        sublocation: req.body.sublocation || null,
+        pincode: req.body.pincode,
+        contactPhone: req.body.contactPhone,
       };
       
       const dealData = insertDealSchema.parse(transformedData);
@@ -3511,6 +3517,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const calculatedSavings = billAmount > 0 ? (billAmount * discountPercentage) / 100 : 0;
         const actualSavings = calculatedSavings > 0 ? calculatedSavings : parseFloat(claim.actualSavings || '0');
 
+        // Build store location from deal data
+        const storeLocation = deal ? [
+          deal.sublocation,
+          deal.city,
+          deal.state,
+          deal.pincode
+        ].filter(Boolean).join(", ") : null;
+
         return {
           claimId: claim.id,
           claimCode: claim.claimCode,
@@ -3519,7 +3533,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           verifiedAt: claim.verifiedAt,
           status: claim.status,
           vendorVerified: claim.vendorVerified,
-          storeLocation: claim.storeLocation,
+          storeLocation: storeLocation,
           
           customerId: customer?.id,
           customerName: customer?.name,

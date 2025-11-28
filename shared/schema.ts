@@ -106,6 +106,11 @@ export const deals = pgTable("deals", {
   dealAvailability: text("deal_availability").default("all-stores"), // all-stores, selected-locations
   dealType: text("deal_type").default("offline"), // offline, online - for affiliate marketing
   affiliateLink: text("affiliate_link"), // URL for online deals (affiliate link to vendor website/app)
+  state: text("state"), // Store location state (India)
+  city: text("city"), // Store location city (India)
+  sublocation: text("sublocation"), // Store location sublocation (e.g., Dadar, Bandra)
+  pincode: text("pincode"), // Store location pincode (India)
+  contactPhone: text("contact_phone"), // Store contact phone (India)
   createdAt: timestamp("created_at").defaultNow(),
 });
 
