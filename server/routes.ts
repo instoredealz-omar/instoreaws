@@ -5259,6 +5259,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
             const customer = await storage.getUser(claim.userId);
             const deal = deals.find(d => d.id === claim.dealId);
             
+            // Build store location from deal info
+            let storeLocation = '-';
+            if (deal) {
+              if (deal.dealAvailability === 'all-stores') {
+                // Location from deals table
+                const locationParts = [deal.sublocation, deal.city, deal.state, deal.pincode].filter(Boolean);
+                storeLocation = locationParts.length > 0 ? locationParts.join(', ') : '-';
+              } else if (deal.dealAvailability === 'selected-locations') {
+                // Get first location from deal_locations table
+                const dealLocations = await storage.getDealLocations(deal.id);
+                if (dealLocations.length > 0) {
+                  const loc = dealLocations[0];
+                  const locationParts = [loc.sublocation, loc.city, loc.state, loc.pincode].filter(Boolean);
+                  storeLocation = locationParts.length > 0 ? locationParts.join(', ') : '-';
+                }
+              }
+            }
+            
             return {
               id: claim.id,
               claimCode: claim.claimCode,
@@ -5275,6 +5293,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               customerMembership: customer?.membershipPlan || 'basic',
               dealTitle: deal?.title || 'Unknown Deal',
               discountPercentage: deal?.discountPercentage || 0,
+              storeLocation: storeLocation,
               dealId: claim.dealId,
               customerId: claim.userId
             };

@@ -946,119 +946,124 @@ export default function VendorDeals() {
                       />
                     )}
 
-                    {/* State and City */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <FormField
-                        control={form.control}
-                        name="state"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-sm">State *</FormLabel>
-                            <Select onValueChange={field.onChange} value={field.value}>
+                    {/* All Stores Location Fields - Only show for All Stores */}
+                    {form.watch("dealAvailability") === "all-stores" && (
+                      <>
+                        {/* State and City */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <FormField
+                            control={form.control}
+                            name="state"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-sm">State *</FormLabel>
+                                <Select onValueChange={field.onChange} value={field.value}>
+                                  <FormControl>
+                                    <SelectTrigger className="h-12">
+                                      <SelectValue placeholder="Select state" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    {indianStates.map((state) => (
+                                      <SelectItem key={state.name} value={state.name}>
+                                        {state.name}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={form.control}
+                            name="city"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-sm">City *</FormLabel>
+                                <Select onValueChange={field.onChange} value={field.value}>
+                                  <FormControl>
+                                    <SelectTrigger className="h-12">
+                                      <SelectValue placeholder="Select city" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    {form.watch("state") && getCitiesByState(form.watch("state") || "").map((city) => (
+                                      <SelectItem key={city} value={city}>
+                                        {city}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+
+                        {/* Sublocation and Pincode */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <FormField
+                            control={form.control}
+                            name="sublocation"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-sm">Sublocation</FormLabel>
+                                <FormControl>
+                                  <Input 
+                                    {...field} 
+                                    placeholder="e.g., Dadar, Bandra"
+                                    className="h-12 text-base"
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={form.control}
+                            name="pincode"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-sm">Pincode *</FormLabel>
+                                <FormControl>
+                                  <Input 
+                                    {...field} 
+                                    placeholder="400001"
+                                    className="h-12 text-base"
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+
+                        {/* Contact Number */}
+                        <FormField
+                          control={form.control}
+                          name="contactPhone"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-sm">Contact Number *</FormLabel>
                               <FormControl>
-                                <SelectTrigger className="h-12">
-                                  <SelectValue placeholder="Select state" />
-                                </SelectTrigger>
+                                <Input 
+                                  {...field} 
+                                  placeholder="9876543210"
+                                  className="h-12 text-base"
+                                />
                               </FormControl>
-                              <SelectContent>
-                                {indianStates.map((state) => (
-                                  <SelectItem key={state.name} value={state.name}>
-                                    {state.name}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="city"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-sm">City *</FormLabel>
-                            <Select onValueChange={field.onChange} value={field.value}>
-                              <FormControl>
-                                <SelectTrigger className="h-12">
-                                  <SelectValue placeholder="Select city" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                {form.watch("state") && getCitiesByState(form.watch("state") || "").map((city) => (
-                                  <SelectItem key={city} value={city}>
-                                    {city}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-
-                    {/* Sublocation and Pincode */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <FormField
-                        control={form.control}
-                        name="sublocation"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-sm">Sublocation</FormLabel>
-                            <FormControl>
-                              <Input 
-                                {...field} 
-                                placeholder="e.g., Dadar, Bandra"
-                                className="h-12 text-base"
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="pincode"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-sm">Pincode *</FormLabel>
-                            <FormControl>
-                              <Input 
-                                {...field} 
-                                placeholder="400001"
-                                className="h-12 text-base"
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-
-                    {/* Contact Number */}
-                    <FormField
-                      control={form.control}
-                      name="contactPhone"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-sm">Contact Number *</FormLabel>
-                          <FormControl>
-                            <Input 
-                              {...field} 
-                              placeholder="9876543210"
-                              className="h-12 text-base"
-                            />
-                          </FormControl>
-                          <FormDescription className="text-xs">
-                            10-digit Indian phone number
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                              <FormDescription className="text-xs">
+                                10-digit Indian phone number
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </>
+                    )}
 
                     {/* Row 7: Image Upload */}
                     <FormField
