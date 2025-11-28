@@ -57,30 +57,21 @@ const dealSchema = z.object({
   dealAvailability: z.enum(["all-stores", "selected-locations"]).default("all-stores"),
   dealType: z.enum(['offline', 'online']).default('offline'),
   affiliateLink: z.string().optional(),
-  state: z.string().optional(),
-  city: z.string().optional(),
+  state: z.string().min(1, "Please select a state"),
+  city: z.string().min(1, "Please select a city"),
   sublocation: z.string().optional(),
-  pincode: z.string().optional(),
-  contactPhone: z.string().optional(),
+  pincode: z.string().min(1, "Pincode is required"),
+  contactPhone: z.string().min(10, "Contact number must be 10 digits").max(10, "Contact number must be 10 digits"),
 }).refine(
   (data) => {
     if (data.dealType === 'online' && !data.affiliateLink) {
       return false;
     }
-    if (data.dealAvailability === 'selected-locations' && !data.state) {
-      return false;
-    }
-    if (data.dealAvailability === 'selected-locations' && !data.city) {
-      return false;
-    }
-    if (data.dealAvailability === 'selected-locations' && !data.contactPhone) {
-      return false;
-    }
     return true;
   },
   {
-    message: 'Please fill in all location and contact details for selected locations',
-    path: ['state'],
+    message: 'Affiliate link is required for online deals',
+    path: ['affiliateLink'],
   }
 );
 
@@ -934,124 +925,119 @@ export default function VendorDeals() {
                       )}
                     />
 
-                    {/* Location Details for Selected Locations */}
-                    {form.watch("dealAvailability") === "selected-locations" && (
-                      <>
-                        {/* State and City */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                          <FormField
-                            control={form.control}
-                            name="state"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel className="text-sm">State *</FormLabel>
-                                <Select onValueChange={field.onChange} value={field.value}>
-                                  <FormControl>
-                                    <SelectTrigger className="h-12">
-                                      <SelectValue placeholder="Select state" />
-                                    </SelectTrigger>
-                                  </FormControl>
-                                  <SelectContent>
-                                    {indianStates.map((state) => (
-                                      <SelectItem key={state.name} value={state.name}>
-                                        {state.name}
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-
-                          <FormField
-                            control={form.control}
-                            name="city"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel className="text-sm">City *</FormLabel>
-                                <Select onValueChange={field.onChange} value={field.value}>
-                                  <FormControl>
-                                    <SelectTrigger className="h-12">
-                                      <SelectValue placeholder="Select city" />
-                                    </SelectTrigger>
-                                  </FormControl>
-                                  <SelectContent>
-                                    {form.watch("state") && getCitiesByState(form.watch("state") || "").map((city) => (
-                                      <SelectItem key={city} value={city}>
-                                        {city}
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
-
-                        {/* Sublocation and Pincode */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                          <FormField
-                            control={form.control}
-                            name="sublocation"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel className="text-sm">Sublocation</FormLabel>
-                                <FormControl>
-                                  <Input 
-                                    {...field} 
-                                    placeholder="e.g., Dadar, Bandra"
-                                    className="h-12 text-base"
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-
-                          <FormField
-                            control={form.control}
-                            name="pincode"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel className="text-sm">Pincode *</FormLabel>
-                                <FormControl>
-                                  <Input 
-                                    {...field} 
-                                    placeholder="400001"
-                                    className="h-12 text-base"
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
-
-                        {/* Contact Number */}
-                        <FormField
-                          control={form.control}
-                          name="contactPhone"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel className="text-sm">Contact Number *</FormLabel>
+                    {/* State and City */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <FormField
+                        control={form.control}
+                        name="state"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-sm">State *</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value}>
                               <FormControl>
-                                <Input 
-                                  {...field} 
-                                  placeholder="9876543210"
-                                  className="h-12 text-base"
-                                />
+                                <SelectTrigger className="h-12">
+                                  <SelectValue placeholder="Select state" />
+                                </SelectTrigger>
                               </FormControl>
-                              <FormDescription className="text-xs">
-                                10-digit phone number
-                              </FormDescription>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </>
-                    )}
+                              <SelectContent>
+                                {indianStates.map((state) => (
+                                  <SelectItem key={state.name} value={state.name}>
+                                    {state.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="city"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-sm">City *</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value}>
+                              <FormControl>
+                                <SelectTrigger className="h-12">
+                                  <SelectValue placeholder="Select city" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {form.watch("state") && getCitiesByState(form.watch("state") || "").map((city) => (
+                                  <SelectItem key={city} value={city}>
+                                    {city}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    {/* Sublocation and Pincode */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <FormField
+                        control={form.control}
+                        name="sublocation"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-sm">Sublocation</FormLabel>
+                            <FormControl>
+                              <Input 
+                                {...field} 
+                                placeholder="e.g., Dadar, Bandra"
+                                className="h-12 text-base"
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="pincode"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-sm">Pincode *</FormLabel>
+                            <FormControl>
+                              <Input 
+                                {...field} 
+                                placeholder="400001"
+                                className="h-12 text-base"
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    {/* Contact Number */}
+                    <FormField
+                      control={form.control}
+                      name="contactPhone"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-sm">Contact Number *</FormLabel>
+                          <FormControl>
+                            <Input 
+                              {...field} 
+                              placeholder="9876543210"
+                              className="h-12 text-base"
+                            />
+                          </FormControl>
+                          <FormDescription className="text-xs">
+                            10-digit phone number
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
                     {/* Row 7: Image Upload */}
                     <FormField
