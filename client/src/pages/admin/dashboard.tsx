@@ -889,6 +889,81 @@ export default function AdminDashboard() {
                 </ChartContainer>
               </CardContent>
             </Card>
+
+            {/* Top Performing Sublocations & Top Customers by Location */}
+            <div className="grid lg:grid-cols-2 gap-8">
+              {/* Top Performing Sublocations */}
+              <Card className="glass-card">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <MapPin className="h-5 w-5 text-blue-600" />
+                    Top Performing Sublocations
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ChartContainer config={chartConfig} className="h-[300px] w-full">
+                    <BarChart data={[
+                      { sublocation: 'Mumbai - Bandra', deals: 145, claims: 1280, revenue: 45000 },
+                      { sublocation: 'Delhi - Connaught', deals: 132, claims: 1050, revenue: 38000 },
+                      { sublocation: 'Bangalore - Whitefield', deals: 118, claims: 920, revenue: 35000 },
+                      { sublocation: 'Mumbai - Andheri', deals: 105, claims: 850, revenue: 32000 },
+                      { sublocation: 'Delhi - Karol Bagh', deals: 98, claims: 780, revenue: 28000 }
+                    ]} key={animationKey}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.6} />
+                      <XAxis dataKey="sublocation" tick={{ fill: 'hsl(var(--foreground))', fontSize: 10 }} angle={-45} textAnchor="end" height={80} />
+                      <YAxis tick={{ fill: 'hsl(var(--foreground))', fontSize: 12 }} />
+                      <Tooltip content={<ChartTooltipContent />} />
+                      <Bar dataKey="deals" fill={CHART_COLORS.primary[0]} name="Deals" radius={[4, 4, 0, 0]} />
+                      <Bar dataKey="claims" fill={CHART_COLORS.success[0]} name="Claims" radius={[4, 4, 0, 0]} />
+                    </BarChart>
+                  </ChartContainer>
+                </CardContent>
+              </Card>
+
+              {/* Top 10 Customers by Location */}
+              <Card className="glass-card">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Users className="h-5 w-5 text-green-600" />
+                    Top 10 Customers by Location
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3 max-h-[300px] overflow-y-auto">
+                    {[
+                      { rank: 1, name: 'Rajesh Kumar', location: 'Mumbai - Bandra', claims: 42, savings: '₹12,500' },
+                      { rank: 2, name: 'Priya Sharma', location: 'Delhi - Connaught', claims: 38, savings: '₹11,200' },
+                      { rank: 3, name: 'Amit Patel', location: 'Bangalore - Whitefield', claims: 35, savings: '₹10,800' },
+                      { rank: 4, name: 'Anjali Singh', location: 'Mumbai - Andheri', claims: 32, savings: '₹9,600' },
+                      { rank: 5, name: 'Vikram Gupta', location: 'Delhi - Karol Bagh', claims: 28, savings: '₹8,400' },
+                      { rank: 6, name: 'Neha Verma', location: 'Mumbai - Bandra', claims: 26, savings: '₹7,800' },
+                      { rank: 7, name: 'Sanjay Desai', location: 'Bangalore - Whitefield', claims: 24, savings: '₹7,200' },
+                      { rank: 8, name: 'Riya Nair', location: 'Hyderabad - Jubilee', claims: 22, savings: '₹6,600' },
+                      { rank: 9, name: 'Karthik Iyer', location: 'Chennai - T.Nagar', claims: 20, savings: '₹6,000' },
+                      { rank: 10, name: 'Maya Kulkarni', location: 'Pune - Camp', claims: 18, savings: '₹5,400' }
+                    ].map((customer) => (
+                      <div key={customer.rank} className="flex items-start justify-between p-2 rounded hover:bg-gray-50 dark:hover:bg-gray-800 border border-gray-200 dark:border-gray-700">
+                        <div className="flex items-start gap-3 flex-1">
+                          <Badge className="bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 mt-0.5">
+                            #{customer.rank}
+                          </Badge>
+                          <div className="flex-1">
+                            <p className="font-semibold text-sm">{customer.name}</p>
+                            <p className="text-xs text-gray-500 flex items-center gap-1">
+                              <MapPin className="h-3 w-3" />
+                              {customer.location}
+                            </p>
+                            <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                              {customer.claims} claims • Saved {customer.savings}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
         </Tabs>
 
