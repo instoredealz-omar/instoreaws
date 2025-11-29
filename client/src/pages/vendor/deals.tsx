@@ -36,12 +36,28 @@ import PinTracker from "@/components/ui/pin-tracker";
 import RotatingPinDisplay from "@/components/ui/rotating-pin-display";
 import MultiStoreLocationManager from "@/components/MultiStoreLocationManager";
 
+// Store types for deal categorization
+const STORE_TYPES = [
+  { value: "electronics", label: "Electronics Store" },
+  { value: "fashion", label: "Fashion & Apparel" },
+  { value: "food", label: "Food & Beverage" },
+  { value: "travel", label: "Travel & Tourism" },
+  { value: "home", label: "Home & Furniture" },
+  { value: "fitness", label: "Fitness & Wellness" },
+  { value: "beauty", label: "Beauty & Personal Care" },
+  { value: "entertainment", label: "Entertainment" },
+  { value: "services", label: "Services" },
+  { value: "automotive", label: "Automotive" },
+  { value: "general", label: "General/Multi-Category" },
+];
+
 const dealSchema = z.object({
   title: z.string().min(5, "Title must be at least 5 characters"),
   description: z.string().min(10, "Description must be at least 10 characters"),
   category: z.string().min(1, "Please select a category"),
   subcategory: z.string().optional(),
   customCategory: z.string().optional(),
+  storeType: z.string().optional(),
   imageUrl: z.string().optional().or(z.literal("")),
   discountPercentage: z.number().min(1, "Discount must be at least 1%").max(90, "Discount cannot exceed 90%"),
   verificationPin: z.string().min(6, "Verification code must be 6 characters").max(6, "Verification code must be 6 characters"),
@@ -233,6 +249,7 @@ export default function VendorDeals() {
       category: "",
       subcategory: "",
       customCategory: "",
+      storeType: "",
       imageUrl: "",
       discountPercentage: 10,
       verificationPin: "",
@@ -753,6 +770,38 @@ export default function VendorDeals() {
                         )}
                       />
                     )}
+
+                    {/* Store Type */}
+                    <FormField
+                      control={form.control}
+                      name="storeType"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-sm">Store Type</FormLabel>
+                          <Select 
+                            onValueChange={field.onChange} 
+                            defaultValue={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger className="h-12" data-testid="select-store-type">
+                                <SelectValue placeholder="Select your store type" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {STORE_TYPES.map((type) => (
+                                <SelectItem key={type.value} value={type.value}>
+                                  {type.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormDescription className="text-xs">
+                            Helps categorize your deal based on your business type
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
                     {/* Conditional: Custom Category */}
                     {showCustomCategory && (
