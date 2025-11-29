@@ -84,6 +84,32 @@ import DebugData from "@/pages/DebugData";
 import MagicAdminDashboard from "@/components/AdminDashboard";
 import BannerList from "@/components/BannerList";
 
+// Generic profile redirect component
+const ProfileRedirect: React.FC = () => {
+  const { user, isLoading } = useAuth();
+  const [, navigate] = useLocation();
+  
+  useEffect(() => {
+    if (!isLoading && user) {
+      if (user.role === 'vendor') {
+        navigate('/vendor/profile');
+      } else if (user.role === 'customer') {
+        navigate('/customer/profile');
+      } else if (user.role === 'admin' || user.role === 'superadmin') {
+        navigate('/admin/dashboard');
+      }
+    } else if (!isLoading && !user) {
+      navigate('/login');
+    }
+  }, [user, isLoading, navigate]);
+  
+  return (
+    <div className="flex justify-center items-center min-h-screen">
+      <div className="text-lg">Redirecting...</div>
+    </div>
+  );
+};
+
 
 // Role-based route protection component with TypeScript
 interface RoleProtectedRouteProps {
@@ -155,6 +181,7 @@ function Router() {
   const [matchDeals] = useRoute("/deals");
   const [matchDealDetail, dealParams] = useRoute("/deals/:id");
   const [matchBanners] = useRoute("/banners");
+  const [matchProfile] = useRoute("/profile");
 
 
   // Customer routes
@@ -577,6 +604,11 @@ function Router() {
         <SystemLogs />
       </RoleProtectedRoute>
     );
+  }
+
+  // Generic profile route - redirect based on user role
+  if (matchProfile) {
+    return <ProfileRedirect />;
   }
 
   // Unauthorized page (legacy support)
