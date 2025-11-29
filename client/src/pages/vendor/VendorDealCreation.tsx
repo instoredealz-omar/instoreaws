@@ -42,6 +42,21 @@ import { Link } from 'wouter';
 import Navbar from '@/components/ui/navbar';
 import VendorRegistrationStatus from "@/components/vendor-registration-status";
 
+// Store types for deal categorization
+const STORE_TYPES = [
+  { value: "electronics", label: "Electronics Store" },
+  { value: "fashion", label: "Fashion & Apparel" },
+  { value: "food", label: "Food & Beverage" },
+  { value: "travel", label: "Travel & Tourism" },
+  { value: "home", label: "Home & Furniture" },
+  { value: "fitness", label: "Fitness & Wellness" },
+  { value: "beauty", label: "Beauty & Personal Care" },
+  { value: "entertainment", label: "Entertainment" },
+  { value: "services", label: "Services" },
+  { value: "automotive", label: "Automotive" },
+  { value: "general", label: "General/Multi-Category" },
+];
+
 // Enhanced deal creation schema
 const dealCreationSchema = z.object({
   title: z.string().min(5, 'Title must be at least 5 characters'),
@@ -49,6 +64,7 @@ const dealCreationSchema = z.object({
   category: z.string().min(1, 'Please select a category'),
   customCategory: z.string().optional(),
   subcategory: z.string().optional(),
+  storeType: z.string().optional(),
   discountPercentage: z.number().min(1, 'Discount must be at least 1%').max(90, 'Discount cannot exceed 90%').optional().refine(val => val !== undefined, 'Discount percentage is required'),
   originalPrice: z.number().min(1, 'Original price must be greater than 0').optional(),
   validUntil: z.string().min(1, 'Please select a valid until date'),
@@ -127,6 +143,7 @@ const VendorDealCreation = () => {
       category: '',
       customCategory: '',
       subcategory: '',
+      storeType: '',
       discountPercentage: 10,
       originalPrice: undefined,
       validUntil: '',
