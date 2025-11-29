@@ -91,19 +91,24 @@ const categories = [
 ];
 
 const DEAL_DESCRIPTIONS: Record<string, string> = {
-  electronics: "We sell: Smartphones, Laptops, TVs, Home Appliances, Cameras, Audio Systems, Gaming Consoles, Tablets, Wearables. Get flat discount on your total bill. Terms: Valid on all products, cannot be combined with other offers.",
-  fashion: "We sell: Men's & Women's Clothing, Footwear, Handbags, Accessories, Ethnic Wear, Western Wear, Kids Wear, Sportswear. Get flat discount on your total purchase. Terms: Valid on all items, minimum purchase may apply.",
-  restaurants: "We serve: North Indian, South Indian, Chinese, Continental, Fast Food, Desserts, Beverages, Multi-Cuisine. Get flat discount on your total food bill. Terms: Dine-in only, taxes extra, not valid on alcohol.",
-  beauty: "We offer: Haircuts, Hair Coloring, Facials, Manicure, Pedicure, Spa Treatments, Bridal Makeup, Skin Care Services. Get flat discount on your total service bill. Terms: Prior appointment recommended.",
-  fitness: "We offer: Gym Memberships, Personal Training, Yoga Classes, Zumba, CrossFit, Swimming, Aerobics, Sports Training. Get flat discount on membership fees. Terms: Valid for new and existing members.",
-  travel: "We offer: Holiday Packages, Flight Bookings, Hotel Stays, Car Rentals, Tour Guides, Adventure Trips, Honeymoon Packages. Get flat discount on total booking value. Terms: Advance booking required.",
-  home: "We sell: Furniture, Home Decor, Mattresses, Kitchenware, Lighting, Curtains, Bedding, Storage Solutions. Get flat discount on your total purchase. Terms: Delivery charges may apply.",
-  automotive: "We offer: Car Servicing, Oil Change, Tyre Replacement, AC Service, Denting & Painting, Car Wash, Accessories. Get flat discount on your total service bill. Terms: Appointment required.",
-  education: "We offer: Coaching Classes, Online Courses, Skill Training, Language Classes, Competitive Exam Prep, Certification Programs. Get flat discount on course fees. Terms: Valid for new enrollments.",
-  healthcare: "We offer: Health Checkups, Lab Tests, Doctor Consultations, Dental Care, Eye Care, Physiotherapy, Diagnostic Services. Get flat discount on your total bill. Terms: Prior appointment recommended.",
-  entertainment: "We offer: Movie Tickets, Gaming Zones, Amusement Parks, Bowling, Escape Rooms, Event Tickets, Theme Parks. Get flat discount on entry or ticket prices. Terms: Subject to availability.",
-  services: "We offer: Home Cleaning, Plumbing, Electrical Work, Pest Control, AC Repair, Carpentry, Painting, Moving Services. Get flat discount on your total service bill. Terms: Advance booking required.",
-  others: "Describe what products or services you offer and the discount available on total billing. Include any terms and conditions.",
+  electronics: "We sell: Smartphones, Laptops, TVs, Home Appliances, Cameras, Audio Systems, Gaming Consoles, Tablets, Wearables, Computer Accessories, Smart Home Devices. Get flat discount on your total bill.",
+  fashion: "We sell: Men's & Women's Clothing, Footwear, Handbags, Accessories, Ethnic Wear, Sarees, Kurtis, Lehengas, Western Wear, Kids Wear, Sportswear, Jewellery. Get flat discount on your total purchase.",
+  restaurants: "We serve: North Indian, South Indian, Chinese, Continental, Mughlai, Street Food, Biryani, Thali, Fast Food, Desserts, Beverages, Multi-Cuisine. Get flat discount on your total food bill.",
+  beauty: "We offer: Haircuts, Hair Coloring, Mehendi, Facials, Manicure, Pedicure, Spa Treatments, Bridal Makeup, Skin Care, Threading, Waxing. Get flat discount on your total service bill.",
+  fitness: "We offer: Gym Memberships, Personal Training, Yoga Classes, Zumba, CrossFit, Swimming, Aerobics, Martial Arts, Dance Classes, Sports Training. Get flat discount on membership fees.",
+  travel: "We offer: Holiday Packages, Pilgrimage Tours, Flight Bookings, Hotel Stays, Car Rentals, Tour Guides, Adventure Trips, Honeymoon Packages, Visa Services. Get flat discount on total booking value.",
+  home: "We sell: Furniture, Home Decor, Mattresses, Kitchenware, Modular Kitchen, Lighting, Curtains, Bedding, Storage Solutions, Pooja Items. Get flat discount on your total purchase.",
+  automotive: "We offer: Car Servicing, Bike Servicing, Oil Change, Tyre Replacement, AC Service, Denting & Painting, Car Wash, Accessories, Insurance. Get flat discount on your total service bill.",
+  education: "We offer: Coaching Classes, Tuition, Online Courses, Skill Training, Language Classes, IIT-JEE/NEET Prep, UPSC Coaching, Certification Programs. Get flat discount on course fees.",
+  healthcare: "We offer: Health Checkups, Lab Tests, Doctor Consultations, Dental Care, Eye Care, Ayurvedic Treatment, Physiotherapy, Diagnostic Services. Get flat discount on your total bill.",
+  entertainment: "We offer: Movie Tickets, Gaming Zones, Amusement Parks, Water Parks, Bowling, Escape Rooms, Event Tickets, Theme Parks. Get flat discount on entry or ticket prices.",
+  services: "We offer: Home Cleaning, Plumbing, Electrical Work, Pest Control, AC Repair, Carpentry, Painting, Packers & Movers, Interior Design. Get flat discount on your total service bill.",
+  health: "We offer: Wellness Programs, Diet Consultation, Nutrition Plans, Mental Health Counseling, Meditation Sessions, Naturopathy, Homeopathy, Preventive Health Packages. Get flat discount on your total bill.",
+  realestate: "We offer: Residential Properties, Commercial Spaces, Plots, Flats, Villas, PG Accommodation, Property Management, Vastu Consultation, Home Loans Assistance. Get flat discount on brokerage fees.",
+  events: "We offer: Wedding Planning, Birthday Parties, Corporate Events, Catering, Decoration, Photography, DJ Services, Tent House, Mehendi Artists, Anchor Services. Get flat discount on total event package.",
+  freelancers: "We offer: Graphic Design, Content Writing, Web Development, Digital Marketing, Video Editing, Social Media Management, Translation, Data Entry, Virtual Assistance. Get flat discount on project fees.",
+  consultant: "We offer: Business Consulting, CA Services, Legal Advice, Tax Planning, GST Filing, Company Registration, Trademark, Financial Planning, HR Consulting. Get flat discount on consultation fees.",
+  others: "Describe what products or services you offer and the flat discount available on total billing.",
 };
 
 const VendorDealCreation = () => {
@@ -309,7 +314,7 @@ const VendorDealCreation = () => {
                                       ? DEAL_DESCRIPTIONS[selectedCategory]
                                       : "Describe your deal in detail..."
                                   }
-                                  className="min-h-[120px]"
+                                  className="min-h-[180px]"
                                   {...field}
                                   disabled={previewMode}
                                 />
