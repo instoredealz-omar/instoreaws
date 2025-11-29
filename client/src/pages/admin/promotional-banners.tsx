@@ -307,10 +307,17 @@ export default function PromotionalBanners() {
           </Link>
           <div className="w-px h-6 bg-border"></div>
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Promotional Banners</h1>
-            <p className="text-muted-foreground mt-1">
-              Create and manage promotional banners that display across your website with video and social media support
-            </p>
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg">
+                <ImageIcon className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <h1 className="text-3xl font-bold text-foreground">Promotional Banners</h1>
+                <p className="text-muted-foreground mt-1">
+                  Create and manage promotional banners that display across your website with video and social media support
+                </p>
+              </div>
+            </div>
           </div>
         </div>
         <div className="flex space-x-2">
@@ -341,36 +348,43 @@ export default function PromotionalBanners() {
         <div className="space-y-6">
           {/* Overall Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            {allBannerStats.map((stats: any) => {
+            {allBannerStats.map((stats: any, idx: number) => {
               const totalClicks = stats.clicks + stats.socialClicks;
+              const colors = [
+                { bg: 'bg-gradient-to-br from-blue-500 to-cyan-600', icon: 'text-blue-100', text: 'text-white', accent: 'bg-blue-400/30' },
+                { bg: 'bg-gradient-to-br from-purple-500 to-pink-600', icon: 'text-purple-100', text: 'text-white', accent: 'bg-purple-400/30' },
+                { bg: 'bg-gradient-to-br from-emerald-500 to-teal-600', icon: 'text-emerald-100', text: 'text-white', accent: 'bg-emerald-400/30' },
+                { bg: 'bg-gradient-to-br from-orange-500 to-red-600', icon: 'text-orange-100', text: 'text-white', accent: 'bg-orange-400/30' }
+              ];
+              const color = colors[idx % colors.length];
               return (
-                <Card key={stats.bannerId} className="relative overflow-hidden">
+                <Card key={stats.bannerId} className={`relative overflow-hidden ${color.bg} border-0 text-white shadow-lg`}>
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between mb-4">
                       <div className="space-y-1">
-                        <p className="text-sm font-medium text-muted-foreground">Views</p>
-                        <p className="text-2xl font-bold text-blue-600">{stats.views}</p>
+                        <p className={`text-sm font-medium ${color.icon} opacity-90`}>Views</p>
+                        <p className={`text-2xl font-bold ${color.text}`}>{stats.views}</p>
                       </div>
-                      <div className="p-2 bg-blue-100 rounded-lg">
-                        <Eye className="h-4 w-4 text-blue-600" />
+                      <div className={`p-2 ${color.accent} rounded-lg`}>
+                        <Eye className={`h-4 w-4 ${color.icon}`} />
                       </div>
                     </div>
                     <div className="space-y-2">
                       <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Total Clicks:</span>
-                        <span className="font-medium">{totalClicks}</span>
+                        <span className={`${color.icon} opacity-90`}>Total Clicks:</span>
+                        <span className={`font-medium ${color.text}`}>{totalClicks}</span>
                       </div>
                       <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">CTR:</span>
-                        <span className="font-medium text-green-600">{stats.ctr}%</span>
+                        <span className={`${color.icon} opacity-90`}>CTR:</span>
+                        <span className={`font-medium ${color.text}`}>{stats.ctr}%</span>
                       </div>
                       <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Social Clicks:</span>
-                        <span className="font-medium text-purple-600">{stats.socialClicks}</span>
+                        <span className={`${color.icon} opacity-90`}>Social Clicks:</span>
+                        <span className={`font-medium ${color.text}`}>{stats.socialClicks}</span>
                       </div>
                     </div>
                     <div className="mt-3">
-                      <Badge variant={banners.find(b => b.id === stats.bannerId)?.isActive ? "default" : "secondary"}>
+                      <Badge className={`${banners.find(b => b.id === stats.bannerId)?.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
                         {banners.find(b => b.id === stats.bannerId)?.isActive ? 'Active' : 'Inactive'}
                       </Badge>
                     </div>
@@ -381,10 +395,10 @@ export default function PromotionalBanners() {
           </div>
 
           {/* Analytics Summary Card */}
-          <Card>
+          <Card className="bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 border-l-4 border-l-purple-500">
             <CardHeader>
               <CardTitle className="flex items-center">
-                <BarChart3 className="h-5 w-5 mr-2" />
+                <BarChart3 className="h-5 w-5 mr-2 text-purple-600" />
                 Analytics Summary
               </CardTitle>
             </CardHeader>
@@ -502,9 +516,9 @@ export default function PromotionalBanners() {
       )}
 
       {/* Banners List */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Active Banners</CardTitle>
+      <Card className="bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
+        <CardHeader className="bg-gradient-to-r from-indigo-500 to-purple-500">
+          <CardTitle className="text-white">Active Banners</CardTitle>
         </CardHeader>
         <CardContent>
           {isLoading ? (
@@ -525,8 +539,8 @@ export default function PromotionalBanners() {
             </div>
           ) : (
             <div className="space-y-4">
-              {banners.map((banner) => (
-                <div key={banner.id} className="border rounded-lg p-4">
+              {banners.map((banner, idx) => (
+                <div key={banner.id} className="bg-gradient-to-r from-white to-slate-50 dark:from-slate-800 dark:to-slate-700 border-l-4 border-l-indigo-500 rounded-lg p-4 shadow-md hover:shadow-lg transition-shadow">
                   <div className="flex items-start justify-between mb-3">
                     <div className="space-y-1">
                       <div className="flex items-center space-x-2">
@@ -580,8 +594,8 @@ export default function PromotionalBanners() {
                     </div>
                     <div className="flex items-center space-x-2">
                       <Button
-                        variant="outline"
                         size="sm"
+                        className="bg-gradient-to-r from-blue-500 to-cyan-600 text-white hover:from-blue-600 hover:to-cyan-700"
                         onClick={() => {
                           setSelectedBanner(banner);
                           setPreviewVariant(banner.variant === 'carousel' ? 'hero' : banner.variant);
@@ -591,25 +605,23 @@ export default function PromotionalBanners() {
                         <Eye className="h-4 w-4" />
                       </Button>
                       <Button
-                        variant="outline"
                         size="sm"
+                        className="bg-gradient-to-r from-purple-500 to-indigo-600 text-white hover:from-purple-600 hover:to-indigo-700"
                         onClick={() => openEditDialog(banner)}
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
                       <Button
-                        variant="outline"
                         size="sm"
+                        className={banner.isActive ? 'bg-gradient-to-r from-red-500 to-rose-600 text-white hover:from-red-600 hover:to-rose-700' : 'bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:from-green-600 hover:to-emerald-700'}
                         onClick={() => handleToggleActive(banner)}
-                        className={banner.isActive ? 'text-red-600 hover:text-red-700' : 'text-green-600 hover:text-green-700'}
                       >
                         {banner.isActive ? <PowerOff className="h-4 w-4" /> : <Power className="h-4 w-4" />}
                       </Button>
                       <Button
-                        variant="outline"
                         size="sm"
+                        className="bg-gradient-to-r from-red-600 to-pink-600 text-white hover:from-red-700 hover:to-pink-700"
                         onClick={() => handleDelete(banner)}
-                        className="text-red-600 hover:text-red-700"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
