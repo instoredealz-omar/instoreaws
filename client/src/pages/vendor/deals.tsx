@@ -36,20 +36,21 @@ import PinTracker from "@/components/ui/pin-tracker";
 import RotatingPinDisplay from "@/components/ui/rotating-pin-display";
 import MultiStoreLocationManager from "@/components/MultiStoreLocationManager";
 
-// Store types for deal categorization
-const STORE_TYPES = [
-  { value: "electronics", label: "Electronics Store" },
-  { value: "fashion", label: "Fashion & Apparel" },
-  { value: "food", label: "Food & Beverage" },
-  { value: "travel", label: "Travel & Tourism" },
-  { value: "home", label: "Home & Furniture" },
-  { value: "fitness", label: "Fitness & Wellness" },
-  { value: "beauty", label: "Beauty & Personal Care" },
-  { value: "entertainment", label: "Entertainment" },
-  { value: "services", label: "Services" },
-  { value: "automotive", label: "Automotive" },
-  { value: "general", label: "General/Multi-Category" },
-];
+const DEAL_DESCRIPTIONS: Record<string, string> = {
+  electronics: "Example: Get 20% off on all smartphones. This offer includes: free screen protector, 1 year warranty, free installation. Valid on selected models. Terms: Valid on new purchases, cannot be combined with other offers.",
+  fashion: "Example: Buy 2 get 1 free on all winter collection. Includes: shirts, pants, jackets from leading brands. Limited stock available. Terms: Must purchase 2 items to get 3rd free, applicable on equal or lesser value.",
+  restaurants: "Example: Get 30% off on dine-in bills above ₹500. Include: starters, mains, beverages. Valid for lunch and dinner. Terms: Not applicable on alcohol, taxes extra, one offer per table.",
+  beauty: "Example: Free facial treatment with every haircut package. Includes: professional haircut, shampoo, conditioning. Valid at all branches. Terms: Valid for new customers or after 3 months.",
+  fitness: "Example: Get 3 months free gym membership with annual subscription. Includes: unlimited access, personal trainer consultation. Limited offer. Terms: Valid for new members only.",
+  travel: "Example: Book and save 25% on domestic tour packages. Includes: hotel, transportation, meals, sightseeing. Popular destinations. Terms: Advance booking required, non-refundable offer.",
+  home: "Example: Save 40% on all furniture items. Includes: beds, sofas, dining sets. Premium quality guaranteed. Terms: Free delivery for purchases above ₹10000, includes 1 year warranty.",
+  automotive: "Example: Get 50% off on car servicing packages. Includes: oil change, filter replacement, inspection. Authentic parts only. Terms: Valid on first service, appointment required.",
+  education: "Example: Enroll now and get 20% off on course fees. Includes: online classes, materials, certification. Various courses available. Terms: Valid for new enrollments, non-refundable.",
+  healthcare: "Example: Get 30% off on health checkup packages. Includes: blood tests, health screening, doctor consultation. Modern lab facilities. Terms: Results within 24 hours, valid for walk-ins.",
+  entertainment: "Example: Get 2 movie tickets for the price of 1. Valid on all shows except premieres. Premium theaters. Terms: Not applicable on special events, valid on weekdays.",
+  services: "Example: Get 25% off on home cleaning service. Includes: deep cleaning, pest control, sanitization. Professional team. Terms: Minimum 2 visits required, advance booking essential.",
+  others: "Example: Special discount on our products and services. Terms and conditions apply. Contact us for more details.",
+};
 
 const dealSchema = z.object({
   title: z.string().min(5, "Title must be at least 5 characters"),
@@ -57,7 +58,6 @@ const dealSchema = z.object({
   category: z.string().min(1, "Please select a category"),
   subcategory: z.string().optional(),
   customCategory: z.string().optional(),
-  storeType: z.string().optional(),
   imageUrl: z.string().optional().or(z.literal("")),
   discountPercentage: z.number().min(1, "Discount must be at least 1%").max(90, "Discount cannot exceed 90%"),
   verificationPin: z.string().min(6, "Verification code must be 6 characters").max(6, "Verification code must be 6 characters"),
@@ -249,7 +249,6 @@ export default function VendorDeals() {
       category: "",
       subcategory: "",
       customCategory: "",
-      storeType: "",
       imageUrl: "",
       discountPercentage: 10,
       verificationPin: "",
@@ -631,7 +630,11 @@ export default function VendorDeals() {
                           <FormControl>
                             <Textarea 
                               {...field} 
-                              placeholder="Describe your deal"
+                              placeholder={
+                                watchedCategory && DEAL_DESCRIPTIONS[watchedCategory]
+                                  ? DEAL_DESCRIPTIONS[watchedCategory]
+                                  : "Describe your deal - include what's offered, terms and conditions"
+                              }
                               className="min-h-[80px] text-base resize-none"
                               rows={3}
                             />
@@ -770,38 +773,6 @@ export default function VendorDeals() {
                         )}
                       />
                     )}
-
-                    {/* Store Type */}
-                    <FormField
-                      control={form.control}
-                      name="storeType"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-sm">Store Type</FormLabel>
-                          <Select 
-                            onValueChange={field.onChange} 
-                            defaultValue={field.value}
-                          >
-                            <FormControl>
-                              <SelectTrigger className="h-12" data-testid="select-store-type">
-                                <SelectValue placeholder="Select your store type" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {STORE_TYPES.map((type) => (
-                                <SelectItem key={type.value} value={type.value}>
-                                  {type.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormDescription className="text-xs">
-                            Helps categorize your deal based on your business type
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
 
                     {/* Conditional: Custom Category */}
                     {showCustomCategory && (
