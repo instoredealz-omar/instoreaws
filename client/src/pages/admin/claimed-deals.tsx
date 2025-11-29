@@ -22,7 +22,9 @@ import {
   TrendingDown,
   Store,
   Download,
-  Loader2
+  Loader2,
+  MapPin,
+  Crown
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -190,6 +192,19 @@ export default function AdminClaimedDeals() {
   const totalBilledAmount = filteredClaims.reduce((sum, claim) => sum + claim.totalBilledAmount, 0);
   const totalSavings = filteredClaims.reduce((sum, claim) => sum + claim.actualSavings, 0);
 
+  // Calculate max claim city
+  const cityClaimCounts = claimedDeals.reduce((acc, claim) => {
+    const city = claim.vendorCity || 'Unknown';
+    acc[city] = (acc[city] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+  
+  const maxClaimCity = Object.entries(cityClaimCounts).length > 0
+    ? Object.entries(cityClaimCounts).reduce((a, b) => a[1] > b[1] ? a : b)
+    : ['No Data', 0];
+  
+  const usedClaimsCount = filteredClaims.filter(c => c.status === 'used').length;
+
   return (
     <>
       <Navbar />
@@ -204,55 +219,81 @@ export default function AdminClaimedDeals() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <Card>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/50 dark:to-blue-900/30 border-blue-200 dark:border-blue-800 shadow-md hover:shadow-lg transition-shadow">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Claims</CardTitle>
-                <Ticket className="h-4 w-4 text-royal" />
+                <CardTitle className="text-sm font-medium text-blue-800 dark:text-blue-200">Total Claims</CardTitle>
+                <div className="bg-blue-500 p-2 rounded-full">
+                  <Ticket className="h-4 w-4 text-white" />
+                </div>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold" data-testid="text-total-claims">{filteredClaims.length}</div>
-                <p className="text-xs text-muted-foreground">
-                  {claimedDeals.length} total claims
+                <div className="text-3xl font-bold text-blue-900 dark:text-blue-100" data-testid="text-total-claims">{filteredClaims.length}</div>
+                <p className="text-xs text-blue-600 dark:text-blue-300 mt-1">
+                  {usedClaimsCount} redeemed claims
                 </p>
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="bg-gradient-to-br from-green-50 to-emerald-100 dark:from-green-950/50 dark:to-emerald-900/30 border-green-200 dark:border-green-800 shadow-md hover:shadow-lg transition-shadow">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Billed Amount</CardTitle>
-                <DollarSign className="h-4 w-4 text-success" />
+                <CardTitle className="text-sm font-medium text-green-800 dark:text-green-200">Total Billed Amount</CardTitle>
+                <div className="bg-green-500 p-2 rounded-full">
+                  <DollarSign className="h-4 w-4 text-white" />
+                </div>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold" data-testid="text-total-billed">₹{totalBilledAmount.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</div>
-                <p className="text-xs text-muted-foreground">
+                <div className="text-3xl font-bold text-green-900 dark:text-green-100" data-testid="text-total-billed">₹{totalBilledAmount.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</div>
+                <p className="text-xs text-green-600 dark:text-green-300 mt-1">
                   From filtered claims
                 </p>
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="bg-gradient-to-br from-amber-50 to-yellow-100 dark:from-amber-950/50 dark:to-yellow-900/30 border-amber-200 dark:border-amber-800 shadow-md hover:shadow-lg transition-shadow">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Savings</CardTitle>
-                <TrendingDown className="h-4 w-4 text-gold" />
+                <CardTitle className="text-sm font-medium text-amber-800 dark:text-amber-200">Total Savings</CardTitle>
+                <div className="bg-amber-500 p-2 rounded-full">
+                  <TrendingDown className="h-4 w-4 text-white" />
+                </div>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold" data-testid="text-total-savings">₹{totalSavings.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</div>
-                <p className="text-xs text-muted-foreground">
-                  Customer savings
+                <div className="text-3xl font-bold text-amber-900 dark:text-amber-100" data-testid="text-total-savings">₹{totalSavings.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</div>
+                <p className="text-xs text-amber-600 dark:text-amber-300 mt-1">
+                  Customer savings delivered
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-gradient-to-br from-purple-50 to-violet-100 dark:from-purple-950/50 dark:to-violet-900/30 border-purple-200 dark:border-purple-800 shadow-md hover:shadow-lg transition-shadow">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-purple-800 dark:text-purple-200">Top Claim City</CardTitle>
+                <div className="bg-purple-500 p-2 rounded-full">
+                  <MapPin className="h-4 w-4 text-white" />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-purple-900 dark:text-purple-100 flex items-center gap-2" data-testid="text-top-city">
+                  <Crown className="h-5 w-5 text-amber-500" />
+                  {maxClaimCity[0]}
+                </div>
+                <p className="text-xs text-purple-600 dark:text-purple-300 mt-1">
+                  {maxClaimCity[1]} claims from this city
                 </p>
               </CardContent>
             </Card>
           </div>
 
-          <Card>
-            <CardHeader>
+          <Card className="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 shadow-lg">
+            <CardHeader className="bg-gradient-to-r from-indigo-50 via-blue-50 to-cyan-50 dark:from-indigo-950/30 dark:via-blue-950/30 dark:to-cyan-950/30 border-b border-gray-100 dark:border-gray-800">
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <CardTitle className="flex items-center gap-2">
-                  <Ticket className="h-5 w-5 text-royal" />
+                <CardTitle className="flex items-center gap-2 text-indigo-900 dark:text-indigo-100">
+                  <div className="bg-indigo-500 p-2 rounded-lg">
+                    <Ticket className="h-5 w-5 text-white" />
+                  </div>
                   Claimed Deals
                 </CardTitle>
-                <Button onClick={exportToCSV} variant="outline" data-testid="button-export-csv">
+                <Button onClick={exportToCSV} variant="outline" className="bg-white dark:bg-gray-800 border-indigo-200 dark:border-indigo-700 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-950/50" data-testid="button-export-csv">
                   <Download className="w-4 h-4 mr-2" />
                   Export CSV
                 </Button>
