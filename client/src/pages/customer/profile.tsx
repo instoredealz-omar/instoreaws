@@ -54,6 +54,7 @@ interface UserData {
   occupation?: string;
   incomeRange?: string;
   interests?: string[];
+  inferredInterests?: string[];
 }
 
 export default function CustomerProfile() {
@@ -85,7 +86,7 @@ export default function CustomerProfile() {
       maritalStatus: undefined,
       occupation: undefined,
       incomeRange: undefined,
-      interests: [],
+      interests: undefined,
     },
   });
 
@@ -111,7 +112,7 @@ export default function CustomerProfile() {
         maritalStatus: user.maritalStatus as "single" | "married" | "divorced" | "widowed" | "prefer_not_to_say" | undefined,
         occupation: user.occupation as "student" | "employed" | "self_employed" | "homemaker" | "retired" | "prefer_not_to_say" | undefined,
         incomeRange: user.incomeRange as "under_25k" | "25k_50k" | "50k_100k" | "100k_250k" | "above_250k" | "prefer_not_to_say" | undefined,
-        interests: user.interests || [],
+        interests: undefined,
       });
     }
   }, [user, form]);
@@ -147,7 +148,7 @@ export default function CustomerProfile() {
           return true; // Always include profileImage field
         }
         if (key === 'interests') {
-          return Array.isArray(value) && value.length > 0; // Include interests if not empty
+          return false; // Never include interests - auto-tracked from browsing
         }
         if (key === 'householdSize') {
           return typeof value === 'number' && value > 0; // Include householdSize if valid
@@ -597,54 +598,35 @@ export default function CustomerProfile() {
                     <div className="space-y-4">
                       <h3 className="text-lg font-semibold text-foreground border-b pb-2 flex items-center gap-2">
                         <Heart className="h-5 w-5" />
-                        Deal Preferences
+                        Your Interests
                       </h3>
                       <p className="text-sm text-muted-foreground">
-                        Select categories you're interested in to get personalized deal recommendations.
+                        We automatically learn your interests based on deals you browse and claim.
                       </p>
                       
-                      <FormField
-                        control={form.control}
-                        name="interests"
-                        render={({ field }) => (
-                          <FormItem>
-                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
-                              {DEAL_CATEGORIES.map((category) => (
-                                <div
-                                  key={category.value}
-                                  className={`
-                                    flex items-center space-x-2 p-3 rounded-lg border cursor-pointer transition-all
-                                    ${(field.value || []).includes(category.value) 
-                                      ? 'bg-primary/10 border-primary' 
-                                      : 'bg-background border-border hover:border-primary/50'}
-                                  `}
-                                  onClick={() => {
-                                    const currentInterests = field.value || [];
-                                    const newInterests = currentInterests.includes(category.value)
-                                      ? currentInterests.filter((i: string) => i !== category.value)
-                                      : [...currentInterests, category.value];
-                                    field.onChange(newInterests);
-                                  }}
-                                  data-testid={`checkbox-interest-${category.value}`}
-                                >
-                                  <Checkbox
-                                    checked={(field.value || []).includes(category.value)}
-                                    onCheckedChange={(checked) => {
-                                      const currentInterests = field.value || [];
-                                      const newInterests = checked
-                                        ? [...currentInterests, category.value]
-                                        : currentInterests.filter((i: string) => i !== category.value);
-                                      field.onChange(newInterests);
-                                    }}
-                                  />
-                                  <span className="text-sm font-medium">{category.label}</span>
-                                </div>
-                              ))}
-                            </div>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+                      {user?.inferredInterests && user.inferredInterests.length > 0 ? (
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+                          {user.inferredInterests.map((interest) => {
+                            const category = DEAL_CATEGORIES.find(c => c.value === interest);
+                            return (
+                              <div
+                                key={interest}
+                                className="flex items-center space-x-2 p-3 rounded-lg bg-primary/10 border border-primary"
+                                data-testid={`inferred-interest-${interest}`}
+                              >
+                                <Check className="h-4 w-4 text-primary" />
+                                <span className="text-sm font-medium">{category?.label || interest}</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <div className="p-4 rounded-lg bg-muted/50 border border-border">
+                          <p className="text-sm text-muted-foreground">
+                            Start browsing and claiming deals to personalize your recommendations!
+                          </p>
+                        </div>
+                      )}
                     </div>
                   </TabsContent>
 
