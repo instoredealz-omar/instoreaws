@@ -90,6 +90,22 @@ const categories = [
   { id: 'others', name: 'Others' },
 ];
 
+const DEAL_DESCRIPTIONS: Record<string, string> = {
+  electronics: "Example: Get 20% off on all smartphones. This offer includes: free screen protector, 1 year warranty, free installation. Valid on selected models. Terms: Valid on new purchases, cannot be combined with other offers.",
+  fashion: "Example: Buy 2 get 1 free on all winter collection. Includes: shirts, pants, jackets from leading brands. Limited stock available. Terms: Must purchase 2 items to get 3rd free, applicable on equal or lesser value.",
+  restaurants: "Example: Get 30% off on dine-in bills above ₹500. Include: starters, mains, beverages. Valid for lunch and dinner. Terms: Not applicable on alcohol, taxes extra, one offer per table.",
+  beauty: "Example: Free facial treatment with every haircut package. Includes: professional haircut, shampoo, conditioning. Valid at all branches. Terms: Valid for new customers or after 3 months.",
+  fitness: "Example: Get 3 months free gym membership with annual subscription. Includes: unlimited access, personal trainer consultation. Limited offer. Terms: Valid for new members only.",
+  travel: "Example: Book and save 25% on domestic tour packages. Includes: hotel, transportation, meals, sightseeing. Popular destinations. Terms: Advance booking required, non-refundable offer.",
+  home: "Example: Save 40% on all furniture items. Includes: beds, sofas, dining sets. Premium quality guaranteed. Terms: Free delivery for purchases above ₹10000, includes 1 year warranty.",
+  automotive: "Example: Get 50% off on car servicing packages. Includes: oil change, filter replacement, inspection. Authentic parts only. Terms: Valid on first service, appointment required.",
+  education: "Example: Enroll now and get 20% off on course fees. Includes: online classes, materials, certification. Various courses available. Terms: Valid for new enrollments, non-refundable.",
+  healthcare: "Example: Get 30% off on health checkup packages. Includes: blood tests, health screening, doctor consultation. Modern lab facilities. Terms: Results within 24 hours, valid for walk-ins.",
+  entertainment: "Example: Get 2 movie tickets for the price of 1. Valid on all shows except premieres. Premium theaters. Terms: Not applicable on special events, valid on weekdays.",
+  services: "Example: Get 25% off on home cleaning service. Includes: deep cleaning, pest control, sanitization. Professional team. Terms: Minimum 2 visits required, advance booking essential.",
+  others: "Example: Special discount on our products and services. Terms and conditions apply. Contact us for more details.",
+};
+
 const VendorDealCreation = () => {
   const [previewMode, setPreviewMode] = useState(false);
   const [imageUploadMethod, setImageUploadMethod] = useState<'upload' | 'camera' | 'url'>('url');
@@ -168,6 +184,7 @@ const VendorDealCreation = () => {
   };
 
   const watchedValues = form.watch();
+  const selectedCategory = watchedValues.category;
   const discountedPrice = watchedValues.originalPrice 
     ? (watchedValues.originalPrice * (100 - watchedValues.discountPercentage) / 100).toFixed(2)
     : 0;
@@ -287,7 +304,11 @@ const VendorDealCreation = () => {
                               <FormLabel>Description *</FormLabel>
                               <FormControl>
                                 <Textarea
-                                  placeholder="Describe your deal in detail..."
+                                  placeholder={
+                                    selectedCategory && DEAL_DESCRIPTIONS[selectedCategory]
+                                      ? DEAL_DESCRIPTIONS[selectedCategory]
+                                      : "Describe your deal in detail..."
+                                  }
                                   className="min-h-[120px]"
                                   {...field}
                                   disabled={previewMode}
