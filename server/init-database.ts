@@ -19,6 +19,15 @@ export async function initializeDatabase() {
     await db.execute(sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS date_of_birth TIMESTAMP`);
     console.log('[MIGRATION] Gender and date of birth columns added successfully');
     
+    // Add demographic columns to users table
+    console.log('[MIGRATION] Adding demographic columns to users table...');
+    await db.execute(sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS household_size INTEGER`);
+    await db.execute(sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS marital_status TEXT`);
+    await db.execute(sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS occupation TEXT`);
+    await db.execute(sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS income_range TEXT`);
+    await db.execute(sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS interests JSONB DEFAULT '[]'::jsonb`);
+    console.log('[MIGRATION] Demographic columns added successfully');
+    
     // Add status column to vendors table if it doesn't exist
     await db.execute(sql`
       ALTER TABLE vendors 

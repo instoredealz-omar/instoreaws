@@ -10,13 +10,27 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, User, Save, Mail, Phone, MapPin, Camera, Upload, X, Check, Award } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Loader2, User, Save, Mail, Phone, MapPin, Camera, Upload, X, Check, Award, Users, Heart } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { indianStates, getCitiesByState } from "@/lib/cities";
 import Navbar from "@/components/ui/navbar";
 import { ImageUpload } from "@/components/ui/image-upload";
 import { updateUserProfileSchema } from "@shared/schema";
+
+const DEAL_CATEGORIES = [
+  { value: "fashion", label: "Fashion & Apparel" },
+  { value: "electronics", label: "Electronics & Gadgets" },
+  { value: "food", label: "Food & Dining" },
+  { value: "travel", label: "Travel & Tourism" },
+  { value: "home", label: "Home & Living" },
+  { value: "fitness", label: "Health & Fitness" },
+  { value: "beauty", label: "Beauty & Personal Care" },
+  { value: "entertainment", label: "Entertainment" },
+  { value: "services", label: "Services" },
+  { value: "automotive", label: "Automotive" },
+];
 
 type UpdateUserProfile = z.infer<typeof updateUserProfileSchema>;
 
@@ -35,6 +49,11 @@ interface UserData {
   membershipPlan: string;
   totalSavings: string;
   dealsClaimed: number;
+  householdSize?: number;
+  maritalStatus?: string;
+  occupation?: string;
+  incomeRange?: string;
+  interests?: string[];
 }
 
 export default function CustomerProfile() {
@@ -62,6 +81,11 @@ export default function CustomerProfile() {
       gender: undefined,
       dateOfBirth: "",
       profileImage: "",
+      householdSize: undefined,
+      maritalStatus: undefined,
+      occupation: undefined,
+      incomeRange: undefined,
+      interests: [],
     },
   });
 
@@ -83,6 +107,11 @@ export default function CustomerProfile() {
         gender: user.gender as "male" | "female" | "other" | "prefer_not_to_say" | undefined,
         dateOfBirth: formattedDate,
         profileImage: user.profileImage || "",
+        householdSize: user.householdSize || undefined,
+        maritalStatus: user.maritalStatus as "single" | "married" | "divorced" | "widowed" | "prefer_not_to_say" | undefined,
+        occupation: user.occupation as "student" | "employed" | "self_employed" | "homemaker" | "retired" | "prefer_not_to_say" | undefined,
+        incomeRange: user.incomeRange as "under_25k" | "25k_50k" | "50k_100k" | "100k_250k" | "above_250k" | "prefer_not_to_say" | undefined,
+        interests: user.interests || [],
       });
     }
   }, [user, form]);
@@ -117,7 +146,16 @@ export default function CustomerProfile() {
         if (key === 'profileImage') {
           return true; // Always include profileImage field
         }
-        return value && value.trim() !== "";
+        if (key === 'interests') {
+          return Array.isArray(value) && value.length > 0; // Include interests if not empty
+        }
+        if (key === 'householdSize') {
+          return typeof value === 'number' && value > 0; // Include householdSize if valid
+        }
+        if (typeof value === 'string') {
+          return value.trim() !== "";
+        }
+        return value !== undefined && value !== null;
       })
     );
     updateMutation.mutate(filteredData);
@@ -168,18 +206,22 @@ export default function CustomerProfile() {
           
           <CardContent>
             <Tabs defaultValue="personal" className="w-full">
-              <TabsList className="grid w-full grid-cols-3">
+              <TabsList className="grid w-full grid-cols-4">
                 <TabsTrigger value="personal" className="flex items-center gap-2">
                   <User className="h-4 w-4" />
-                  Personal Information
+                  <span className="hidden sm:inline">Personal</span>
                 </TabsTrigger>
                 <TabsTrigger value="location" className="flex items-center gap-2">
                   <MapPin className="h-4 w-4" />
-                  Location
+                  <span className="hidden sm:inline">Location</span>
+                </TabsTrigger>
+                <TabsTrigger value="demographics" className="flex items-center gap-2">
+                  <Users className="h-4 w-4" />
+                  <span className="hidden sm:inline">Demographics</span>
                 </TabsTrigger>
                 <TabsTrigger value="membership" className="flex items-center gap-2">
                   <Award className="h-4 w-4" />
-                  Membership
+                  <span className="hidden sm:inline">Membership</span>
                 </TabsTrigger>
               </TabsList>
 
@@ -419,6 +461,190 @@ export default function CustomerProfile() {
                           )}
                         />
                       </div>
+                    </div>
+                  </TabsContent>
+
+                  {/* Demographics Tab */}
+                  <TabsContent value="demographics" className="space-y-6 mt-6">
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-semibold text-foreground border-b pb-2 flex items-center gap-2">
+                        <Users className="h-5 w-5" />
+                        Demographic Information
+                      </h3>
+                      <p className="text-sm text-muted-foreground">
+                        This information helps us recommend deals that match your lifestyle. All fields are optional.
+                      </p>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <FormField
+                          control={form.control}
+                          name="householdSize"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Household Size</FormLabel>
+                              <Select 
+                                onValueChange={(value) => field.onChange(parseInt(value))} 
+                                value={field.value?.toString() || ""}
+                              >
+                                <FormControl>
+                                  <SelectTrigger data-testid="select-household-size">
+                                    <SelectValue placeholder="Select household size" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="1">1 person (Just me)</SelectItem>
+                                  <SelectItem value="2">2 people</SelectItem>
+                                  <SelectItem value="3">3 people</SelectItem>
+                                  <SelectItem value="4">4 people</SelectItem>
+                                  <SelectItem value="5">5+ people</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="maritalStatus"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Marital Status</FormLabel>
+                              <Select 
+                                onValueChange={field.onChange} 
+                                value={field.value || ""}
+                              >
+                                <FormControl>
+                                  <SelectTrigger data-testid="select-marital-status">
+                                    <SelectValue placeholder="Select marital status" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="single">Single</SelectItem>
+                                  <SelectItem value="married">Married</SelectItem>
+                                  <SelectItem value="divorced">Divorced</SelectItem>
+                                  <SelectItem value="widowed">Widowed</SelectItem>
+                                  <SelectItem value="prefer_not_to_say">Prefer not to say</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <FormField
+                          control={form.control}
+                          name="occupation"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Occupation</FormLabel>
+                              <Select 
+                                onValueChange={field.onChange} 
+                                value={field.value || ""}
+                              >
+                                <FormControl>
+                                  <SelectTrigger data-testid="select-occupation">
+                                    <SelectValue placeholder="Select occupation" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="student">Student</SelectItem>
+                                  <SelectItem value="employed">Employed</SelectItem>
+                                  <SelectItem value="self_employed">Self Employed</SelectItem>
+                                  <SelectItem value="homemaker">Homemaker</SelectItem>
+                                  <SelectItem value="retired">Retired</SelectItem>
+                                  <SelectItem value="prefer_not_to_say">Prefer not to say</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="incomeRange"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Annual Income Range</FormLabel>
+                              <Select 
+                                onValueChange={field.onChange} 
+                                value={field.value || ""}
+                              >
+                                <FormControl>
+                                  <SelectTrigger data-testid="select-income-range">
+                                    <SelectValue placeholder="Select income range" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="under_25k">Under ₹2.5 Lakhs</SelectItem>
+                                  <SelectItem value="25k_50k">₹2.5 - 5 Lakhs</SelectItem>
+                                  <SelectItem value="50k_100k">₹5 - 10 Lakhs</SelectItem>
+                                  <SelectItem value="100k_250k">₹10 - 25 Lakhs</SelectItem>
+                                  <SelectItem value="above_250k">Above ₹25 Lakhs</SelectItem>
+                                  <SelectItem value="prefer_not_to_say">Prefer not to say</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-semibold text-foreground border-b pb-2 flex items-center gap-2">
+                        <Heart className="h-5 w-5" />
+                        Deal Preferences
+                      </h3>
+                      <p className="text-sm text-muted-foreground">
+                        Select categories you're interested in to get personalized deal recommendations.
+                      </p>
+                      
+                      <FormField
+                        control={form.control}
+                        name="interests"
+                        render={({ field }) => (
+                          <FormItem>
+                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+                              {DEAL_CATEGORIES.map((category) => (
+                                <div
+                                  key={category.value}
+                                  className={`
+                                    flex items-center space-x-2 p-3 rounded-lg border cursor-pointer transition-all
+                                    ${(field.value || []).includes(category.value) 
+                                      ? 'bg-primary/10 border-primary' 
+                                      : 'bg-background border-border hover:border-primary/50'}
+                                  `}
+                                  onClick={() => {
+                                    const currentInterests = field.value || [];
+                                    const newInterests = currentInterests.includes(category.value)
+                                      ? currentInterests.filter((i: string) => i !== category.value)
+                                      : [...currentInterests, category.value];
+                                    field.onChange(newInterests);
+                                  }}
+                                  data-testid={`checkbox-interest-${category.value}`}
+                                >
+                                  <Checkbox
+                                    checked={(field.value || []).includes(category.value)}
+                                    onCheckedChange={(checked) => {
+                                      const currentInterests = field.value || [];
+                                      const newInterests = checked
+                                        ? [...currentInterests, category.value]
+                                        : currentInterests.filter((i: string) => i !== category.value);
+                                      field.onChange(newInterests);
+                                    }}
+                                  />
+                                  <span className="text-sm font-medium">{category.label}</span>
+                                </div>
+                              ))}
+                            </div>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
                     </div>
                   </TabsContent>
 

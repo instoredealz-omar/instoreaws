@@ -18,6 +18,12 @@ export const users = pgTable("users", {
   gender: text("gender"), // male, female, other, prefer_not_to_say
   dateOfBirth: timestamp("date_of_birth"), // Date of birth
   profileImage: text("profile_image"), // URL or base64 data for profile photo
+  // Demographic fields (all optional)
+  householdSize: integer("household_size"), // Number of people in household: 1, 2, 3, 4, 5+
+  maritalStatus: text("marital_status"), // single, married, divorced, widowed, prefer_not_to_say
+  occupation: text("occupation"), // student, employed, self_employed, homemaker, retired, prefer_not_to_say
+  incomeRange: text("income_range"), // under_25k, 25k_50k, 50k_100k, 100k_250k, above_250k, prefer_not_to_say
+  interests: json("interests").$type<string[]>().default([]), // Array of deal categories the user is interested in
   membershipPlan: text("membership_plan").default("basic"), // basic, premium, ultimate
   membershipExpiry: timestamp("membership_expiry"),
   isPromotionalUser: boolean("is_promotional_user").default(false),
@@ -1184,6 +1190,12 @@ export const updateUserProfileSchema = z.object({
       .optional()
   ),
   profileImage: z.string().optional(),
+  // Demographic fields (all optional)
+  householdSize: z.number().min(1).max(10).optional(),
+  maritalStatus: z.enum(["single", "married", "divorced", "widowed", "prefer_not_to_say"]).optional(),
+  occupation: z.enum(["student", "employed", "self_employed", "homemaker", "retired", "prefer_not_to_say"]).optional(),
+  incomeRange: z.enum(["under_25k", "25k_50k", "50k_100k", "100k_250k", "above_250k", "prefer_not_to_say"]).optional(),
+  interests: z.array(z.string()).optional(),
 });
 
 export const updateVendorProfileSchema = z.object({
@@ -1436,7 +1448,7 @@ export const vendorApiKeys = pgTable("vendor_api_keys", {
   lastUsedAt: timestamp("last_used_at"),
   expiresAt: timestamp("expires_at"), // Optional expiration date
   rateLimit: integer("rate_limit").default(1000), // Requests per minute
-  allowedEndpoints: text("allowed_endpoints").array().default(null), // null = all endpoints
+  allowedEndpoints: text("allowed_endpoints").array(), // null = all endpoints
   description: text("description"),
   createdAt: timestamp("created_at").defaultNow(),
   createdBy: integer("created_by").references(() => users.id),
