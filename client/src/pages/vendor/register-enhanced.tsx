@@ -61,6 +61,7 @@ const STORE_TYPES = [
   { value: "services", label: "Services" },
   { value: "automotive", label: "Automotive" },
   { value: "general", label: "General/Multi-Category" },
+  { value: "others", label: "Others" },
 ];
 
 const vendorRegistrationSchema = z.object({
@@ -74,6 +75,7 @@ const vendorRegistrationSchema = z.object({
   city: z.string().min(1, "Please select a city"),
   pincode: z.string().regex(/^[0-9]{6}$/, "Pin code must be exactly 6 digits"),
   storeType: z.string().min(1, "Please select what your store sells"),
+  customStoreType: z.string().optional(),
   hasGst: z.enum(["yes", "no"]),
   gstNumber: z.string().optional(),
   panNumber: z.string().regex(/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/, "PAN number must be in format ABCDE1234F"),
@@ -90,6 +92,14 @@ const vendorRegistrationSchema = z.object({
 }, {
   message: "GST number is required when GST registration is selected",
   path: ["gstNumber"],
+}).refine((data) => {
+  if (data.storeType === "others" && (!data.customStoreType || data.customStoreType.trim().length === 0)) {
+    return false;
+  }
+  return true;
+}, {
+  message: "Please enter your store type",
+  path: ["customStoreType"],
 });
 
 type VendorRegistrationForm = z.infer<typeof vendorRegistrationSchema>;
@@ -153,6 +163,7 @@ export default function VendorRegisterEnhanced() {
       city: user?.city || "",
       pincode: "",
       storeType: "",
+      customStoreType: "",
       hasGst: "no",
       gstNumber: "",
       panNumber: "",
@@ -279,6 +290,7 @@ export default function VendorRegisterEnhanced() {
 
   const selectedState = form.watch("state");
   const hasGst = form.watch("hasGst");
+  const selectedStoreType = form.watch("storeType");
   const availableCities = selectedState ? getCitiesByState(selectedState) : [];
   
   // Check if all required fields are filled
@@ -541,6 +553,29 @@ export default function VendorRegisterEnhanced() {
                         </FormItem>
                       )}
                     />
+                    
+                    {selectedStoreType === "others" && (
+                      <FormField
+                        control={form.control}
+                        name="customStoreType"
+                        render={({ field }) => (
+                          <FormItem className="mt-4">
+                            <FormLabel>Please Specify Your Store Type *</FormLabel>
+                            <FormControl>
+                              <Input 
+                                placeholder="Enter your specific store type or category"
+                                {...field}
+                                className="bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800"
+                              />
+                            </FormControl>
+                            <FormDescription>
+                              Please describe what your store sells or the services you provide
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    )}
                   </div>
                 </div>
 
