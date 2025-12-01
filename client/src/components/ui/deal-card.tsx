@@ -1,10 +1,31 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import NearbyDealsSection from "./nearby-deals";
-import { MapPin, Clock, Eye, Heart, ExternalLink, Shield, Star, Users, Calendar, Tag, Info, Navigation, Crown, Lock } from "lucide-react";
+import {
+  MapPin,
+  Clock,
+  Eye,
+  Heart,
+  ExternalLink,
+  Shield,
+  Star,
+  Users,
+  Calendar,
+  Tag,
+  Info,
+  Navigation,
+  Crown,
+  Lock,
+} from "lucide-react";
 import { useLocation } from "wouter";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth";
@@ -79,32 +100,36 @@ export default function DealCard({
   // Check if user can access this deal based on membership
   const canAccessDeal = () => {
     if (!user) return false;
-    
+
     // If deal requires basic membership or no specific membership, everyone can access
-    if (!requiredMembership || requiredMembership === 'basic') {
+    if (!requiredMembership || requiredMembership === "basic") {
       return true;
     }
-    
+
     const membershipLevels = { basic: 1, premium: 2, ultimate: 3 };
-    const userLevel = membershipLevels[user.membershipPlan as keyof typeof membershipLevels] || 1;
-    const requiredLevel = membershipLevels[requiredMembership as keyof typeof membershipLevels] || 1;
-    
+    const userLevel =
+      membershipLevels[user.membershipPlan as keyof typeof membershipLevels] ||
+      1;
+    const requiredLevel =
+      membershipLevels[requiredMembership as keyof typeof membershipLevels] ||
+      1;
+
     return userLevel >= requiredLevel;
   };
 
   // Get suggested upgrade tier
   const getSuggestedTier = () => {
-    if (requiredMembership === 'ultimate') return 'ultimate';
-    if (requiredMembership === 'premium') return 'premium';
+    if (requiredMembership === "ultimate") return "ultimate";
+    if (requiredMembership === "premium") return "premium";
     // Never suggest 'basic' since it's free - default to premium for any other case
-    return 'premium';
+    return "premium";
   };
 
   useEffect(() => {
     // Flash effect for high discount percentages
-    if (discountPercentage >= 40) {
+    if (discountPercentage >= 1) {
       const interval = setInterval(() => {
-        setIsFlashing(prev => !prev);
+        setIsFlashing((prev) => !prev);
       }, 1000);
       return () => clearInterval(interval);
     }
@@ -125,45 +150,47 @@ export default function DealCard({
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-IN', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric'
+    return new Date(dateString).toLocaleDateString("en-IN", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
     });
   };
 
   // Function to format subcategory display
   const formatSubcategory = (subcategoryString?: string) => {
     if (!subcategoryString) return null;
-    
+
     // Parse the subcategory format: "key:value"
-    const parts = subcategoryString.split(':');
+    const parts = subcategoryString.split(":");
     if (parts.length === 2) {
       return parts[1]; // Return just the subcategory name
     }
     return subcategoryString; // Return as-is if not in expected format
   };
 
-  const redemptionPercentage = maxRedemptions 
-    ? (currentRedemptions / maxRedemptions) * 100 
+  const redemptionPercentage = maxRedemptions
+    ? (currentRedemptions / maxRedemptions) * 100
     : 0;
 
   // Handle get directions
   const handleGetDirections = () => {
     if (!vendor) return;
-    
+
     const { businessName, city, state, address, latitude, longitude } = vendor;
-    
+
     // If we have coordinates, use them for precise location
     if (latitude && longitude) {
       const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}`;
-      window.open(mapsUrl, '_blank');
+      window.open(mapsUrl, "_blank");
     } else {
       // Fallback to address or business name + city
-      const location = address ? `${address}, ${city}, ${state}` : `${businessName}, ${city}, ${state}`;
+      const location = address
+        ? `${address}, ${city}, ${state}`
+        : `${businessName}, ${city}, ${state}`;
       const encodedLocation = encodeURIComponent(location);
       const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodedLocation}`;
-      window.open(mapsUrl, '_blank');
+      window.open(mapsUrl, "_blank");
     }
   };
 
@@ -172,12 +199,13 @@ export default function DealCard({
       {/* Image */}
       <div className="relative h-48 overflow-hidden rounded-t-lg">
         {imageUrl ? (
-          <img 
-            src={imageUrl} 
+          <img
+            src={imageUrl}
             alt={title}
             className="w-full h-full object-cover"
             onError={(e) => {
-              e.currentTarget.src = "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=400";
+              e.currentTarget.src =
+                "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&h=400";
             }}
           />
         ) : (
@@ -188,7 +216,7 @@ export default function DealCard({
             </div>
           </div>
         )}
-        
+
         {/* Favorite Button */}
         <button
           onClick={(e) => {
@@ -197,23 +225,31 @@ export default function DealCard({
           }}
           className="absolute top-2 left-2 p-1.5 rounded-full bg-card/80 backdrop-blur-sm hover:bg-card transition-all duration-200 z-10"
         >
-          <Heart 
+          <Heart
             className={`h-4 w-4 transition-colors duration-200 ${
-              isFavorite ? 'fill-red-500 text-red-500' : 'text-muted-foreground hover:text-red-500'
-            }`} 
+              isFavorite
+                ? "fill-red-500 text-red-500"
+                : "text-muted-foreground hover:text-red-500"
+            }`}
           />
         </button>
-        
+
         {/* Discount Badge */}
-        <div className={`absolute top-2 right-2 rounded-full px-3 py-1 text-xs font-bold text-white z-10 ${
-          discountPercentage >= 40 
-            ? 'animate-none' 
-            : 'bg-gradient-to-r from-orange-500 to-red-500'
-        }`}
-        style={discountPercentage >= 40 ? {
-          animation: 'flash-pulse 1s ease-in-out infinite',
-          background: 'linear-gradient(to right, hsl(24, 100%, 50%), hsl(0, 100%, 50%))',
-        } : undefined}
+        <div
+          className={`absolute top-2 right-2 rounded-full px-3 py-1 text-xs font-bold text-white z-10 ${
+            discountPercentage >= 40
+              ? "animate-none"
+              : "bg-gradient-to-r from-orange-500 to-red-500"
+          }`}
+          style={
+            discountPercentage >= 40
+              ? {
+                  animation: "flash-pulse 1s ease-in-out infinite",
+                  background:
+                    "linear-gradient(to right, hsl(24, 100%, 50%), hsl(0, 100%, 50%))",
+                }
+              : undefined
+          }
         >
           {discountPercentage}% OFF
         </div>
@@ -224,11 +260,13 @@ export default function DealCard({
           </div>
         )}
       </div>
-      
+
       {/* Deal Type Badge - Positioned outside image container */}
       <div className="absolute top-[11rem] left-2 z-20">
-        <Badge className={`${dealType === 'online' ? 'bg-blue-500 text-white' : 'bg-gray-700 text-white'} border-0 text-xs shadow-lg`}>
-          {dealType === 'online' ? '🌐 Online' : '🏪 Offline'}
+        <Badge
+          className={`${dealType === "online" ? "bg-blue-500 text-white" : "bg-gray-700 text-white"} border-0 text-xs shadow-lg`}
+        >
+          {dealType === "online" ? "🌐 Online" : "🏪 Offline"}
         </Badge>
       </div>
 
@@ -237,13 +275,15 @@ export default function DealCard({
           {/* Title and Description */}
           <div>
             <div className="flex items-start justify-between gap-2">
-              <h3 className="font-semibold text-foreground line-clamp-2 flex-1">{title}</h3>
-              {requiredMembership !== 'basic' && (
-                <Badge 
+              <h3 className="font-semibold text-foreground line-clamp-2 flex-1">
+                {title}
+              </h3>
+              {requiredMembership !== "basic" && (
+                <Badge
                   className={`text-xs ${
-                    requiredMembership === 'premium' 
-                      ? 'bg-blue-100 text-blue-800' 
-                      : 'bg-purple-100 text-purple-800'
+                    requiredMembership === "premium"
+                      ? "bg-blue-100 text-blue-800"
+                      : "bg-purple-100 text-purple-800"
                   }`}
                 >
                   <Crown className="h-3 w-3 mr-1" />
@@ -251,18 +291,20 @@ export default function DealCard({
                 </Badge>
               )}
             </div>
-            <p className="text-sm text-muted-foreground line-clamp-2 mt-1">{description}</p>
+            <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
+              {description}
+            </p>
           </div>
 
           {/* Vendor Info */}
           {vendor && (
             <div className="flex items-center text-sm text-gray-500">
               <MapPin className="h-3 w-3 mr-1" />
-              <span>{vendor.businessName}, {vendor.city}</span>
+              <span>
+                {vendor.businessName}, {vendor.city}
+              </span>
             </div>
           )}
-
-
 
           {/* Validity and Redemptions */}
           <div className="space-y-2">
@@ -270,22 +312,28 @@ export default function DealCard({
               <Clock className="h-3 w-3 mr-1" />
               <span>Valid until {formatDate(validUntil)}</span>
             </div>
-            
-
           </div>
 
           {/* Nearby Deals and Membership Requirement */}
           <div className="flex items-center justify-between">
-            <Badge className={`${membershipColors[requiredMembership as keyof typeof membershipColors]} text-xs`}>
-              {requiredMembership ? 
-                requiredMembership.charAt(0).toUpperCase() + requiredMembership.slice(1) + ' Required' : 
-                'No Membership Required'
-              }
+            <Badge
+              className={`${membershipColors[requiredMembership as keyof typeof membershipColors]} text-xs`}
+            >
+              {requiredMembership
+                ? requiredMembership.charAt(0).toUpperCase() +
+                  requiredMembership.slice(1) +
+                  " Required"
+                : "No Membership Required"}
             </Badge>
             {vendor && distance && (
               <div className="flex items-center text-xs text-gray-500">
                 <MapPin className="h-3 w-3 mr-1" />
-                <span>{distance < 1 ? `${Math.round(distance * 1000)}m` : `${distance.toFixed(1)}km`} away</span>
+                <span>
+                  {distance < 1
+                    ? `${Math.round(distance * 1000)}m`
+                    : `${distance.toFixed(1)}km`}{" "}
+                  away
+                </span>
               </div>
             )}
           </div>
@@ -297,15 +345,15 @@ export default function DealCard({
         <div className="flex gap-2 w-full">
           {user && !canAccessDeal() ? (
             // Show upgrade button for premium/ultimate deals - these can stay on the card for immediate action
-            <Button 
+            <Button
               onClick={(e) => {
                 e.stopPropagation();
-                navigate('/customer/upgrade');
+                navigate("/customer/upgrade");
               }}
               className={`flex-1 ${
-                getSuggestedTier() === 'ultimate' 
-                  ? 'bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700' 
-                  : 'bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700'
+                getSuggestedTier() === "ultimate"
+                  ? "bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700"
+                  : "bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
               }`}
               size="sm"
             >
@@ -314,11 +362,7 @@ export default function DealCard({
             </Button>
           ) : (
             // Always show View button - users can claim from the detailed view
-            <Button 
-              onClick={onView}
-              className="flex-1"
-              size="sm"
-            >
+            <Button onClick={onView} className="flex-1" size="sm">
               <ExternalLink className="h-4 w-4 mr-2" />
               View Details
             </Button>
@@ -327,7 +371,7 @@ export default function DealCard({
 
         <Dialog open={showModal} onOpenChange={setShowModal}>
           <DialogTrigger asChild>
-            <div style={{ display: 'none' }}></div>
+            <div style={{ display: "none" }}></div>
           </DialogTrigger>
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
@@ -336,13 +380,13 @@ export default function DealCard({
                 <span>{title}</span>
               </DialogTitle>
             </DialogHeader>
-            
+
             <div className="space-y-6">
               {/* Deal Image */}
               {imageUrl && (
                 <div className="relative">
-                  <img 
-                    src={imageUrl} 
+                  <img
+                    src={imageUrl}
                     alt={title}
                     className="w-full h-64 object-cover rounded-lg"
                   />
@@ -356,46 +400,58 @@ export default function DealCard({
               <div className="grid md:grid-cols-2 gap-6">
                 <div className="space-y-4">
                   <div>
-                    <h3 className="font-semibold text-foreground mb-2">Deal Details</h3>
+                    <h3 className="font-semibold text-foreground mb-2">
+                      Deal Details
+                    </h3>
                     <p className="text-gray-700">{description}</p>
                   </div>
 
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
                       <span className="text-muted-foreground">Category:</span>
-                      <Badge className={`${categoryColors[category as keyof typeof categoryColors]} border-0`}>
+                      <Badge
+                        className={`${categoryColors[category as keyof typeof categoryColors]} border-0`}
+                      >
                         {category}
                       </Badge>
                     </div>
-                    
+
                     {subcategory && formatSubcategory(subcategory) && (
                       <div className="flex items-center justify-between">
-                        <span className="text-muted-foreground">Service Type:</span>
+                        <span className="text-muted-foreground">
+                          Service Type:
+                        </span>
                         <Badge className="bg-green-100 text-green-800 border-0">
                           {formatSubcategory(subcategory)}
                         </Badge>
                       </div>
                     )}
-                    
+
                     <div className="flex items-center justify-between">
                       <span className="text-muted-foreground">Discount:</span>
-                      <span className="font-semibold text-red-600">{discountPercentage}% OFF on total bill</span>
+                      <span className="font-semibold text-red-600">
+                        {discountPercentage}% OFF on total bill
+                      </span>
                     </div>
 
-
-
                     <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground">Valid Until:</span>
-                      <span className="font-medium">{formatDate(validUntil)}</span>
+                      <span className="text-muted-foreground">
+                        Valid Until:
+                      </span>
+                      <span className="font-medium">
+                        {formatDate(validUntil)}
+                      </span>
                     </div>
 
                     <div className="flex items-center justify-between">
                       <span className="text-muted-foreground">Membership:</span>
-                      <Badge className={`${membershipColors[requiredMembership as keyof typeof membershipColors]} text-xs`}>
-                        {requiredMembership ? 
-                          requiredMembership.charAt(0).toUpperCase() + requiredMembership.slice(1) : 
-                          'None'
-                        }
+                      <Badge
+                        className={`${membershipColors[requiredMembership as keyof typeof membershipColors]} text-xs`}
+                      >
+                        {requiredMembership
+                          ? requiredMembership.charAt(0).toUpperCase() +
+                            requiredMembership.slice(1)
+                          : "None"}
                       </Badge>
                     </div>
                   </div>
@@ -405,33 +461,39 @@ export default function DealCard({
                   {/* Vendor Information */}
                   {vendor && (
                     <div>
-                      <h3 className="font-semibold text-foreground mb-2">Vendor Details</h3>
+                      <h3 className="font-semibold text-foreground mb-2">
+                        Vendor Details
+                      </h3>
                       <div className="space-y-2">
                         <div className="flex items-center space-x-2">
                           <MapPin className="h-4 w-4 text-gray-500" />
-                          <span className="font-medium">{vendor.businessName}</span>
+                          <span className="font-medium">
+                            {vendor.businessName}
+                          </span>
                         </div>
-                        <div className="text-sm text-muted-foreground">{vendor.city}, {vendor.state}</div>
+                        <div className="text-sm text-muted-foreground">
+                          {vendor.city}, {vendor.state}
+                        </div>
                         {vendor.rating && (
                           <div className="flex items-center space-x-1">
                             <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                            <span className="text-sm font-medium">{vendor.rating}/5</span>
+                            <span className="text-sm font-medium">
+                              {vendor.rating}/5
+                            </span>
                           </div>
                         )}
                         {vendor.description && (
-                          <p className="text-sm text-muted-foreground mt-2">{vendor.description}</p>
+                          <p className="text-sm text-muted-foreground mt-2">
+                            {vendor.description}
+                          </p>
                         )}
                       </div>
                     </div>
                   )}
-
-
                 </div>
               </div>
 
               <Separator />
-
-
 
               {/* Terms and Conditions */}
               {terms && (
@@ -441,7 +503,9 @@ export default function DealCard({
                     Terms & Conditions
                   </h3>
                   <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
-                    <p className="text-sm text-gray-700 dark:text-gray-300">{terms}</p>
+                    <p className="text-sm text-gray-700 dark:text-gray-300">
+                      {terms}
+                    </p>
                   </div>
                 </div>
               )}
@@ -457,7 +521,7 @@ export default function DealCard({
 
               {/* Action Buttons */}
               <div className="flex space-x-3">
-                <Button 
+                <Button
                   className="flex-1"
                   onClick={() => {
                     setShowModal(false);
@@ -467,7 +531,7 @@ export default function DealCard({
                   View Deal Details
                 </Button>
                 {vendor && (
-                  <Button 
+                  <Button
                     variant="outline"
                     onClick={(e) => {
                       e.stopPropagation();
@@ -478,21 +542,21 @@ export default function DealCard({
                     Directions
                   </Button>
                 )}
-                <Button 
+                <Button
                   variant="outline"
                   onClick={(e) => {
                     e.stopPropagation();
                     onToggleFavorite?.();
                   }}
                 >
-                  <Heart className={`h-4 w-4 ${isFavorite ? 'fill-red-500 text-red-500' : 'text-muted-foreground'}`} />
+                  <Heart
+                    className={`h-4 w-4 ${isFavorite ? "fill-red-500 text-red-500" : "text-muted-foreground"}`}
+                  />
                 </Button>
               </div>
             </div>
           </DialogContent>
         </Dialog>
-
-
       </CardFooter>
     </Card>
   );
