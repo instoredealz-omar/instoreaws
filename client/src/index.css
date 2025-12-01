@@ -67,6 +67,28 @@ body[data-non-blocking-modal-open] {
   }
 }
 
+/* Flashing animation for discount badge */
+@keyframes flash-pulse {
+  0% {
+    background: linear-gradient(to right, hsl(24, 100%, 50%), hsl(0, 100%, 50%));
+    opacity: 1;
+    box-shadow: 0 0 10px rgba(255, 69, 0, 0.6), 0 0 20px rgba(255, 0, 0, 0.4);
+    transform: scale(1);
+  }
+  50% {
+    background: hsl(0, 100%, 60%);
+    opacity: 0.7;
+    box-shadow: 0 0 20px rgba(255, 0, 0, 0.8), 0 0 30px rgba(255, 69, 0, 0.6);
+    transform: scale(1.1);
+  }
+  100% {
+    background: linear-gradient(to right, hsl(24, 100%, 50%), hsl(0, 100%, 50%));
+    opacity: 1;
+    box-shadow: 0 0 10px rgba(255, 69, 0, 0.6), 0 0 20px rgba(255, 0, 0, 0.4);
+    transform: scale(1);
+  }
+}
+
 .category-carousel:hover {
   animation-play-state: paused;
 }

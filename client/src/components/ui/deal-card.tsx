@@ -205,11 +205,16 @@ export default function DealCard({
         </button>
         
         {/* Discount Badge */}
-        <div className={`absolute top-2 right-2 rounded-full px-3 py-1 text-xs font-bold transition-all duration-300 shadow-md z-10 ${
-          isFlashing 
-            ? 'bg-red-500 text-white shadow-lg scale-110' 
-            : 'bg-gradient-to-r from-orange-500 to-red-500 text-white'
-        }`}>
+        <div className={`absolute top-2 right-2 rounded-full px-3 py-1 text-xs font-bold text-white z-10 ${
+          discountPercentage >= 40 
+            ? 'animate-none' 
+            : 'bg-gradient-to-r from-orange-500 to-red-500'
+        }`}
+        style={discountPercentage >= 40 ? {
+          animation: 'flash-pulse 1s ease-in-out infinite',
+          background: 'linear-gradient(to right, hsl(24, 100%, 50%), hsl(0, 100%, 50%))',
+        } : undefined}
+        >
           {discountPercentage}% OFF
         </div>
         {viewCount > 0 && (
