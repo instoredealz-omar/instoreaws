@@ -1758,6 +1758,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
+      // Check for duplicate PAN number
+      if (req.body.panNumber) {
+        const hasDuplicatePan = await storage.checkDuplicatePanNumber(req.body.panNumber);
+        if (hasDuplicatePan) {
+          return res.status(400).json({
+            success: false,
+            code: "DUPLICATE_PAN_NUMBER",
+            message: "This PAN number is already registered with another vendor."
+          });
+        }
+      }
+
+      // Check for duplicate phone number
+      if (req.body.contactPhone) {
+        const hasDuplicatePhone = await storage.checkDuplicatePhone(req.body.contactPhone);
+        if (hasDuplicatePhone) {
+          return res.status(400).json({
+            success: false,
+            code: "DUPLICATE_PHONE_NUMBER",
+            message: "This mobile number is already registered with another vendor."
+          });
+        }
+      }
+
+      // Check for duplicate GST number
+      if (req.body.gstNumber) {
+        const hasDuplicateGst = await storage.checkDuplicateGstNumber(req.body.gstNumber);
+        if (hasDuplicateGst) {
+          return res.status(400).json({
+            success: false,
+            code: "DUPLICATE_GST_NUMBER",
+            message: "This GST number is already registered with another vendor."
+          });
+        }
+      }
+
       // If user is not already a vendor, upgrade their role
       if (user.role !== 'vendor') {
         await storage.updateUser(user.id, { role: 'vendor' });

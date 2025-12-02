@@ -72,6 +72,9 @@ export interface IStorage {
   approveVendor(id: number): Promise<Vendor | undefined>;
   rejectVendor(id: number, reviewedBy: number, notes?: string): Promise<Vendor | undefined>;
   getVendorApprovals(vendorId: number): Promise<VendorApproval[]>;
+  checkDuplicatePanNumber(panNumber: string): Promise<boolean>;
+  checkDuplicatePhone(phone: string): Promise<boolean>;
+  checkDuplicateGstNumber(gstNumber: string): Promise<boolean>;
 
   // Deal operations
   getDeal(id: number): Promise<Deal | undefined>;
@@ -975,6 +978,19 @@ export class MemStorage implements IStorage {
   async getAllVendors(): Promise<Vendor[]> {
     return Array.from(this.vendors.values())
       .sort((a, b) => new Date(b.createdAt || Date.now()).getTime() - new Date(a.createdAt || Date.now()).getTime());
+  }
+
+  async checkDuplicatePanNumber(panNumber: string): Promise<boolean> {
+    return Array.from(this.vendors.values()).some(vendor => vendor.panNumber === panNumber);
+  }
+
+  async checkDuplicatePhone(phone: string): Promise<boolean> {
+    return Array.from(this.vendors.values()).some(vendor => vendor.contactPhone === phone);
+  }
+
+  async checkDuplicateGstNumber(gstNumber: string): Promise<boolean> {
+    if (!gstNumber) return false;
+    return Array.from(this.vendors.values()).some(vendor => vendor.gstNumber === gstNumber);
   }
 
   async getPendingVendors(): Promise<Vendor[]> {
