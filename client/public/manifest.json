@@ -1,0 +1,22 @@
+{
+  "name": "Instoredealz - Local Deals Platform",
+  "short_name": "Instoredealz",
+  "description": "Discover amazing deals from local businesses near you",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3b82f6",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "categories": ["shopping", "lifestyle", "business"],
+  "icons": [
+    {
+      "src": "/vite.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "screenshots": [],
+  "prefer_related_applications": false
+}

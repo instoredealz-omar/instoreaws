@@ -7,6 +7,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/theme-provider";
 import { useAuth } from "./lib/auth";
 import { ScrollToTop } from "@/components/scroll-to-top";
+import MobileBottomNav from "@/components/ui/mobile-bottom-nav";
 
 // Import pages
 import Home from "@/pages/shared/home";
@@ -638,7 +639,10 @@ function App() {
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           <ScrollToTop />
-          <Router />
+          <div className="pb-16 md:pb-0">
+            <Router />
+          </div>
+          <MobileBottomNav />
           <Toaster />
         </TooltipProvider>
       </QueryClientProvider>
